@@ -38,12 +38,12 @@ bool calc_models_t::jiang_t::calc()
 	// TODO: what if concentration or depth is already set for some clusters? --> Irel nicht immer berechenbar?
 	cout << measurement_group_priv.name()  << ":\ttrying to apply Jiangs protocol...";
 	calc_history.push_back("jiang_t\t" + measurement_group_priv.name());
-// 	measurement_group_t MG = measurement_group_p;
-// 	measurement_group_priv = &MG;
+
+	/*calc fit parameters*/
 	map<double,double> data_XY;
-	
 	if (SRs_to_Crel().first.is_set() && SRs_to_Crel().second.is_set())
 	{
+		data_XY.clear();
 		tools::vec::combine_vecs_to_map(SRs_to_Crel().second.data,SRs_to_Crel().first.data,&data_XY);
 		if (data_XY.size()>1) SR_to_Crel_polyfit.fit(data_XY,1);
 	}
@@ -64,12 +64,11 @@ bool calc_models_t::jiang_t::calc()
 			tools::vec::combine_vecs_to_map(RSFs_to_Crel.second.second.data,RSFs_to_Crel.second.first.data,&data_XY);
 			if (data_XY.size()>1) 
 			{
-				clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,1);
+				clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,RSFs_to_Crel.first.size()-1);
 				
 			}
 		}
 	}
-	
 	
 	if (!CRel_to_Irel_polyfit.fitted()) 
 	{
@@ -77,6 +76,7 @@ bool calc_models_t::jiang_t::calc()
 		cout << "failed" << endl;
 		return false;
 	}
+	
 	/*apply fit parameters to all measurements*/
 	for (auto& measurement:measurement_group_priv.measurements)
 	{
@@ -150,6 +150,7 @@ bool calc_models_t::jiang_t::calc()
 		
 	}
 	else cout << "SUCCESS!" << endl;
+	calc_history.push_back("jiang_t\t" + measurement_group_priv.name() +"\tstop - SUCCESS");
 	error_p = false;
 	return true;
 }

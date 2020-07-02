@@ -23,15 +23,10 @@
 #include "cluster_t.hpp"
 #include "fit_functions.hpp"
 #include "measurement_group_t.hpp"
-// 
-// using namespace std;
-// /*
-//  * calss for advanced physical-mathematical models for complex calculation of absolte or relative concentration 
-//  * from given parameter models
-//  * 
-//  */
-// 
 
+/*
+ * class for advanced physical-mathematical models for more complex calculation
+ */
 
 using namespace std;
 

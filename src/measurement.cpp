@@ -148,9 +148,9 @@ std::__cxx11::string measurement_t::tool_name()
 {
 	return tool_name_p;
 }
-std::__cxx11::string measurement_t::repition()
+std::__cxx11::string measurement_t::repetition()
 {
-	return filename_p->repition;
+	return filename_p->repetition;
 }
 
 void measurement_t::to_screen(string prefix) 
@@ -375,7 +375,7 @@ bool measurement_t::operator==(const measurement_t& measurement)
 	if (conf.measurement_definition_chip && filename_p->chip_x!=measurement.filename_p->chip_x) return false;
 	if (conf.measurement_definition_chip && filename_p->chip_y!=measurement.filename_p->chip_y) return false;
 	if (conf.measurement_definition_groupid && filename_p->group!=measurement.filename_p->group) return false;
-	if (conf.measurement_definition_repition && filename_p->repition!=measurement.filename_p->repition) return false;
+	if (conf.measurement_definition_repetition && filename_p->repetition!=measurement.filename_p->repetition) return false;
 	
 	
 	if ((filename_p->lot=="" && measurement.filename_p->lot=="") || (filename_p->wafer==-1 && measurement.filename_p->wafer==-1) )

@@ -37,13 +37,15 @@ private:
 	
 protected:
 	measurement_t *measurement;
-	void check_replacements(string& check_this);
+	void check_placeholders(string& check_this);
+	static void check_replacements(string& check_this);
 	string filename(string filename=conf.export_filename, string file_ending="_CLAUS.txt");
 	string root_directory(string directory=conf.export_location);
 	string olcdb();
 	string lot();
 	string wafer();
 	string group();
+	string repetition();
 	string lot_split();
 	string chip();
 	string monitor();
@@ -101,6 +103,7 @@ private:
 		column_t(string longname, quantity_t quantity, string suffix="");
 		column_t(vector<string> data_p, string longname_p, string unit_p, string comment_p);
 	};
+	static void apply_origin_replacements_on_string(string& replace_this);
 	vector<column_t> format_measurement_cluster_columns();
 	vector<column_t> format_calc_result_columns();
 	vector<column_t> format_jiang_parameters_columns();

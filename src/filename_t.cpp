@@ -187,7 +187,7 @@ bool filename_t::parse_group(string filename_part)
 	if (regex_search(filename_part,match,reg)) 
 	{
 		group = tools::str::str_to_int(match[1]);
-		repition = match[2];
+		repetition = match[2];
 		return true;
 	}
 	regex reg1 ("^g-?*([0-9]+?)([a-z]*?)$"); 
@@ -196,7 +196,7 @@ bool filename_t::parse_group(string filename_part)
 	if (regex_search(filename_part,match,reg1) || regex_search(filename_part,match,reg2) /*|| regex_search(filename_part,match,reg3)*/) 
 	{
 		group = tools::str::str_to_int(match[1]);
-		repition = match[2];
+		repetition = match[2];
 		return true;
 	}
 	return false;
@@ -239,7 +239,7 @@ void filename_t::to_screen(string prefix)
 
 	cout << prefix<< "olcdb=\t"<< olcdb<<endl;
 	cout << prefix<< "group=\t"<< group<<endl;
-	cout << prefix<< "repition=\t"<< repition<<endl;
+	cout << prefix<< "repetition=\t"<< repetition<<endl;
 	
 	cout << prefix<< "polarity=\t"<< polarity<<endl;
 	cout << prefix<< "sputter_element=\t"<< sputter_element<<endl;

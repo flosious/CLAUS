@@ -92,7 +92,7 @@ int config_t::parse(vector<string> config_lines) {
         else if (key=="calc_location") save_calc_location(value);
         else if (key=="export_location" || key=="export_directory") save_export_location(value);
 		else if (key=="export_filename") export_filename=value;
-        else if (key=="matrix_isotopes") save_matrix_isotopes(value);
+//         else if (key=="matrix_isotopes") save_matrix_isotopes(value);
 //         else if (key=="output_format") save_output_format(string_parts);
         else if (key=="replace" || key=="replacements") save_replacements(string_parts);
 //         else if (key=="measurement_file_types") save_measurement_file_types(value);
@@ -153,10 +153,10 @@ void config_t::save_export_location(string value)
 {
     export_location = value;
 }
-void config_t::save_matrix_isotopes(string value) 
-{
-    matrix_isotopes = tools::str::get_strings_between_delimiter(value,",");
-}
+// void config_t::save_matrix_isotopes(string value) 
+// {
+//     matrix_isotopes = tools::str::get_strings_between_delimiter(value,",");
+// }
 void config_t::save_replacements(vector<string> values) 
 {
     // replace [ "THIS" ] = "WITH";
@@ -205,7 +205,7 @@ void config_t::save_measurement_definition(string value)
 	measurement_definition_monitor=false;
 	measurement_definition_chip=false;
 	measurement_definition_groupid=false;
-	measurement_definition_repition=false;
+	measurement_definition_repetition=false;
 	
 	for (auto& definition:definitions)
 	{
@@ -216,6 +216,6 @@ void config_t::save_measurement_definition(string value)
 		else if (definition=="monitor") measurement_definition_monitor=true;
 		else if (definition=="chip") measurement_definition_chip=true;
 		else if (definition=="groupid" || definition=="group") measurement_definition_groupid=true;
-		else if (definition=="repition") measurement_definition_repition=true;
+		else if (definition=="repetition") measurement_definition_repetition=true;
 	}
 }

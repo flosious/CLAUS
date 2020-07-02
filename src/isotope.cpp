@@ -60,7 +60,7 @@ isotope_t::isotope_t()
 isotope_t::isotope_t ( std::__cxx11::string name_to_parse )
 {
 // 	cout << "name_to_parse=" << name_to_parse << endl;
-	smatch match;; 
+	smatch match;
 	if (regex_search(name_to_parse,match,regex("^([0-9]{0,3})([a-zA-Z]{1,3})([0-9]*)"))) 
 	{
 		if (match[1]!="") nucleons = tools::str::str_to_int(match[1]);

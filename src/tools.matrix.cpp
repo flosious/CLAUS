@@ -114,10 +114,13 @@ vector<double> tools::mat::str_vec_to_double_vec(vector<string> vec_string) {
 }
 
 vector<string> tools::mat::double_vec_to_str_vec(vector<double> vec_double) {
-    vector<string> vec_ld;
-	vec_ld.clear();
-    for (int j=0;j<vec_double.size();j++) {
-		vec_ld.push_back(to_string(vec_double[j]));
+    vector<string> vec_ld(vec_double.size());
+// 	vec_ld.clear();
+    for (int j=0;j<vec_double.size();j++) 
+	{
+// 		if (gsl_isnan(vec_double[j]==1)) vec_ld[j] = "";
+// 		else vec_ld[j]=(to_string(vec_double[j]));
+		vec_ld[j]=(to_string(vec_double[j]));
 	}
     return vec_ld;
 }

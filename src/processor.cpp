@@ -30,6 +30,7 @@ processor::processor(vector<string> arg_list)
 	
     // save args
     args = arg_list;
+	cout << "input files:" << endl;
 	print(args);
     // load configs
     if (conf.load(args)==0) cout << "processor::processor conf.load(args)==0" << endl;

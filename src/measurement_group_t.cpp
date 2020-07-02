@@ -52,6 +52,7 @@ measurement_group_t::measurement_group_t(measurement_t* measurement_p)
 {
 	tool_name_p = measurement_p->tool_name();
 	group_p = measurement_p->filename_p->group;
+// 	cout << "group_p = " << group_p <<endl;
 	olcdb_p = measurement_p->filename_p->olcdb;
 	settings_p = measurement_p->settings;
 	measurements.push_back(measurement_p);

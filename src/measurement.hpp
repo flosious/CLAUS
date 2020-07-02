@@ -92,7 +92,7 @@ public:
 	/// stop of measurement
 	string date_time_stop;
 	/// if the measurement was repeated: "q,w,e,r,t,z,....,qq,qw,....,eq,..." behind the group, see filename_t for detailed definition
-	string repition();
+	string repetition();
 	/// e.g. crater measurements from dektak32 are secondary measurements and will be added to non-secondary measurements
 	bool is_secondary();
 	/// true if this measurement can be used as reference

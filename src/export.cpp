@@ -22,12 +22,20 @@
 #define WAFER_DEFAULT "wafer-unkown"
 #define OLCDB_DEFAULT "olcdbid-unkown"
 #define GROUP_DEFAULT "group-unkown"
+#define repetition_DEFAULT ""
 #define TOOL_NAME_DEFAULT "tool_name-unkown"
 #define MONITOR_DEFAULT ""
 #define CHIP_DEFAULT ""
 #define LOT_SPLIT_DEFAULT ""
 #define ENERGY_DEFAULT ""
 
+/*
+ *
+ * 
+ * EXPORT!!!2!!!_T
+ *
+ *
+ */
 void export2_t::export_contents_to_file(vector<std::__cxx11::string> contents, string filename_p, measurement_group_t MG, string sub_directory)
 {
 	if (contents.size()==0) return;
@@ -79,8 +87,15 @@ std::__cxx11::string export2_t::chip()
 
 std::__cxx11::string export2_t::group()
 {
-	if (measurement->filename_p->group>-1) return "g"+to_string(measurement->filename_p->group)+measurement->filename_p->repition;
+// 	if (measurement->filename_p->group>-1) return "g"+to_string(measurement->filename_p->group)+measurement->filename_p->repetition;
+	if (measurement->filename_p->group>-1) return "g"+to_string(measurement->filename_p->group);
 	return GROUP_DEFAULT;
+}
+
+std::__cxx11::string export2_t::repetition()
+{
+	if (measurement->filename_p->repetition!="") return measurement->filename_p->repetition;
+	return repetition_DEFAULT;
 }
 
 std::__cxx11::string export2_t::lot()
@@ -117,11 +132,20 @@ std::__cxx11::string export2_t::wafer()
 std::__cxx11::string export2_t::energy()
 {
 	if (measurement->settings.sputter_energy().is_set()) 
-		return to_string((int)(measurement->settings.sputter_energy().data[0]))+measurement->settings.sputter_energy().unit+measurement->settings.sputter_element();
+		return to_string((int)(measurement->settings.sputter_energy().data[0]))+measurement->settings.sputter_energy().unit+measurement->settings.sputter_element()+measurement->settings.polarity();
 	return ENERGY_DEFAULT;
 }
 
 void export2_t::check_replacements(std::__cxx11::string& check_this)
+{
+	for (auto& replacement:conf.replacements)
+	{
+		tools::str::replace_chars(&check_this,replacement.first,replacement.second);
+	}
+}
+
+
+void export2_t::check_placeholders(std::__cxx11::string& check_this)
 {
 	vector <string> placeholders = tools::str::get_all_string_between_string_A_and_next_B(&check_this,"{","}");
 	for (string placeholder:placeholders)
@@ -136,6 +160,7 @@ void export2_t::check_replacements(std::__cxx11::string& check_this)
 		else if (placeholder=="monitorid" || placeholder=="monitor") tools::str::replace_chars(&check_this,"{"+placeholder+"}",monitor());
 		else if (placeholder=="toolid" || placeholder=="tool" || placeholder=="tool_name") tools::str::replace_chars(&check_this,"{"+placeholder+"}",tool_name());
 		else if (placeholder=="energy") tools::str::replace_chars(&check_this,"{"+placeholder+"}",energy());
+		else if (placeholder=="repetition") tools::str::replace_chars(&check_this,"{"+placeholder+"}",repetition());
 	}
 }
 
@@ -144,7 +169,7 @@ std::__cxx11::string export2_t::root_directory(string directory)
 // 	string directory;
 	if (directory!="") 
 	{
-		check_replacements(directory);
+		check_placeholders(directory);
 	}
 	else directory = measurement->filename_p->directory();
 	directory = tools::file::check_directory_string(directory);
@@ -154,27 +179,40 @@ std::__cxx11::string export2_t::root_directory(string directory)
 
 std::__cxx11::string export2_t::filename(string filename, string file_ending)
 {
-	if (filename != "" && lot()!="" && wafer()!="") check_replacements(filename);
+	if (filename != "" && lot()!=LOT_DEFAULT && wafer()!=WAFER_DEFAULT) check_placeholders(filename);
 	else
 	{
 		filename = olcdb();
-		if (lot()!="") filename += "_" + lot();
-		if (wafer()!="") filename += "_" + wafer();
-		if (chip()!="") filename += "_" + chip();
-		if (monitor()!="") filename += "_" + monitor();
-		if (group()!="") filename += "_" + group();
+		if (lot()!=LOT_DEFAULT) filename += "_" + lot();
+		if (wafer()!=WAFER_DEFAULT) filename += "_" + wafer();
+		if (chip()!=CHIP_DEFAULT) filename += "_" + chip();
+		if (monitor()!=MONITOR_DEFAULT) filename += "_" + monitor();
+		if (group()!=GROUP_DEFAULT) filename += "_" + group();
+		if (group()!=GROUP_DEFAULT &&repetition()!=repetition_DEFAULT) filename += repetition();
 	
-		if (lot()==""||wafer()==""||group()=="") filename = measurement->filename_p->filename_without_crater_depths();
-		if (measurement->tool_name()!="" && measurement->tool_name()!="NULL") filename+="."+measurement->tool_name();
+		if (lot()==LOT_DEFAULT||wafer()==WAFER_DEFAULT||group()==GROUP_DEFAULT) filename = measurement->filename_p->filename_without_crater_depths();
+		if (measurement->tool_name()!=TOOL_NAME_DEFAULT && measurement->tool_name()!="NULL") filename+="."+measurement->tool_name();
 		filename+=file_ending;
 	}
-	tools::str::replace_chars(&filename,"__","_");
-	tools::str::replace_chars(&filename,"__","_");
-	tools::str::replace_chars(&filename,"__","_");
+	for (int i=0;i<4;i++)
+		tools::str::replace_chars(&filename,"__","_");
 	return filename;
 }
 
-/*EXPORT!!!2!!!_T*/
+
+/*
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
 
 
 
@@ -207,7 +245,7 @@ bool export_t::format_id()
 	if (measurement->filename_p->olcdb>-1) olcdb = to_string(measurement->filename_p->olcdb);
 	if (measurement->filename_p->wafer>-1) wafer = "w0"+to_string(measurement->filename_p->wafer);
 	if (measurement->filename_p->wafer>9) wafer = "w"+to_string(measurement->filename_p->wafer);
-	if (measurement->filename_p->group>-1) group = "g"+to_string(measurement->filename_p->group)+measurement->filename_p->repition;
+	if (measurement->filename_p->group>-1) group = "g"+to_string(measurement->filename_p->group)+measurement->filename_p->repetition;
 	if (measurement->filename_p->lot!="") lot = measurement->filename_p->lot;
 	if (measurement->filename_p->lot_split!="") lot_split = measurement->filename_p->lot_split;
 	if (measurement->filename_p->chip_x>-1) 
@@ -376,6 +414,18 @@ bool export_t::Ipr_global(list<measurement_t> *measurements)
 ////////////// ORIGIN ///////////////////
 /////////////////////////////////////////
 
+void origin_t::apply_origin_replacements_on_string(std::__cxx11::string& replace_this)
+{
+	smatch match;
+	string placeholder;
+	string replacement;
+	while (regex_search(replace_this,match,regex("\\^([0-9])"))) 
+	{
+		placeholder = "^"+string(match[1]);
+		replacement = "\\+("+string(match[1])+")";
+		tools::str::replace_chars(&replace_this,placeholder,replacement);
+	}
+}
 
 
 string origin_t::suffix()
@@ -386,11 +436,18 @@ string origin_t::suffix()
 	if (chip()!=CHIP_DEFAULT) suffix += "_" + chip();
 	if (monitor()!=MONITOR_DEFAULT) suffix += "_" + monitor();
 	// special sample names (not IHP compliant) have no lot or wafer
-	if (lot()==LOT_DEFAULT||wafer()==WAFER_DEFAULT||group()==GROUP_DEFAULT) 
+	if (lot()==LOT_DEFAULT && wafer()==WAFER_DEFAULT) 
 	{
 		if (measurement->filename_p->not_parseable_filename_parts.size()==0) suffix = "_"+measurement->filename_p->filename_without_crater_depths();
 		else suffix = "_"+tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
 	}
+	else if (measurement->filename_p->not_parseable_filename_parts.size()!=0) 
+		suffix += "_"+tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
+// 	if ((lot()==LOT_DEFAULT && wafer()==WAFER_DEFAULT)) 
+// 	{
+// 		if (measurement->filename_p->not_parseable_filename_parts.size()==0) suffix = "_"+measurement->filename_p->filename_without_crater_depths();
+// 		else suffix = "_"+tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
+// 	}
 	suffix.erase(suffix.begin());
 	return suffix;
 }
@@ -461,6 +518,7 @@ origin_t::column_t::column_t(cluster_t* cluster, quantity_t* quantity, string su
 		for (int ii=0; ii<isotopes->size();ii++)
 		{
 			isotope_t isotope=isotopes->at(ii);
+			/*if cluster is matrix isotope/element, check if nucleons in set -> not possible, just have clusters ...*/
 			name+="\\+("+to_string(isotope.nucleons)+")"+isotope.symbol;
 			if (isotope.atoms>1) name+=to_string(isotope.atoms);
 			if (ii!=isotopes->size()-1) name+=" ";
@@ -478,6 +536,9 @@ vector<string> origin_t::column_t::vec()
 {
 	vector<string> vector;
 	if (!populated) return vector;
+	apply_origin_replacements_on_string(longname);
+	apply_origin_replacements_on_string(unit);
+	apply_origin_replacements_on_string(comment);
 	vector={longname,unit,comment};
 	tools::vec::add(&vector,data);
 	return vector;
@@ -498,8 +559,9 @@ vector<vector<string>> origin_t::cols_to_matrix(vector<column_t>& columns)
 bool origin_t::write_to_file(vector<column_t> columns, string directory_p, string filename_p)
 {
 	vector<vector<string>> output_matrix = cols_to_matrix(columns);
-	
 	string output=tools::mat::format_matrix_to_string(&output_matrix,"\n",conf.data_column_delimiter);
+// 	apply_origin_replacements_on_string(output);
+	check_replacements(output);
 	if (directory_p=="") return false;
 	directory_p = tools::file::check_directory_string(directory_p);
 	if (filename_p=="") return false;
@@ -558,42 +620,82 @@ void origin_t::export_MG_parameters_to_file(measurement_group_t& MG_p)
 	for (auto& measurement: MG_p.measurements)
 	{
 		origin_t origin (measurement);
-// 		origin.write_to_file(origin.format_measurement_cluster_columns(),origin.root_directory(conf.export_location),origin.filename(conf.export_filename));
 		root_directories.insert(origin.root_directory(conf.export_location));
 	}
 	
 	vector<string> filenames;
+	
+	/*this can be wrong, when measurements are missing some values!*/
 	map<string,quantity_t> clustername_to_RSF;
 	quantity_t SRs;
 	for (auto& M:MG_p.measurements)
 	{
-		if (M->crater.sputter_rate().is_set())
+		if (!SRs.is_set() && M->crater.sputter_rate().is_set())
 		{
-			if (!SRs.is_set())
-				SRs=M->crater.sputter_rate();
-			else
-				SRs=SRs.add_to_data(M->crater.sputter_rate());
+			SRs.dimension=M->crater.sputter_rate().dimension;
+			SRs.unit=M->crater.sputter_rate().unit;
+			SRs.name=M->crater.sputter_rate().name;
+			SRs.data.push_back(M->crater.sputter_rate().data[0]);
 		}
+		else if (M->crater.sputter_rate().is_set())
+		{
+			SRs.data.push_back(M->crater.sputter_rate().data[0]);
+		}
+		else SRs.data.push_back(-1);
 		filenames.push_back(M->filename_p->filename_with_path());
+	}
+	
+	for (auto& M:MG_p.measurements)
+	{
+		/*clusters*/
 		for (auto& cluster:M->clusters)
 		{
+			if (clustername_to_RSF.find(cluster.second.name())!=clustername_to_RSF.end()) continue;
 			if (cluster.second.RSF().is_set())
 			{
-				if (clustername_to_RSF.find(cluster.second.name())==clustername_to_RSF.end())
-					clustername_to_RSF[cluster.second.name()]=cluster.second.RSF();
-				else
-					clustername_to_RSF[cluster.second.name()] = clustername_to_RSF[cluster.second.name()].add_to_data(cluster.second.RSF());
+				clustername_to_RSF[cluster.second.name()] = cluster.second.RSF();
+				clustername_to_RSF[cluster.second.name()].data.clear();
+				for (auto& M2:MG_p.measurements)
+				{
+					for (auto& C2:M2->clusters)
+					{
+						if (cluster.second.name() == C2.second.name())
+						{
+							if (C2.second.RSF().is_set())
+								clustername_to_RSF[cluster.second.name()].data.push_back(C2.second.RSF().data[0]);
+							else
+								clustername_to_RSF[cluster.second.name()].data.push_back(-1);
+						}		
+					}
+				}
 			}
 		}
 	}
 	
 	if (!SRs.is_set() && clustername_to_RSF.size()==0) return;
-	
 	vector<column_t> cols;
 	cols.push_back(column_t(filenames,"filenames","",""));
-	cols.push_back(column_t(SRs));
+	
+	vector<string> SRs_data(SRs.data.size());
+	for (int i=0;i<SRs_data.size();i++)
+	{
+		if (SRs.data[i]<0) SRs_data[i]="";
+		else SRs_data[i] = to_string(SRs.data[i]);
+	}
+	cols.push_back(column_t(SRs_data,SRs.name,SRs.unit,""));
+	
 	for (auto& RSFs:clustername_to_RSF)
-		cols.push_back(column_t("RSF "+RSFs.first,RSFs.second));
+	{
+		vector<string> RSF_data(RSFs.second.data.size());
+		for (int i=0;i<RSF_data.size();i++)
+		{
+			if (RSFs.second.data[i]<0) RSF_data[i]="";
+			else RSF_data[i] = to_string(RSFs.second.data[i]);
+		}
+// 		cols.push_back(column_t("RSF "+RSFs.first,RSFs.second));
+		cols.push_back(column_t(RSF_data,"RSF "+RSFs.first,RSFs.second.unit,""));
+	}
+	
 	
 	for (auto& dir:root_directories)
 		write_to_file(cols,dir+conf.calc_location,"MG-parameters.txt");
@@ -623,7 +725,7 @@ void origin_t::export_jiang_parameters_to_file(calc_models_t::jiang_t& jiang)
 		cols.push_back(column_t(longname,jiang.Crel_to_Irel().second));
 		cols.push_back(column_t(longnameC,jiang.Crel_to_Irel().first));
 		fit=jiang.Crel_to_Irel().first;
-		longname = "fitted I("+jiang.counter_matrix_isotope().symbol +") / I(" + jiang.denominator_matrix_isotope().symbol+")";
+		longname = "fitted C["+jiang.counter_matrix_isotope().symbol +"] / C[" + jiang.denominator_matrix_isotope().symbol+"]";
 		fit.data = jiang.CRel_to_Irel_polyfit.fitted_y_data(jiang.Crel_to_Irel().second.data);
 		cols.push_back(column_t(longname,fit));
 	

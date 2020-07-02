@@ -24,6 +24,7 @@
 #include <iostream>
 #include "tools.hpp"
 #include "print.hpp"
+// #include "globalvars.hpp"
 
 using namespace std;
 
@@ -141,7 +142,7 @@ public:
     string results_location="results";
     ///directory name of calculation; no output when empty
     string calc_location="";
-    ///directory name of exports; no output when empty
+    ///directory name of exports; output to measurement directory, when empty
     string export_location="";
 	
 	/*definitions*/
@@ -157,7 +158,7 @@ public:
 	bool measurement_definition_monitor=true;
 	bool measurement_definition_chip=true;
 	bool measurement_definition_groupid=true;
-	bool measurement_definition_repition=true;
+	bool measurement_definition_repetition=true;
 	
 	// könnte man als schnittstelle für eine Skriptsprache in der config nehmen: "median(concentration) + 
 	bool export_type_sputter_time	=false;
@@ -169,7 +170,7 @@ public:
     
     /*calculation*/
     ///not used at the moment; these isotopes/cluster (or any combination of them) describe the matrix
-    vector<string> matrix_isotopes {"70Ge","72Ge","73Ge","74Ge","28Si","29Si","30Si"};
+//     vector<string> matrix_isotopes {"70Ge","72Ge","73Ge","74Ge","28Si","29Si","30Si"};
     
     double sputter_time_resolution=0;
 	double depth_resolution=0;

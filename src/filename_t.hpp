@@ -64,7 +64,7 @@ public:
 	string lot="";
 	string lot_split="";
 	string monitor="";
-	string repition="";
+	string repetition="";
 	
 	int wafer=-1;
 	int group=-1;

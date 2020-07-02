@@ -16,7 +16,7 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "sample_t.hpp"
-
+#include "globalvars.hpp"
 #define TABLENAME_everything "everything"
 #define TABLENAME_samples "samples"
 #define TABLENAME_sample_implants "sample_implants"

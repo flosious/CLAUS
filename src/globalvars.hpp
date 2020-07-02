@@ -19,7 +19,13 @@
 #define GLOBALVARS_HPP
 
 #include <vector>
+#include "config.hpp"
+#include "database_t.hpp"
 
+// singletons
+// extern pse_t PSE;
+// extern config_t conf;
+// extern database_t db;
 extern vector<string> calc_history;
 
 #endif // GLOBALVARS

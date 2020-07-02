@@ -9,6 +9,7 @@
 #include "config.hpp"
 #include "print.hpp"
 #include <vector>
+#include "globalvars.hpp"
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
     #define PATH_DELIMITER string("\\")

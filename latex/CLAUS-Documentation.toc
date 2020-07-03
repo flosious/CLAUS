@@ -1,0 +1,32 @@
+\babel@toc {english}{}
+\contentsline {section}{\numberline {1}Introduction}{3}{section.1}% 
+\contentsline {section}{\numberline {2}Version}{3}{section.2}% 
+\contentsline {section}{\numberline {3}Motivation}{3}{section.3}% 
+\contentsline {section}{\numberline {4}Definitions}{3}{section.4}% 
+\contentsline {section}{\numberline {5}Functionalities}{4}{section.5}% 
+\contentsline {subsection}{\numberline {5.1}file name parsing}{4}{subsection.5.1}% 
+\contentsline {subsubsection}{\numberline {5.1.1}Example 1}{5}{subsubsection.5.1.1}% 
+\contentsline {subsubsection}{\numberline {5.1.2}Example 2}{5}{subsubsection.5.1.2}% 
+\contentsline {subsubsection}{\numberline {5.1.3}Example 3}{6}{subsubsection.5.1.3}% 
+\contentsline {subsection}{\numberline {5.2}file filtering}{6}{subsection.5.2}% 
+\contentsline {subsection}{\numberline {5.3}file content parsing}{6}{subsection.5.3}% 
+\contentsline {subsection}{\numberline {5.4}calculation}{7}{subsection.5.4}% 
+\contentsline {subsection}{\numberline {5.5}database}{7}{subsection.5.5}% 
+\contentsline {subsection}{\numberline {5.6}export}{7}{subsection.5.6}% 
+\contentsline {subsection}{\numberline {5.7}plotting}{7}{subsection.5.7}% 
+\contentsline {section}{\numberline {6}calculation methods}{7}{section.6}% 
+\contentsline {subsection}{\numberline {6.1}sputter depth}{7}{subsection.6.1}% 
+\contentsline {subsection}{\numberline {6.2}total sputter depth}{7}{subsection.6.2}% 
+\contentsline {subsection}{\numberline {6.3}sputter rate}{7}{subsection.6.3}% 
+\contentsline {subsection}{\numberline {6.4}RSF}{7}{subsection.6.4}% 
+\contentsline {subsection}{\numberline {6.5}SF}{8}{subsection.6.5}% 
+\contentsline {subsection}{\numberline {6.6}concentration}{8}{subsection.6.6}% 
+\contentsline {subsection}{\numberline {6.7}reference intensity}{8}{subsection.6.7}% 
+\contentsline {subsection}{\numberline {6.8}equilibrium position}{8}{subsection.6.8}% 
+\contentsline {subsection}{\numberline {6.9}jiangs protocol}{8}{subsection.6.9}% 
+\contentsline {subsection}{\numberline {6.10}planned}{8}{subsection.6.10}% 
+\contentsline {section}{\numberline {7}How to use CLAUS?}{8}{section.7}% 
+\contentsline {section}{\numberline {8}config file parameters}{9}{section.8}% 
+\contentsline {section}{\numberline {9}external libraries}{9}{section.9}% 
+\contentsline {section}{\numberline {10}license}{9}{section.10}% 
+\contentsline {section}{\numberline {11}History}{9}{section.11}% 

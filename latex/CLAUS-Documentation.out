@@ -1,0 +1,31 @@
+\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
+\BOOKMARK [1][-]{section.2}{Version}{}% 2
+\BOOKMARK [1][-]{section.3}{Motivation}{}% 3
+\BOOKMARK [1][-]{section.4}{Definitions}{}% 4
+\BOOKMARK [1][-]{section.5}{Functionalities}{}% 5
+\BOOKMARK [2][-]{subsection.5.1}{file name parsing}{section.5}% 6
+\BOOKMARK [3][-]{subsubsection.5.1.1}{Example 1}{subsection.5.1}% 7
+\BOOKMARK [3][-]{subsubsection.5.1.2}{Example 2}{subsection.5.1}% 8
+\BOOKMARK [3][-]{subsubsection.5.1.3}{Example 3}{subsection.5.1}% 9
+\BOOKMARK [2][-]{subsection.5.2}{file filtering}{section.5}% 10
+\BOOKMARK [2][-]{subsection.5.3}{file content parsing}{section.5}% 11
+\BOOKMARK [2][-]{subsection.5.4}{calculation}{section.5}% 12
+\BOOKMARK [2][-]{subsection.5.5}{database}{section.5}% 13
+\BOOKMARK [2][-]{subsection.5.6}{export}{section.5}% 14
+\BOOKMARK [2][-]{subsection.5.7}{plotting}{section.5}% 15
+\BOOKMARK [1][-]{section.6}{calculation methods}{}% 16
+\BOOKMARK [2][-]{subsection.6.1}{sputter depth}{section.6}% 17
+\BOOKMARK [2][-]{subsection.6.2}{total sputter depth}{section.6}% 18
+\BOOKMARK [2][-]{subsection.6.3}{sputter rate}{section.6}% 19
+\BOOKMARK [2][-]{subsection.6.4}{RSF}{section.6}% 20
+\BOOKMARK [2][-]{subsection.6.5}{SF}{section.6}% 21
+\BOOKMARK [2][-]{subsection.6.6}{concentration}{section.6}% 22
+\BOOKMARK [2][-]{subsection.6.7}{reference intensity}{section.6}% 23
+\BOOKMARK [2][-]{subsection.6.8}{equilibrium position}{section.6}% 24
+\BOOKMARK [2][-]{subsection.6.9}{jiangs protocol}{section.6}% 25
+\BOOKMARK [2][-]{subsection.6.10}{planned}{section.6}% 26
+\BOOKMARK [1][-]{section.7}{How to use CLAUS?}{}% 27
+\BOOKMARK [1][-]{section.8}{config file parameters}{}% 28
+\BOOKMARK [1][-]{section.9}{external libraries}{}% 29
+\BOOKMARK [1][-]{section.10}{license}{}% 30
+\BOOKMARK [1][-]{section.11}{History}{}% 31

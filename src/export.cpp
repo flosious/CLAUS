@@ -441,8 +441,10 @@ string origin_t::suffix()
 		if (measurement->filename_p->not_parseable_filename_parts.size()==0) suffix = "_"+measurement->filename_p->filename_without_crater_depths();
 		else suffix = "_"+tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
 	}
-	else if (measurement->filename_p->not_parseable_filename_parts.size()!=0) 
+	else if (measurement->filename_p->not_parseable_filename_parts.size()!=0 && (lot()==LOT_DEFAULT || wafer()==WAFER_DEFAULT)) 
 		suffix += "_"+tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
+	if (repetition()!=repetition_DEFAULT) suffix += "_" + repetition();
+	
 // 	if ((lot()==LOT_DEFAULT && wafer()==WAFER_DEFAULT)) 
 // 	{
 // 		if (measurement->filename_p->not_parseable_filename_parts.size()==0) suffix = "_"+measurement->filename_p->filename_without_crater_depths();
@@ -519,8 +521,10 @@ origin_t::column_t::column_t(cluster_t* cluster, quantity_t* quantity, string su
 		{
 			isotope_t isotope=isotopes->at(ii);
 			/*if cluster is matrix isotope/element, check if nucleons in set -> not possible, just have clusters ...*/
-			name+="\\+("+to_string(isotope.nucleons)+")"+isotope.symbol;
+			if (isotope.nucleons>0) name+="\\+("+to_string(isotope.nucleons)+")";
+			name+=isotope.symbol;
 			if (isotope.atoms>1) name+=to_string(isotope.atoms);
+// 			name+= isotope.name();
 			if (ii!=isotopes->size()-1) name+=" ";
 		}
 	}

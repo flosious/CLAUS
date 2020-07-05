@@ -168,8 +168,10 @@ bool measurement_tools_t::is_correct_file_type(filename_t* filename_p, unordered
 	if (file_type_endings_list_p.empty()) file_type_endings_list_p = file_types_endings_list;
 
 	vector<string> file_types(file_type_endings_list_p.begin(),file_type_endings_list_p.end());
-
-	if (tools::mat::find_in_vec(&file_types,filename_p->type_ending())>-1) return true;
+// 	print(file_types);
+// 	if (file_types.find(filename_p->file_type_ending())!=file_types.end()) return true;
+	
+	if (tools::mat::is_in_vec(&file_types,filename_p->type_ending())>-1) return true;
 	return false;
 }
 

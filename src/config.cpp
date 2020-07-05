@@ -99,6 +99,7 @@ int config_t::parse(vector<string> config_lines) {
 //         else if (key=="measurement_tool") save_measurement_tool(value);
 		else if (key=="measurement_group_definition") save_measurement_group_definition(value);
 		else if (key=="measurement_definition") save_measurement_definition(value);
+		else if (key=="export_columns" || key=="export_column_names") save_export_column_names(value);
         else if (key=="data_column_delimiter") data_column_delimiter=value;
         else if (key=="file_name_delimiter") file_name_delimiter=value;
         else if (key=="use_directory_files_list") { if (value.find("1")!=string::npos) use_directory_files_list=true; }
@@ -171,6 +172,15 @@ void config_t::save_replacements(vector<string> values)
 // {
 //     measurement_tool = value;
 // }
+
+void config_t::save_export_column_names(std::__cxx11::string value)
+{
+	tools::str::remove_spaces(&value);
+// 	export_column_names.clear();
+	export_column_names = tools::str::get_strings_between_delimiter(value,"+");
+	tools::str::remove_spaces(&export_column_names);
+// 	print(export_column_names);
+}
 
 void config_t::save_measurement_group_definition(std::__cxx11::string value)
 {

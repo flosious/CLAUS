@@ -56,6 +56,7 @@ public:
     vector<string> files_loaded;
 	vector<string> pse_file_locations;
 	bool print_errors = false;
+	vector<string> export_column_names;
 	
     /*FUNCTIONS*/   
     ///parse the lines to config
@@ -67,6 +68,7 @@ public:
     /*save_functions*/
     ///sets the outformat columns (time depth intensity concentration)
 //     void save_output_format(vector<string> values);
+	void save_export_column_names(string value);
     ///sets value to test
     void save_test(string value);
     ///sets value to threads

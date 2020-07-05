@@ -259,11 +259,17 @@ int tools::mat::find_in_matrix_xy_return_y(vector<vector<string>>* matrix, strin
 }
 
 int tools::mat::find_in_vec(vector<string>* vec, string find_this) {
-    int x=-1;
     for (int x=0;x<vec->size();x++) {
 		if (vec->at(x).find(find_this)!=string::npos) return x;
     }
-    return x;
+    return -1;
+}
+
+int tools::mat::is_in_vec(vector<string>* vec, string find_this) {
+    for (int x=0;x<vec->size();x++) {
+		if (vec->at(x)==find_this) return x;
+    }
+    return -1;
 }
 
 void tools::mat::fillup_matrix(vector<vector<string> > *matrix) {

@@ -61,10 +61,11 @@ bool calc_models_t::jiang_t::calc()
 		if (RSFs_to_Crel.second.first.is_set() && RSFs_to_Crel.second.second.is_set())
 		{
 			data_XY.clear();
+			set<double> Crels_unique(RSFs_to_Crel.second.second.data.begin(),RSFs_to_Crel.second.second.data.end());
 			tools::vec::combine_vecs_to_map(RSFs_to_Crel.second.second.data,RSFs_to_Crel.second.first.data,&data_XY);
 			if (data_XY.size()>1) 
 			{
-				clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,data_XY.size()-1);
+				clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,Crels_unique.size()-1);
 			}
 		}
 	}

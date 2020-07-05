@@ -25,7 +25,7 @@
 #include "measurement_group_t.hpp"
 
 /*
- * class for advanced physical-mathematical models for more complex calculation
+ * classes for advanced physical-mathematical models for more complex calculation
  */
 
 using namespace std;

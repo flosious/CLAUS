@@ -577,6 +577,7 @@ bool origin_t::write_to_file(vector<column_t> columns, string directory_p, strin
 
 vector<origin_t::column_t> origin_t::format_measurement_cluster_columns()
 {
+	if (conf.export_column_names.size()>0) return format_measurement_cluster_columns_from_config();
 	vector<column_t> columns;
 	if (measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(conf.depth_resolution),"crater_"+suffix()));
 	else columns.push_back(column_t(measurement->crater.sputter_time(),"crater_"+suffix()));
@@ -606,6 +607,69 @@ origin_t::origin_t(measurement_t* measurement) : export2_t(measurement)
 // 	write_to_file(format_measurement_cluster_columns(),root_directory(),filename());
 	return;
 }
+
+vector<origin_t::column_t> origin_t::format_measurement_cluster_columns_from_config()
+{
+	vector<column_t> columns;
+	for (auto& col_name : conf.export_column_names)
+	{
+		if (col_name=="sputter_depth" && measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(conf.depth_resolution),"crater_"+suffix()));
+		if (col_name=="sputter_time" &&measurement->crater.sputter_time().is_set()) columns.push_back(column_t(measurement->crater.sputter_time(),"crater_"+suffix()));
+		if (col_name=="sputter_rate" &&measurement->crater.sputter_rate().is_set()) columns.push_back(column_t(measurement->crater.sputter_rate(),"crater_"+suffix()));
+		
+		if (col_name.find("concentration")!=string::npos && col_name.find("intensit")!=string::npos)
+			for (auto& cluster : measurement->clusters)
+			{
+				if (cluster.second.concentration().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
+				else columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
+			}
+		
+		if (col_name=="concentrations" || col_name=="concentration")
+			for (auto& cluster : measurement->clusters)
+				if (cluster.second.concentration().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
+				
+		if (col_name=="intensity" || col_name=="intensities")
+			for (auto& cluster : measurement->clusters)
+				if (cluster.second.intensity().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
+		
+		if (col_name=="total_sputter_time")
+		{
+			if (measurement->crater.total_sputter_time().is_set()) columns.push_back(column_t(measurement->crater.total_sputter_time(),"crater_"+suffix()));
+		}
+		
+		if (col_name=="total_sputter_depths" || col_name=="total_sputter_depth")
+		{
+			quantity_t depths = measurement->crater.total_sputter_depths_from_linescans();
+			if (measurement->crater.total_sputter_depths_from_filename().is_set()) depths = depths.add_to_data(measurement->crater.total_sputter_depths_from_filename());
+			columns.push_back(column_t(depths,"crater_"+suffix()));
+		}
+		
+		if (col_name=="linescans" || col_name=="linescan")
+		{
+			for (auto& linescan : measurement->crater.linescans)
+			{
+				columns.push_back(column_t(&linescan.xy,"crater_"+suffix()));
+				columns.push_back(column_t(&linescan.z,"crater_"+suffix()));	
+				columns.push_back(column_t(linescan.fit(),"crater_"+suffix()));
+			}
+		}
+		
+		if (col_name=="RSF")
+			for (auto& cluster : measurement->clusters)
+				if (cluster.second.RSF().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.RSF(),"_"+suffix()));
+				
+		if (col_name=="reference_intensity")
+			for (auto& cluster : measurement->clusters)
+				if (cluster.second.reference_intensity().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.reference_intensity(),"_"+suffix()));
+		
+		if (col_name=="dose")
+			for (auto& cluster : measurement->clusters)
+				if (cluster.second.equilibrium(false).dose().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.equilibrium(false).dose(),"_"+suffix()));
+		
+	}
+	return columns;
+}
+
 
 void origin_t::export_to_files(measurement_group_t MG_p)
 {

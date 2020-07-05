@@ -23,6 +23,7 @@
 #include <vector>
 #include "filename_t.hpp"
 #include <list>
+#include <algorithm>
 // #include "measurement.hpp"
 // #include "sample_t.hpp"
 

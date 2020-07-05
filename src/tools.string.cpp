@@ -189,7 +189,7 @@ bool tools::str::replace_umlaute_to_windows_compatible(string *mainstring) {
 	replace_chars(mainstring,"Ä","\x00c4");
 	replace_chars(mainstring,"Ü","\x00dc");
 	replace_chars(mainstring,"Ö","\x00d6");
-	replace_chars(mainstring,"ä","\x00e4");
+	replace_chars(mainstring,"ä","\x00E4");
 	replace_chars(mainstring,"ü","\x00fc");
 	replace_chars(mainstring,"ö","\x00f6");
 	replace_chars(mainstring,"ß","\x00df");

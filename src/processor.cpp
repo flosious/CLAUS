@@ -23,10 +23,23 @@ vector<string> calc_history;
 
 processor::processor(vector<string> arg_list) 
 {
-	cout << endl<<"CLAUS Copyright (C) 2020  Florian Bärwolf" << endl;
-	cout << "This program comes with ABSOLUTELY NO WARRANTY;" << endl;
-	cout << "This is free software, and you are welcome to redistribute it" << endl;
-	cout << "under certain conditions; See GPLv3" << endl << endl;
+	string intro;
+	#ifdef __unix__
+	intro = "\n\nCLAUS Copyright (C) 2020  Florian Bärwolf\n" \
+			"This program comes with ABSOLUTELY NO WARRANTY;\n" \
+			"This is free software, and you are welcome to redistribute it\n" \
+			"under certain conditions; See GPLv3\n\n";
+	#else
+	intro = "\n\nCLAUS Copyright (C) 2020  Florian Baerwolf\n" \
+			"This program comes with ABSOLUTELY NO WARRANTY;\n" \
+			"This is free software, and you are welcome to redistribute it\n" \
+			"under certain conditions; See GPLv3\n\n";
+	#endif
+	cout << intro;
+// 	cout << endl<<"CLAUS Copyright (C) 2020  Florian Bärwolf" << endl;
+// 	cout << "This program comes with ABSOLUTELY NO WARRANTY;" << endl;
+// 	cout << "This is free software, and you are welcome to redistribute it" << endl;
+// 	cout << "under certain conditions; See GPLv3" << endl << endl;
 	
     // save args
     args = arg_list;

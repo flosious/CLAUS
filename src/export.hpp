@@ -105,6 +105,7 @@ private:
 	};
 	static void apply_origin_replacements_on_string(string& replace_this);
 	vector<column_t> format_measurement_cluster_columns();
+	vector<column_t> format_measurement_cluster_columns_from_config();
 	vector<column_t> format_calc_result_columns();
 	vector<column_t> format_jiang_parameters_columns();
 	string suffix();

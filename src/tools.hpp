@@ -164,6 +164,7 @@ public:
 	};
     class mat {
     public:
+		static int is_in_vec(vector<string>* vec, string find_this);
 		static int find_in_vec(vector<string>* vec, string find_this);
 		static void cut_matrix(vector<vector<string>>* mat);
         static bool find_str_in_mat(vector<vector<string>>* matrix, string find_this);

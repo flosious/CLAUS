@@ -22,7 +22,7 @@ dsims_asc_t::dsims_asc_t() : parser_methods()
 	/// overwrites parser_methods::tool_name
 	tool_name = "dsims";
 	/// overwrites parser_methods::file_type_endings
-	file_type_endings = {"dp_rpc_asc"};
+	file_type_endings = {"dp_rpc_asc","ckb_asc"};
 }
 
 /// Order is important
@@ -541,7 +541,12 @@ bool dsims_asc_t::parse_settings(vector<vector<vector<string>>> *headers)
         for (int i=line_masses+1;i<headers->at(1).size();i++) {
             vector<string> mass_calib=tools::str::get_strings_between_delimiter(tools::str::remove_chars_from_string(headers->at(1)[i][0],"\\+() "),"|");
             if (mass_calib.size()<2) break;
-            calibrated_masses[mass_calib[0]]=mass_calib;
+//             calibrated_masses[mass_calib[0]]=mass_calib;
+			string clustername = mass_calib[0];
+			tools::str::remove_spaces(&clustername);
+			measurement_p.settings.clustername_to_mass_calib[clustername]=mass_calib;
+// 			cout << clustername << "\t"<< clustername.size() << endl;
+			measurement_p.settings.clustername_to_mass_calib[clustername].erase(measurement_p.settings.clustername_to_mass_calib[clustername].begin());
         }
     }
 // 	print("calibrated_masses:");

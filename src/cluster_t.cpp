@@ -225,7 +225,7 @@ quantity_t cluster_t::SF()
 // 	else if (concentration().is_set() && intensity().is_set())
 // 		SF_p = concentration().divide_by(intensity());
 	
-	if (dose().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_depth().is_set() && equilibrium().intensity().max().data[0]*0.05>intensity().data.back())
+	if (dose().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_depth().is_set() && equilibrium().intensity().max().is_set() && equilibrium().intensity().max().data[0]*0.05>intensity().data.back())
 	{
 // 		cout << "DOSE\n";
 		// nur wenn die intensität am ende des profils auf unter 5% des maximums fällt

@@ -114,6 +114,7 @@ private:
 public:
 	origin_t(measurement_t* measurement);
 	
+	static void export_settings_mass_calibration_to_file(measurement_group_t MG_p);
 	static void export_to_files(measurement_group_t MG_p);
 	static void export_MG_parameters_to_file(measurement_group_t& MG_p);
 	static void export_jiang_parameters_to_file(calc_models_t::jiang_t& jiang);

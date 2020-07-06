@@ -95,7 +95,7 @@ private:
 	int equilibrium_starting_pos=0;
 public:
 // 	calc_models_t 
-// 	vector<string> calc_history();
+// 	vector<string> settings;
 	
 	measurement_t* measurement;
 	vector<string> error_messages();

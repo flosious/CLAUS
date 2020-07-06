@@ -616,6 +616,7 @@ vector<origin_t::column_t> origin_t::format_measurement_cluster_columns_from_con
 		if (col_name=="sputter_depth" && measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(conf.depth_resolution),"crater_"+suffix()));
 		if (col_name=="sputter_time" &&measurement->crater.sputter_time().is_set()) columns.push_back(column_t(measurement->crater.sputter_time(),"crater_"+suffix()));
 		if (col_name=="sputter_rate" &&measurement->crater.sputter_rate().is_set()) columns.push_back(column_t(measurement->crater.sputter_rate(),"crater_"+suffix()));
+		if (col_name=="global_sputter_time" &&measurement->crater.global_sputter_time().is_set()) columns.push_back(column_t(measurement->crater.global_sputter_time(),"crater_"+suffix()));
 		
 		if (col_name.find("concentration")!=string::npos && col_name.find("intensit")!=string::npos)
 			for (auto& cluster : measurement->clusters)
@@ -670,6 +671,59 @@ vector<origin_t::column_t> origin_t::format_measurement_cluster_columns_from_con
 	return columns;
 }
 
+void origin_t::export_settings_mass_calibration_to_file(measurement_group_t MG_p)
+{
+	vector<column_t> columns;
+	vector<string> measurement_start_date_times(MG_p.measurements.size());
+	vector<string> measurement_names(MG_p.measurements.size());
+	map<string,vector<string>> clustername_to_masses;
+	map<string,vector<string>> clustername_to_fields;
+	int i=0;
+	for (auto& M:MG_p.measurements)
+	{
+		measurement_start_date_times[i]=M->date_time_start;
+		measurement_names[i]=M->filename_p->filename_with_path();
+		
+		for (auto& S:M->settings.clustername_to_mass_calib)
+		{
+			if (clustername_to_masses.find(S.first)!=clustername_to_masses.end()) continue;
+			for (auto& M2:MG_p.measurements)
+			{
+				if (M2->settings.clustername_to_mass_calib.find(S.first)==M2->settings.clustername_to_mass_calib.end())
+				{
+					clustername_to_masses[S.first].push_back("");
+					clustername_to_fields[S.first].push_back("");
+				}
+				else
+				{
+					clustername_to_masses[S.first].push_back(S.second[0]);
+					clustername_to_fields[S.first].push_back(S.second[1]);
+				}
+			}
+		}
+		i++;
+	}
+	/*nothing interesting to export*/
+	if (clustername_to_masses.size()==0) return;
+	
+	columns.push_back(column_t(measurement_names,"filenames","",""));
+	columns.push_back(column_t(measurement_start_date_times,"date_times","",""));
+	for (auto& clustername:clustername_to_masses)
+	{
+		columns.push_back(column_t(clustername.second,clustername.first+" masses","","amu"));
+		columns.push_back(column_t(clustername_to_fields[clustername.first],clustername.first+" fields","","bits?"));
+	}
+	
+	set<string> root_directories;
+	for (auto& measurement: MG_p.measurements)
+	{
+		origin_t origin (measurement);
+		root_directories.insert(origin.root_directory(conf.export_location));
+	}
+	for (auto& dir:root_directories)
+		write_to_file(columns,dir,MG_p.name()+"_settings_mass_calibration.txt");
+}
+
 
 void origin_t::export_to_files(measurement_group_t MG_p)
 {
@@ -693,7 +747,6 @@ void origin_t::export_MG_parameters_to_file(measurement_group_t& MG_p)
 	
 	vector<string> filenames;
 	
-	/*this can be wrong, when measurements are missing some values!*/
 	map<string,quantity_t> clustername_to_RSF;
 	quantity_t SRs;
 	for (auto& M:MG_p.measurements)
@@ -709,7 +762,7 @@ void origin_t::export_MG_parameters_to_file(measurement_group_t& MG_p)
 		{
 			SRs.data.push_back(M->crater.sputter_rate().data[0]);
 		}
-		else SRs.data.push_back(-1);
+		else SRs.data.push_back(-1); // empty
 		filenames.push_back(M->filename_p->filename_with_path());
 	}
 	

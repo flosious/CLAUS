@@ -116,6 +116,7 @@ public:
 	/// if true, programm will try to parse the file regardless of file ending, e.g. ".txt"
     bool ignore_file_type_endings = false;
 	/// filenames (or parts of it) to ignore
+	bool use_jiang=true;
     vector<string> ignore_filename_substrings;
 	
     /*formatting*/

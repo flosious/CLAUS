@@ -61,12 +61,18 @@ processor::processor(vector<string> arg_list)
 	/// managing calculation
 // 	calc_manager_t calc_manager(measurement_groups);
 	
-	
+// 	for (auto& MG:measurement_groups)
+// 		for (auto& M:MG.measurements)
+// 			for (auto& cn: M->settings.clustername_to_mass_calib)
+// 			{
+// 				print(cn.first);
+// 				print(cn.second);
+// 			}
 	
 	for (auto& MG:measurement_groups)
 	{
 		calc_models_t::jiang_t jiang(MG);
-		if (jiang.calc())
+		if (conf.use_jiang && jiang.calc())
 		{
 			origin_t::export_to_files(jiang.measurement_group());
 			origin_t::export_jiang_parameters_to_file(jiang);
@@ -77,6 +83,7 @@ processor::processor(vector<string> arg_list)
 			origin_t::export_MG_parameters_to_file(MG);
 		}
 		export2_t::export_contents_to_file(calc_history,"detailed_calculation_history.txt",MG,conf.calc_location);
+		origin_t::export_settings_mass_calibration_to_file(MG);
 	}
 	
 // 	print("calculation history:");

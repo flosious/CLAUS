@@ -45,7 +45,8 @@ public:
 	string polarity();
 	/// Cs, O,
 	string sputter_element();
-	
+	/// calibration parameters for masses
+	map<string,vector<string>> clustername_to_mass_calib;
 	void to_screen(string prefix="");
 	///true if egun was on
 	bool egun();

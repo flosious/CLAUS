@@ -106,14 +106,15 @@ void tools::vec::combine_vecs_to_map(vector<double> *X, vector<double>* Y, map<d
 	if (Y->size()<size) size = Y->size();
 	
 	XY_mat->clear();
-	
+	double x_shift = 1E-7;
 	for (int i=0;i<size;i++)
 	{
 		/**************************************************
 		 * inserting same X values, will overwrite them  **
 		 * ... so this a fast hack:     X->at(i)*1E-5    **
 		 *************************************************/
-		if (XY_mat->find(X->at(i))!=XY_mat->end()) XY_mat->insert(std::pair<double, double>(X->at(i)+X->at(i)*1E-5,Y->at(i)));
+// 		if (XY_mat->find(X->at(i))!=XY_mat->end()) XY_mat->insert(std::pair<double, double>(X->at(i)+X->at(i)*1E-5,Y->at(i)));
+		if (XY_mat->find(X->at(i))!=XY_mat->end()) XY_mat->insert(std::pair<double, double>(X->at(i)+x_shift,Y->at(i)));
 		else XY_mat->insert(std::pair<double, double>(X->at(i),Y->at(i)));
 	}	
 	return;

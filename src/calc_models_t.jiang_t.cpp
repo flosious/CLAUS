@@ -36,7 +36,6 @@ bool calc_models_t::jiang_t::calc()
 {
 	if (!error_p) return true;
 	// TODO: what if concentration or depth is already set for some clusters? --> Irel nicht immer berechenbar?
-	cout << measurement_group_priv.name()  << ":\ttrying to apply Jiangs protocol...";
 	calc_history.push_back("jiang_t\t" + measurement_group_priv.name());
 
 	/*calc fit parameters*/
@@ -73,7 +72,7 @@ bool calc_models_t::jiang_t::calc()
 	if (!CRel_to_Irel_polyfit.fitted()) 
 	{
 		error_messages_p.push_back("calc_models_t::jiang_t::calc( measurement_group_t& measurement_group_p ) : !CRel_to_Irel_polyfit.fitted()");
-		cout << "failed" << endl;
+// 		cout << "failed" << endl;
 		return false;
 	}
 	
@@ -134,7 +133,7 @@ bool calc_models_t::jiang_t::calc()
 		{
 			quantity_t SR = SRs_to_Crel().first;
 			SR.data = SR_to_Crel_polyfit.fitted_y_data(Crel_p.data);
-			SR.name = "SR jiang";
+			SR.name = "sputter_rate jiang";
 			measurement->crater.sputter_rate_p = SR;
 			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+"crater\t" + measurement->crater.sputter_rate_p.to_str());
 			measurement->crater.already_calculated_sputter_depth=false;
@@ -167,7 +166,7 @@ bool calc_models_t::jiang_t::calc()
 	{
 		
 	}
-	else cout << "SUCCESS!" << endl;
+// 	else cout << "SUCCESS!" << endl;
 	calc_history.push_back("jiang_t\t" + measurement_group_priv.name() +"\tstop - SUCCESS");
 	error_p = false;
 	

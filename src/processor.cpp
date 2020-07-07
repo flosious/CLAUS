@@ -36,10 +36,6 @@ processor::processor(vector<string> arg_list)
 			"under certain conditions; See GPLv3\n\n";
 	#endif
 	cout << intro;
-// 	cout << endl<<"CLAUS Copyright (C) 2020  Florian Bärwolf" << endl;
-// 	cout << "This program comes with ABSOLUTELY NO WARRANTY;" << endl;
-// 	cout << "This is free software, and you are welcome to redistribute it" << endl;
-// 	cout << "under certain conditions; See GPLv3" << endl << endl;
 	
     // save args
     args = arg_list;
@@ -60,57 +56,36 @@ processor::processor(vector<string> arg_list)
 	measurement_groups = measurement_group_t::measurement_groups(&measurements);
 	/// managing calculation
 // 	calc_manager_t calc_manager(measurement_groups);
-	
-// 	for (auto& MG:measurement_groups)
-// 		for (auto& M:MG.measurements)
-// 			for (auto& cn: M->settings.clustername_to_mass_calib)
-// 			{
-// 				print(cn.first);
-// 				print(cn.second);
-// 			}
-	
+
+	/* tanya: shake it baby! */
 	for (auto& MG:measurement_groups)
 	{
 		calc_models_t::jiang_t jiang(MG);
+		cout <<  "measurement_group: " << MG.name() << endl;
+		cout << "{" << endl;
+		if (conf.use_jiang) cout << "\ttrying to apply Jiangs protocol...";
 		if (conf.use_jiang && jiang.calc())
 		{
+			cout << "SUCCESS!" <<endl;
 			for (auto& M:jiang.measurement_group().measurements)
-			{
-				cout << M->filename_p->filename_without_crater_depths() << endl;
-				cout << "{" << endl;
-				if (M->clusters.size()==0) continue;
-				if (M->clusters.begin()->second.equilibrium().reference_intensity().is_set())
-				{
-					M->clusters.begin()->second.equilibrium().reference_intensity().to_screen("\t");
-				}
-				if (M->clusters.begin()->second.equilibrium().sputter_depth().is_set())
-					cout << "\tequilibrium_position = " << M->clusters.begin()->second.equilibrium().sputter_depth().data[0] << " " << M->clusters.begin()->second.equilibrium().sputter_depth().unit << endl;
-				else if (M->clusters.begin()->second.equilibrium().sputter_time().is_set())
-					cout << "\tequilibrium_position = " << M->clusters.begin()->second.equilibrium().sputter_time().data[0] << " " << M->clusters.begin()->second.equilibrium().sputter_time().unit << endl;
-				for (auto& c:M->clusters)
-				{
-					cout << "\t" << c.second.name() << endl;
-					if (c.second.equilibrium(false).dose().is_set()) c.second.equilibrium(false).dose().to_screen("\t");
-				}
-				cout << "}" << endl;
-			}
+				calc_results_to_screen(M,"\t");
 			
 			origin_t::export_to_files(jiang.measurement_group());
 			origin_t::export_jiang_parameters_to_file(jiang);
 		}
 		else
 		{
+			cout << "failed" << endl;
+			for (auto& M:MG.measurements)
+				calc_results_to_screen(M,"\t");
+			
 			origin_t::export_to_files(MG);
 			origin_t::export_MG_parameters_to_file(MG);
 		}
 		export2_t::export_contents_to_file(calc_history,"detailed_calculation_history.txt",MG,conf.calc_location);
 		origin_t::export_settings_mass_calibration_to_file(MG);
+		cout << "}" << endl;
 	}
-	
-// 	print("calculation history:");
-// 	print(calc_history);
-
-	
 	
 	if (conf.print_errors)
 	{
@@ -126,6 +101,41 @@ processor::processor(vector<string> arg_list)
 	#endif
 	
 }
+
+void processor::calc_results_to_screen(measurement_group_t& MG, std::__cxx11::string prefix)
+{
+	for (auto& M:MG.measurements)
+	{
+		calc_results_to_screen(M,prefix+"\t");
+	}
+}
+
+
+void processor::calc_results_to_screen(measurement_t* M, string prefix)
+{
+	cout << prefix+"measurement: " << M->filename_p->filename_without_crater_depths() << endl;
+	cout << prefix+"{" << endl;
+	if (M->clusters.size()==0) 
+	{
+		cout << prefix+"\tno clusters" << endl;
+		return;
+	}
+	if (M->clusters.begin()->second.equilibrium().sputter_depth().is_set())
+		cout << prefix+"\tequilibrium_depth = " << M->clusters.begin()->second.equilibrium().sputter_depth().data[0] << " " << M->clusters.begin()->second.equilibrium().sputter_depth().unit << endl;
+	else if (M->clusters.begin()->second.equilibrium().sputter_time().is_set())
+		cout << prefix+"\tequilibrium_sputter_time = " << M->clusters.begin()->second.equilibrium().sputter_time().data[0] << " " << M->clusters.begin()->second.equilibrium().sputter_time().unit << endl;
+	if (M->clusters.begin()->second.equilibrium().reference_intensity().is_set())
+	{
+		M->clusters.begin()->second.equilibrium().reference_intensity().to_screen(prefix+"\t");
+	}
+	for (auto& c:M->clusters)
+	{
+		cout << prefix+"\t" << c.second.name() << endl;
+		if (c.second.equilibrium(false).dose().is_set()) c.second.equilibrium(false).dose().to_screen(prefix+"\t");
+	}
+	cout << prefix+"}" << endl;
+}
+
 
 processor::~processor() 
 {

@@ -85,7 +85,8 @@ private:
 	vector<string> calculation_order_log;
 	
 	/// calculations
-	
+	void calc_results_to_screen(measurement_t* M, string prefix="");
+	void calc_results_to_screen(measurement_group_t& MG, string prefix="");
     
 #ifdef __unix__
 //     static void * thread_runner(void *data_p);

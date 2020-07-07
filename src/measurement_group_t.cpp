@@ -331,7 +331,7 @@ std::__cxx11::string measurement_group_t::name()
 {
 	stringstream name_p;
 	if (conf.measurement_group_definition_olcdbid) name_p << olcdb_p << "_";
-	if (conf.measurement_group_definition_groupid) name_p << group_p << "_";
+	if (conf.measurement_group_definition_groupid) name_p << "g" << group_p << "_";
 	if (conf.measurement_group_definition_settings) 
 	{
 		if (settings_p.sputter_energy().is_set()) name_p << to_string(settings_p.sputter_energy().data[0])+settings_p.sputter_energy().unit;

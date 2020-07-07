@@ -36,6 +36,7 @@
  *
  *
  */
+
 void export2_t::export_contents_to_file(vector<std::__cxx11::string> contents, string filename_p, measurement_group_t MG, string sub_directory)
 {
 	if (contents.size()==0) return;
@@ -414,6 +415,17 @@ bool export_t::Ipr_global(list<measurement_t> *measurements)
 ////////////// ORIGIN ///////////////////
 /////////////////////////////////////////
 
+set<std::__cxx11::string> origin_t::root_directories(measurement_group_t& MG)
+{
+	set<string> root_directories;
+	for (auto& measurement: MG.measurements)
+	{
+		origin_t origin (measurement);
+		root_directories.insert(origin.root_directory(conf.export_location));
+	}
+	return root_directories;
+}
+
 void origin_t::apply_origin_replacements_on_string(std::__cxx11::string& replace_this)
 {
 	smatch match;
@@ -617,7 +629,8 @@ vector<origin_t::column_t> origin_t::format_measurement_cluster_columns_from_con
 		if (col_name=="sputter_time" &&measurement->crater.sputter_time().is_set()) columns.push_back(column_t(measurement->crater.sputter_time(),"crater_"+suffix()));
 		if (col_name=="sputter_rate" &&measurement->crater.sputter_rate().is_set()) columns.push_back(column_t(measurement->crater.sputter_rate(),"crater_"+suffix()));
 		if (col_name=="global_sputter_time" &&measurement->crater.global_sputter_time().is_set()) columns.push_back(column_t(measurement->crater.global_sputter_time(),"crater_"+suffix()));
-		
+		if ((col_name=="Ipr" || col_name=="ipr") &&measurement->crater.sputter_current().is_set()) columns.push_back(column_t(measurement->crater.sputter_current(),"crater_"+suffix()));
+	
 		if (col_name.find("concentration")!=string::npos && col_name.find("intensit")!=string::npos)
 			for (auto& cluster : measurement->clusters)
 			{
@@ -665,13 +678,14 @@ vector<origin_t::column_t> origin_t::format_measurement_cluster_columns_from_con
 		
 		if (col_name=="dose")
 			for (auto& cluster : measurement->clusters)
-				if (cluster.second.equilibrium(false).dose().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.equilibrium(false).dose(),"_"+suffix()));
+// 				if (cluster.second.equilibrium(false).dose().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.equilibrium(false).dose(),"_"+suffix()));
+				if (cluster.second.dose().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.dose(),"_"+suffix()));
 		
 	}
 	return columns;
 }
 
-void origin_t::export_settings_mass_calibration_to_file(measurement_group_t MG_p)
+vector<origin_t::column_t> origin_t::format_settings_mass_calibration(measurement_group_t& MG_p)
 {
 	vector<column_t> columns;
 	vector<string> measurement_start_date_times(MG_p.measurements.size());
@@ -704,7 +718,7 @@ void origin_t::export_settings_mass_calibration_to_file(measurement_group_t MG_p
 		i++;
 	}
 	/*nothing interesting to export*/
-	if (clustername_to_masses.size()==0) return;
+	if (clustername_to_masses.size()==0) return columns;
 	
 	columns.push_back(column_t(measurement_names,"filenames","",""));
 	columns.push_back(column_t(measurement_start_date_times,"date_times","",""));
@@ -713,14 +727,22 @@ void origin_t::export_settings_mass_calibration_to_file(measurement_group_t MG_p
 		columns.push_back(column_t(clustername.second,clustername.first+" masses","","amu"));
 		columns.push_back(column_t(clustername_to_fields[clustername.first],clustername.first+" fields","","bits?"));
 	}
-	
-	set<string> root_directories;
-	for (auto& measurement: MG_p.measurements)
-	{
-		origin_t origin (measurement);
-		root_directories.insert(origin.root_directory(conf.export_location));
-	}
-	for (auto& dir:root_directories)
+	return columns;
+}
+
+
+
+void origin_t::export_settings_mass_calibration_to_file(measurement_group_t MG_p)
+{
+	vector<column_t> columns = format_settings_mass_calibration(MG_p);
+	if (columns.size()==0) return;
+// 	set<string> root_directories;
+// 	for (auto& measurement: MG_p.measurements)
+// 	{
+// 		origin_t origin (measurement);
+// 		root_directories.insert(origin.root_directory(conf.export_location));
+// 	}
+	for (auto& dir:root_directories(MG_p))
 		write_to_file(columns,dir,MG_p.name()+"_settings_mass_calibration.txt");
 }
 
@@ -730,20 +752,24 @@ void origin_t::export_to_files(measurement_group_t MG_p)
 // 	set<string> root_directories;
 	for (auto& measurement: MG_p.measurements)
 	{
+		cout << "trying to export: " << measurement->filename_p->filename_without_crater_depths() << " ...";
 		origin_t origin (measurement);
-		origin.write_to_file(origin.format_measurement_cluster_columns(),origin.root_directory(conf.export_location),origin.filename(conf.export_filename));
+		if (origin.write_to_file(origin.format_measurement_cluster_columns(),origin.root_directory(conf.export_location),origin.filename(conf.export_filename)))
+			cout << "SUCCESS!" << endl;
+		else
+			cout << "failed" << endl;
 // 		root_directories.insert(origin.root_directory(conf.export_location));
 	}
 }
 
 void origin_t::export_MG_parameters_to_file(measurement_group_t& MG_p)
 {
-	set<string> root_directories;
-	for (auto& measurement: MG_p.measurements)
-	{
-		origin_t origin (measurement);
-		root_directories.insert(origin.root_directory(conf.export_location));
-	}
+// 	set<string> root_directories;
+// 	for (auto& measurement: MG_p.measurements)
+// 	{
+// 		origin_t origin (measurement);
+// 		root_directories.insert(origin.root_directory(conf.export_location));
+// 	}
 	
 	vector<string> filenames;
 	
@@ -818,7 +844,7 @@ void origin_t::export_MG_parameters_to_file(measurement_group_t& MG_p)
 	}
 	
 	
-	for (auto& dir:root_directories)
+	for (auto& dir:root_directories(MG_p))
 		write_to_file(cols,dir+conf.calc_location,"MG-parameters.txt");
 }
 
@@ -827,13 +853,13 @@ void origin_t::export_jiang_parameters_to_file(calc_models_t::jiang_t& jiang)
 {
 	if (jiang.is_error()) return;
 	if (conf.calc_location=="") return;
-	set<string> root_directories;
-	for (auto& measurement: jiang.measurement_group().measurements)
-	{
-		origin_t origin (measurement);
-// 		origin.write_to_file(origin.format_measurement_cluster_columns(),origin.root_directory(conf.export_location),origin.filename(conf.export_filename));
-		root_directories.insert(origin.root_directory());
-	}
+// 	set<string> root_directories;
+// 	for (auto& measurement: jiang.measurement_group().measurements)
+// 	{
+// 		origin_t origin (measurement);
+// // 		origin.write_to_file(origin.format_measurement_cluster_columns(),origin.root_directory(conf.export_location),origin.filename(conf.export_filename));
+// 		root_directories.insert(origin.root_directory());
+// 	}
 
 	/*now export jiang parameters*/
 	vector<column_t> cols;
@@ -869,7 +895,8 @@ void origin_t::export_jiang_parameters_to_file(calc_models_t::jiang_t& jiang)
 		fit.data = jiang.clustername_to_RSFs_to_Crel_polyfit[RSFs.first].fitted_y_data(RSFs.second.second.data);
 		cols.push_back(column_t("fitted RSF "+RSFs.first,fit));
 	}
-	for (auto& dir:root_directories)
+	measurement_group_t MG_p = jiang.measurement_group();
+	for (auto& dir:root_directories(MG_p))
 		write_to_file(cols,dir+conf.calc_location,"jiang.txt");
 	return;
 }

@@ -54,6 +54,7 @@ protected:
 public:
 	export2_t(measurement_t* measurement_p);
 	static void export_contents_to_file(vector<string> contents, string filename_p, measurement_group_t MG, string sub_directory="");
+	
 };
 
 class export_t
@@ -103,17 +104,19 @@ private:
 		column_t(string longname, quantity_t quantity, string suffix="");
 		column_t(vector<string> data_p, string longname_p, string unit_p, string comment_p);
 	};
+	
 	static void apply_origin_replacements_on_string(string& replace_this);
 	vector<column_t> format_measurement_cluster_columns();
 	vector<column_t> format_measurement_cluster_columns_from_config();
 	vector<column_t> format_calc_result_columns();
 	vector<column_t> format_jiang_parameters_columns();
+	static vector<column_t> format_settings_mass_calibration(measurement_group_t& MG_p);
 	string suffix();
 	static vector<vector<string>> cols_to_matrix(vector<column_t>& columns);
 	static bool write_to_file(vector<column_t> columns, string directory_p, string filename_p);
 public:
 	origin_t(measurement_t* measurement);
-	
+	static set<string> root_directories(measurement_group_t& MG);
 	static void export_settings_mass_calibration_to_file(measurement_group_t MG_p);
 	static void export_to_files(measurement_group_t MG_p);
 	static void export_MG_parameters_to_file(measurement_group_t& MG_p);

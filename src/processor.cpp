@@ -74,6 +74,27 @@ processor::processor(vector<string> arg_list)
 		calc_models_t::jiang_t jiang(MG);
 		if (conf.use_jiang && jiang.calc())
 		{
+			for (auto& M:jiang.measurement_group().measurements)
+			{
+				cout << M->filename_p->filename_without_crater_depths() << endl;
+				cout << "{" << endl;
+				if (M->clusters.size()==0) continue;
+				if (M->clusters.begin()->second.equilibrium().reference_intensity().is_set())
+				{
+					M->clusters.begin()->second.equilibrium().reference_intensity().to_screen("\t");
+				}
+				if (M->clusters.begin()->second.equilibrium().sputter_depth().is_set())
+					cout << "\tequilibrium_position = " << M->clusters.begin()->second.equilibrium().sputter_depth().data[0] << " " << M->clusters.begin()->second.equilibrium().sputter_depth().unit << endl;
+				else if (M->clusters.begin()->second.equilibrium().sputter_time().is_set())
+					cout << "\tequilibrium_position = " << M->clusters.begin()->second.equilibrium().sputter_time().data[0] << " " << M->clusters.begin()->second.equilibrium().sputter_time().unit << endl;
+				for (auto& c:M->clusters)
+				{
+					cout << "\t" << c.second.name() << endl;
+					if (c.second.equilibrium(false).dose().is_set()) c.second.equilibrium(false).dose().to_screen("\t");
+				}
+				cout << "}" << endl;
+			}
+			
 			origin_t::export_to_files(jiang.measurement_group());
 			origin_t::export_jiang_parameters_to_file(jiang);
 		}

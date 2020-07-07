@@ -619,6 +619,7 @@ quantity_t quantity_t::operator / (const quantity_t& quantity_p)
 	else
 	{
 		cout << ">>>ERROR<<<: " <<  quotient.name << endl;
+		cout << name << ".data.size()= " << data.size() << " divide by " << quantity_p.name << ".data.size()= " << quantity_p.data.size() << endl;
 	}
 // 	quotient.to_screen("QUOTIENT:\t");
 	return quotient;

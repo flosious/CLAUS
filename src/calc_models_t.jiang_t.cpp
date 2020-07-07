@@ -134,10 +134,13 @@ bool calc_models_t::jiang_t::calc()
 		{
 			quantity_t SR = SRs_to_Crel().first;
 			SR.data = SR_to_Crel_polyfit.fitted_y_data(Crel_p.data);
+			SR.name = "SR jiang";
 			measurement->crater.sputter_rate_p = SR;
 			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+"crater\t" + measurement->crater.sputter_rate_p.to_str());
 			measurement->crater.already_calculated_sputter_depth=false;
 			measurement->crater.already_calculated_sputter_rate=false;
+			/*delete old values*/
+// 			measurement->crater.sputter_depth_p.data.clear();
 		}
 		
 		/*RSFs*/
@@ -146,10 +149,17 @@ bool calc_models_t::jiang_t::calc()
 			if (!clustername_to_RSFs_to_Crel_polyfit[cluster_name_RSF.first].fitted()) continue;
 			quantity_t RSF = clustername_to_RSFs_to_Crel()[cluster_name_RSF.first].first;
 			RSF.data = clustername_to_RSFs_to_Crel_polyfit[cluster_name_RSF.first].fitted_y_data(Crel_p.data);
+			RSF.name = "RSF jiang";
 			measurement->clusters[cluster_name_RSF.first].RSF_p = RSF;
 			measurement->clusters[cluster_name_RSF.first].already_checked_concentration=false;
 			measurement->clusters[cluster_name_RSF.first].already_checked_RSF=false;
 			measurement->clusters[cluster_name_RSF.first].already_checked_SF=false;
+			measurement->clusters[cluster_name_RSF.first].already_checked_dose=false;
+			/*delete old values*/
+			measurement->clusters[cluster_name_RSF.first].concentration_p.data.clear();
+			measurement->clusters[cluster_name_RSF.first].dose_p.data.clear();
+			measurement->clusters[cluster_name_RSF.first].reference_intensity_p.data.clear();
+			measurement->clusters[cluster_name_RSF.first].equilibrium_starting_pos=0;
 			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+measurement->clusters[cluster_name_RSF.first].name()+"\t" + measurement->clusters[cluster_name_RSF.first].RSF_p.to_str());
 		}
 	}
@@ -160,6 +170,16 @@ bool calc_models_t::jiang_t::calc()
 	else cout << "SUCCESS!" << endl;
 	calc_history.push_back("jiang_t\t" + measurement_group_priv.name() +"\tstop - SUCCESS");
 	error_p = false;
+	
+// 	for (auto& M:measurement_group_priv.measurements)
+// 	{
+// 		cout << M->filename_p->filename_without_crater_depths() << endl;
+// 		for (auto& cluster:M->clusters)
+// 		{
+// 			cout << "equilibrium_starting_pos= " << cluster.second.equilibrium_starting_pos << endl;
+// // 			cluster.second.reference_intensity().to_screen();
+// 		}
+// 	}
 	return true;
 }
 

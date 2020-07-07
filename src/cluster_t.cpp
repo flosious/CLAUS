@@ -164,6 +164,11 @@ quantity_t cluster_t::maximum_concentration()
 quantity_t cluster_t::dose()
 {
 	if (already_checked_dose || dose_p.is_set()) return dose_p;
+	else if (equilibrium().concentration().is_set() && equilibrium().sputter_depth().is_set()) 
+	{
+		dose_p=equilibrium().concentration().integrate(equilibrium().sputter_depth());
+		if (dose_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + dose_p.to_str());
+	}
 	else if (measurement->load_from_database() && dose_p.is_set()) 
 	{
 		if (dose_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + dose_p.to_str());
@@ -227,17 +232,17 @@ quantity_t cluster_t::SF()
 	
 	if (dose().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_depth().is_set() && equilibrium().intensity().max().is_set() && equilibrium().intensity().max().data[0]*0.05>intensity().data.back())
 	{
-// 		cout << "DOSE\n";
 		// nur wenn die intensität am ende des profils auf unter 5% des maximums fällt
 		SF_p = dose() / (equilibrium().intensity().integrate(equilibrium().sputter_depth()));
 		SF_p = SF_p * 1E7; // nm -> cm
 		SF_p.unit = "at/cm^3 / (cnt/s)";
+// 		cout << "\n+++SF_p.data.size() = " << SF_p.data.size() << endl;
 	}
 	
 	else if (maximum_concentration().is_set() && equilibrium().intensity().polyfit().max().is_set())
 	{
 		SF_p = maximum_concentration() / equilibrium().intensity().polyfit().max();
-// 		cout << "IN\n";
+// 		cout << "\n---SF_p.data.size() = " << SF_p.data.size() << endl;
 	}
 	
 	else if (reference_intensity().is_set() && RSF().is_set())
@@ -291,15 +296,19 @@ bool cluster_t::is_reference()
 quantity_t cluster_t::reference_intensity()
 {
 	if (reference_intensity_p.is_set()) return reference_intensity_p;
-
+// 	reference_intensity_p.data.clear();
 	if (measurement->reference_clusters().size()==0) return {};
 	
 	reference_intensity_p = measurement->reference_clusters()[0]->intensity();
 	for (int i=1;i<measurement->reference_clusters().size();i++)
 		reference_intensity_p=reference_intensity_p + measurement->reference_clusters()[i]->intensity();
-		
+// 	cout << "reference_intensity_p.data.size()A=" << reference_intensity_p.data.size() << endl;
 	reference_intensity_p = reduce_quantity_by_equlibrium_starting_pos(reference_intensity_p);
+// 	cout << "reference_intensity_p.data.size()B=" << reference_intensity_p.data.size() << endl;
 	if (reference_intensity_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + reference_intensity_p.to_str());
+// 	cout << "reference_intensity_p.data.size()=" << reference_intensity_p.data.size() << endl;
+// 	cout << "equilibrium_starting_pos = " << equilibrium_starting_pos << "\tname=" << name() << endl;
+	reference_intensity_p.name = "reference_intensity";
 	return reference_intensity_p;
 }
 
@@ -496,12 +505,15 @@ quantity_t cluster_t::reduce_quantity_by_equlibrium_starting_pos(quantity_t& qua
 	{
 		result.data.erase(result.data.begin(),result.data.begin()+equilibrium_starting_pos-1);
 	}
+// 	cout << "reduce_quantity_by_equlibrium_starting_pos von " << quantity.name << " data.size()=" << quantity.data.size() <<endl;
 	return result;
 }
 
 
 cluster_t cluster_t::equilibrium(bool use_local_cluster_minimum_at_start)
 {
+	/*already in equilibrium*/
+	if (equilibrium_starting_pos>0) return *this;
 	cluster_t result=*this;
 	result.equilibrium_starting_pos=measurement->equilibrium_starting_pos();
 	
@@ -540,11 +552,11 @@ cluster_t cluster_t::equilibrium(bool use_local_cluster_minimum_at_start)
 	
 	result.SF_p=result.reduce_quantity_by_equlibrium_starting_pos(SF_p);
 	result.RSF_p=result.reduce_quantity_by_equlibrium_starting_pos(RSF_p);
+	result.dose_p=result.reduce_quantity_by_equlibrium_starting_pos(dose_p);
 	
 	result.sputter_time_p=result.reduce_quantity_by_equlibrium_starting_pos(measurement->crater.sputter_time_p);
 	result.sputter_depth_p=result.reduce_quantity_by_equlibrium_starting_pos(measurement->crater.sputter_depth_p);
 	result.sputter_rate_p=result.reduce_quantity_by_equlibrium_starting_pos(measurement->crater.sputter_rate_p);
-	
 	return result;
 }
 

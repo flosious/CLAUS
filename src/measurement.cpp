@@ -38,12 +38,21 @@ int measurement_t::equilibrium_starting_pos()
 	set<int> local_minima_set, local_maxima_set;
 	int ext;
 	vector<int> l_ext;
-	for (auto& ref_cluster:reference_clusters())
+	vector<cluster_t*> cluster_pointers;
+	if (reference_clusters().size()==0)
+	{
+		for (auto& cluster:clusters)
+			cluster_pointers.push_back(&(cluster.second));
+	}
+	else cluster_pointers = reference_clusters();
+	for (auto& ref_cluster:cluster_pointers)
 	{
 		if (ref_cluster->intensity().is_set())
 			Y = ref_cluster->intensity().filter_gaussian(5,4)/*.moving_window_sd(5).moving_window_sd(5).moving_window_median(5)*/.data; 
 		else if (ref_cluster->concentration().is_set())
 			Y = ref_cluster->concentration().filter_gaussian(5,4)/*.moving_window_sd(5).moving_window_sd(5).moving_window_median(5)*/.data; 
+		
+// 		double local_max_treshold = 2*statistics::get_mad_from_Y(Y)+	statistics::get_median_from_Y(Y);
 		
 		// global minimum
 // 		local_minima_indices.push_back(statistics::get_min_index_from_Y(Y));
@@ -60,20 +69,28 @@ int measurement_t::equilibrium_starting_pos()
 // 		print("local minima");
 // 		print(l_ext);
 		// local maxima
-		l_ext = statistics::get_local_maxima_indices(Y,1.5*statistics::get_median_from_Y(Y)); // statistics::get_median_from_Y(Y)+2*statistics::get_mad_from_Y(Y)
+// 		l_ext = statistics::get_local_maxima_indices(Y,1.5*statistics::get_median_from_Y(Y)); // statistics::get_median_from_Y(Y)+2*statistics::get_mad_from_Y(Y)
+		l_ext = statistics::get_local_maxima_indices(Y,2*statistics::get_mad_from_Y(Y)+	statistics::get_median_from_Y(Y)); // statistics::get_median_from_Y(Y)+2*statistics::get_mad_from_Y(Y)
 		local_maxima_set.insert(l_ext.begin(),l_ext.end());
 // 		local_maxima_indices.insert(local_maxima_indices.end(),l_ext.begin(),l_ext.end());
 // 		print("local maxima");
 // 		print(l_ext);
+// 		cout << "statistics::get_median_from_Y(Y) = " << statistics::get_median_from_Y(Y) << endl;
+// 		cout << "statistics::get_mad_from_Y(Y) = " << statistics::get_mad_from_Y(Y) << endl;
+// 		cout << "local_max_treshold = " << local_max_treshold << endl;
 		
 		local_maxima_set.erase(0);
 		local_minima_set.erase(0);
-		
+// 		print("local_maxima_set:");
+// 		print(local_maxima_set);
+// 		print("local_minima_set:");
+// 		print(local_minima_set);
 		if (local_maxima_set.size()>0 )
 		{
 			local_maxima_indices.assign(local_maxima_set.begin(),local_maxima_set.end());
 			ext = local_maxima_indices[statistics::get_min_index_from_Y(local_minima_indices)];
-			equilibrium_starting_positions.insert( statistics::get_index_for_next_value_lower_than_treshold(Y,1.25*statistics::get_median_from_Y(Y)/*+10*statistics::get_mad_from_Y(Y)*/,ext));
+// 			equilibrium_starting_positions.insert( statistics::get_index_for_next_value_lower_than_treshold(Y,1.25*statistics::get_median_from_Y(Y)/*+10*statistics::get_mad_from_Y(Y)*/,ext));
+			equilibrium_starting_positions.insert( statistics::get_index_for_next_value_lower_than_treshold(Y,statistics::get_median_from_Y(Y),ext));
 		}
 		else if (local_minima_set.size()>0 )
 		{
@@ -89,7 +106,8 @@ int measurement_t::equilibrium_starting_pos()
 			else equilibrium_starting_positions.insert( statistics::get_index_for_next_value_lower_than_treshold(Y,1.25*statistics::get_median_from_Y(Y)));	
 		}
 	}
-
+// 	print("equilibrium_starting_positions");
+// 	print(equilibrium_starting_positions);
 	equilibrium_starting_pos_p = 0;
 	if (equilibrium_starting_positions.size()>0)
 	{
@@ -97,8 +115,8 @@ int measurement_t::equilibrium_starting_pos()
 		if (positions[statistics::get_min_index_from_Y(positions)]<0.5*Y.size()) equilibrium_starting_pos_p = positions[statistics::get_min_index_from_Y(positions)];
 		else equilibrium_starting_pos_p=0;
 	} 
-	if (equilibrium_starting_pos_p==0) return equilibrium_starting_pos_p;
-	
+// 	if (equilibrium_starting_pos_p==0) return equilibrium_starting_pos_p;
+// 	cout << "equilibrium_starting_pos_p = " << equilibrium_starting_pos_p << endl;
 	return equilibrium_starting_pos_p;
 }
 

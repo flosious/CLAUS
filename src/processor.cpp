@@ -120,10 +120,14 @@ void processor::calc_results_to_screen(measurement_t* M, string prefix)
 		cout << prefix+"\tno clusters" << endl;
 		return;
 	}
+	if (M->clusters.begin()->second.total_sputter_depth().is_set())
+		cout << prefix+"\ttotal_sputter_depth = " << M->clusters.begin()->second.total_sputter_depth().data[0] << " " << M->clusters.begin()->second.total_sputter_depth().unit << endl;
+	if (M->clusters.begin()->second.total_sputter_time().is_set())
+		cout << prefix+"\ttotal_sputter_time = " << M->clusters.begin()->second.total_sputter_time().data[0] << " " << M->clusters.begin()->second.total_sputter_time().unit << endl;
 	if (M->clusters.begin()->second.equilibrium().sputter_depth().is_set())
 		cout << prefix+"\tequilibrium_depth = " << M->clusters.begin()->second.equilibrium().sputter_depth().data[0] << " " << M->clusters.begin()->second.equilibrium().sputter_depth().unit << endl;
-	else if (M->clusters.begin()->second.equilibrium().sputter_time().is_set())
-		cout << prefix+"\tequilibrium_sputter_time = " << M->clusters.begin()->second.equilibrium().sputter_time().data[0] << " " << M->clusters.begin()->second.equilibrium().sputter_time().unit << endl;
+	else if (M->clusters.begin()->second.equilibrium(false).sputter_time().is_set())
+		cout << prefix+"\tequilibrium_sputter_time = " << M->clusters.begin()->second.equilibrium(false).sputter_time().data[0] << " " << M->clusters.begin()->second.equilibrium(false).sputter_time().unit << endl;
 	if (M->clusters.begin()->second.equilibrium().reference_intensity().is_set())
 	{
 		M->clusters.begin()->second.equilibrium().reference_intensity().to_screen(prefix+"\t");

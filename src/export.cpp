@@ -625,7 +625,11 @@ vector<origin_t::column_t> origin_t::format_measurement_cluster_columns_from_con
 	vector<column_t> columns;
 	for (auto& col_name : conf.export_column_names)
 	{
-		if (col_name=="sputter_depth" && measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(conf.depth_resolution),"crater_"+suffix()));
+		if (col_name=="sputter_depth")
+		{
+			if (measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(conf.depth_resolution),"crater_"+suffix()));
+			else if (col_name!="sputter_time" && measurement->crater.sputter_time().is_set()) columns.push_back(column_t(measurement->crater.sputter_time(),"crater_"+suffix()));
+		}
 		if (col_name=="sputter_time" &&measurement->crater.sputter_time().is_set()) columns.push_back(column_t(measurement->crater.sputter_time(),"crater_"+suffix()));
 		if (col_name=="sputter_rate" &&measurement->crater.sputter_rate().is_set()) columns.push_back(column_t(measurement->crater.sputter_rate(),"crater_"+suffix()));
 		if (col_name=="global_sputter_time" &&measurement->crater.global_sputter_time().is_set()) columns.push_back(column_t(measurement->crater.global_sputter_time(),"crater_"+suffix()));

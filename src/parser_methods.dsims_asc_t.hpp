@@ -56,7 +56,9 @@ private:
 	
 	map<string,string> settings;
 	void add_data_time_to_measurement_p();
-	
+	double total_sputter_X=-1;
+	double total_sputter_depth_p=-1;
+	double total_sputter_time_p=-1;
 	bool add_crater_total_sputter_time();
 	/// return true, if one file_type_endings was found
 // 	bool check_file_type();

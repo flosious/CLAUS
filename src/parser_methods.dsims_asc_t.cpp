@@ -130,7 +130,7 @@ vector<double> dsims_asc_t::get_common_X_dimension_vector()
 	
 	double x_min = mins[statistics::get_max_index_from_Y(mins)];
 	double x_max = maxs[statistics::get_min_index_from_Y(maxs)];
-	
+	total_sputter_X = maxs[statistics::get_max_index_from_Y(maxs)];
 // 	cout << "x_min="<<x_min<<endl;
 // 	cout << "x_max="<<x_max<<endl;
 	
@@ -163,6 +163,7 @@ bool dsims_asc_t::parse_cluster()
 		measurement_p.crater.sputter_depth_p.dimension = "length";
 		measurement_p.crater.sputter_depth_p.name = "sputter_depth";
 		measurement_p.crater.sputter_depth_p.data = common_X_dimension;
+		total_sputter_depth_p = total_sputter_X;
 	}
 	else
 	{
@@ -170,6 +171,7 @@ bool dsims_asc_t::parse_cluster()
 		measurement_p.crater.sputter_time_p.dimension = "time";
 		measurement_p.crater.sputter_time_p.name = "sputter_time";
 		measurement_p.crater.sputter_time_p.data = common_X_dimension;
+		total_sputter_time_p = total_sputter_X;
 	}
 	/* cluster */
 	for (int c=1;c<cols.size();c=c+2)
@@ -244,31 +246,33 @@ void dsims_asc_t::add_data_time_to_measurement_p()
 
 bool dsims_asc_t::add_crater_total_sputter_time()
 {
-	if (settings.find("Total sputtering time (s)")!=settings.end())
-	{
-		measurement_p.crater.total_sputter_time_p.unit="s";
-		measurement_p.crater.total_sputter_time_p.dimension="time";
-		measurement_p.crater.total_sputter_time_p.name="total_sputter_time";
-		measurement_p.crater.total_sputter_time_p.data.push_back(tools::str::str_to_double(settings["Total sputtering time (s)"]));
-	} 
-	else
-	{
-		quantity_t crater_time;
-		double max_sputter_time=0;
-		crater_time.unit="s";
-		crater_time.dimension="time";
-		crater_time.name="total_sputter_time";
-		
-		if (measurement_p.crater.sputter_time_p.data.size()==0) return false;
-		
-		int index_max= statistics::get_max_index_from_Y(measurement_p.crater.sputter_time_p.data);
-		double val = measurement_p.crater.sputter_time_p.data[index_max];
-		if (val > max_sputter_time) max_sputter_time = val;
-
-		crater_time.data.push_back(max_sputter_time);
-		if (max_sputter_time>0) measurement_p.crater.total_sputter_time_p=crater_time;
-		else return false;
-	}
+// 	if (measurement_p.crater.total_sputter_time_p.is_set()) return true;
+	measurement_p.crater.total_sputter_time_p.unit="s";
+	measurement_p.crater.total_sputter_time_p.dimension="time";
+	measurement_p.crater.total_sputter_time_p.name="total_sputter_time";
+	if (settings.find("Total acquisition time (s)")!=settings.end())
+		measurement_p.crater.total_sputter_time_p.data.push_back(tools::str::str_to_double(settings["Total acquisition time (s)"]));
+	else if (total_sputter_time_p>0)
+		measurement_p.crater.total_sputter_time_p.data.push_back(total_sputter_time_p);
+	else return false;
+// 	else
+// 	{
+// 		quantity_t crater_time;
+// 		double max_sputter_time=0;
+// 		crater_time.unit="s";
+// 		crater_time.dimension="time";
+// 		crater_time.name="total_sputter_time";
+// 		
+// 		if (measurement_p.crater.sputter_time_p.data.size()==0) return false;
+// 		
+// 		int index_max= statistics::get_max_index_from_Y(measurement_p.crater.sputter_time_p.data);
+// 		double val = measurement_p.crater.sputter_time_p.data[index_max];
+// 		if (val > max_sputter_time) max_sputter_time = val;
+// 
+// 		crater_time.data.push_back(max_sputter_time);
+// 		if (max_sputter_time>0) measurement_p.crater.total_sputter_time_p=crater_time;
+// 		else return false;
+// 	}
 	return true;
 }
 

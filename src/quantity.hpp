@@ -77,6 +77,8 @@ public:
 	quantity_t quantile(double percentile=0.75);
 	quantity_t median();
 	quantity_t mean();
+	quantity_t trimmed_mean(float alpha=0.25);
+	quantity_t gastwirth();
 	quantity_t sd();
 	quantity_t mad();
 	quantity_t max();
@@ -98,6 +100,7 @@ public:
 	quantity_t polyfit(int polynom_grade=-1);
 	
 
+	
 	
 	
 	

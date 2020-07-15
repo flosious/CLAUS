@@ -45,7 +45,7 @@ bool database_t::open() {
     if (exit)      return false;  
 	
 	if (!create_tables()) return false;
-
+	execute_sql("PRAGMA secure_delete = true");
     return true; 
 }
 

@@ -18,6 +18,72 @@
 #include "statistics.hpp"
 
 
+bool statistics::get_extrema_indices(vector<int>& maxIdx, vector<int>& minIdx, vector<double> Y, double treshold)
+{
+	vector<int> local_extrema;
+	
+// 	vector<float> data(Y.size());
+// 	for (int i=0;i<Y.size();i++)
+// 		Y[i]=Y[i];
+	
+	//Run persistence on data - this is the main call.
+    p1d::Persistence1D p;
+    p.RunPersistence(Y);
+	
+	//Get all extrema with a persistence larger than 10.
+    vector< p1d::TPairedExtrema > Extrema;
+    if (treshold < 0) treshold =  get_mad_from_Y(Y);
+	if (!p.GetPairedExtrema(Extrema, treshold)) return false;
+	
+	maxIdx.clear();
+	minIdx.clear();
+	maxIdx.resize(Extrema.size()+1);
+	minIdx.resize(Extrema.size()+1);
+	
+	maxIdx[0]=get_max_index_from_Y(Y);
+	minIdx[0]=p.GetGlobalMinimumIndex();
+	
+	int i=0;
+	int s = minIdx.size();
+	for(vector< p1d::TPairedExtrema >::iterator it = Extrema.begin(); it != Extrema.end(); it++)
+	{
+		i++;
+		minIdx[s-i]=(*it).MinIndex;
+		maxIdx[s-i]=(*it).MaxIndex;
+	}
+	
+	 //Print all found pairs - pairs are sorted ascending wrt. persistence.
+//     for(vector< p1d::TPairedExtrema >::iterator it = Extrema.begin(); it != Extrema.end(); it++)
+//     {
+//         cout << "Persistence: " << (*it).Persistence
+// 			 << endl
+//              << " minimum index: " << (*it).MinIndex << "\tvalue = " << Y[(*it).MinIndex]
+//              << endl 
+//              << " maximum index: " << (*it).MaxIndex << "\tvalue = " << Y[(*it).MaxIndex]
+//              << std::endl;
+//     }
+	
+    //Also, print the global minimum.
+//     cout << "Global minimum index: " << p.GetGlobalMinimumIndex()
+//          << " Global minimum value: " << p.GetGlobalMinimumValue() << endl;
+		 
+	return true;
+}
+
+int statistics::get_index_for_next_value_within_treshold(vector<double> Y, double treshold_bottom, double treshold_top, int start, int ende)
+{
+	if (ende==0) ende=Y.size();
+	int index=0;
+
+	for (int i=start;i<ende;i++)
+	{
+		index=i;
+		if (Y[i]<treshold_top && Y[i]>=treshold_bottom) break;
+	}
+	return index;
+}
+
+
 int statistics::get_index_for_next_value_lower_than_treshold(vector<double> Y,double treshold, int start, int ende)
 {
 	if (ende==0) ende=Y.size();
@@ -223,9 +289,11 @@ vector<double> statistics::impulse_filter(vector<double> Y, int window_size, flo
 //     statistics::std_vec_to_gsl_vec(&Y,&x);
     for (size_t i=0;i<Y.size();i++) gsl_vector_set (x, i, Y.at(i));
     /* apply impulse detection filter */
-    gsl_filter_impulse(GSL_FILTER_END_TRUNCATE, GSL_FILTER_SCALE_QN, t, x, y,
+	/// THIS IS NOT WORKING IN WINDOWS 32BIT FOR SOME INPUT VALUES
+//     gsl_filter_impulse(GSL_FILTER_END_TRUNCATE, GSL_FILTER_SCALE_QN, t, x, y,
+//                      xmedian, xsigma, &noutlier, ioutlier, w);
+	gsl_filter_impulse(GSL_FILTER_END_PADVALUE, GSL_FILTER_SCALE_MAD, t, x, y,
                      xmedian, xsigma, &noutlier, ioutlier, w);
-//     Y_filtered = statistics::gsl_vec_to_std_vec(&y); // GSL_FILTER_END_PADZERO
     for (int i=0;i<y->size;i++) Y_filtered.push_back(y->data[i]);
     gsl_vector_free(x);
     gsl_vector_free(y);
@@ -636,7 +704,7 @@ vector<double> statistics::get_minmax_from_dataXY_tensor(vector<vector<vector<do
     return max_values_of_all_colls;
 }
 
-double statistics::get_max_index_from_Y(vector<double> Y) {
+int statistics::get_max_index_from_Y(vector<double> Y) {
     gsl_vector * vec = gsl_vector_alloc(Y.size());
 //     statistics::std_vec_to_gsl_vec(&Y,&vec);
     for (size_t i=0;i<Y.size();i++)gsl_vector_set (vec, i, Y.at(i));
@@ -644,6 +712,30 @@ double statistics::get_max_index_from_Y(vector<double> Y) {
     gsl_vector_free(vec);
     return max;
 }
+
+double statistics::get_gastwirth_estimator_from_Y ( vector<double> Y )
+{
+	gsl_vector * vec = gsl_vector_alloc(Y.size());
+    for (size_t i=0;i<Y.size();i++)
+		gsl_vector_set (vec, i, Y.at(i));
+	gsl_sort(vec->data,1,Y.size());
+	double gastwirth = gsl_stats_gastwirth_from_sorted_data(vec->data,1,Y.size());
+    gsl_vector_free(vec);
+    return gastwirth;
+}
+
+
+double statistics::get_trimmed_mean_from_Y(vector<double> Y, float alpha)
+{
+	gsl_vector * vec = gsl_vector_alloc(Y.size());
+    for (size_t i=0;i<Y.size();i++)
+		gsl_vector_set (vec, i, Y.at(i));
+	gsl_sort(vec->data,1,Y.size());
+	double tr_mean = gsl_stats_trmean_from_sorted_data(alpha,vec->data,1,Y.size());
+    gsl_vector_free(vec);
+    return tr_mean;
+}
+
 
 double statistics::get_mean_from_Y(vector<double> Y) {
     gsl_vector * vec = gsl_vector_alloc(Y.size());
@@ -694,7 +786,7 @@ double statistics::get_sd_from_Y(vector<double> Y) {
     return sd;
 }
 
-double statistics::get_min_index_from_Y(vector<double> Y) {
+int statistics::get_min_index_from_Y(vector<double> Y) {
     gsl_vector * vec = gsl_vector_alloc(Y.size());
 //     statistics::std_vec_to_gsl_vec(&Y,&vec);
     for (size_t i=0;i<Y.size();i++)gsl_vector_set (vec, i, Y.at(i));

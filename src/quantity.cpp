@@ -52,7 +52,7 @@ void quantity_t::to_screen(string prefix)
 	cout << prefix << name << endl;
 	cout << prefix << "\tdimension: " << dimension << endl;
 	cout << prefix << "\tunit: " << unit << endl;
-	if(data.size()!=1) cout << prefix << "\tdata.size(): " << data.size() << endl;
+	if(data.size()!=1) cout << prefix << "\tdata.size(): " << data.size() << "\tmedian = " << median().data[0] << endl;
 	else cout << prefix << "\tdata: " << data[0] << endl;
 	return;
 }
@@ -268,6 +268,28 @@ quantity_t quantity_t::mean()
 	return mean;
 }
 
+quantity_t quantity_t::trimmed_mean(float alpha)
+{
+	quantity_t tr_mean;
+	tr_mean.unit=unit;
+	tr_mean.dimension=dimension;
+	tr_mean.name="tr_mean("+name+")";
+	tr_mean.data={statistics::get_trimmed_mean_from_Y(data,alpha)};
+	return tr_mean;
+}
+
+quantity_t quantity_t::gastwirth()
+{
+	quantity_t gastw;
+	gastw.unit=unit;
+	gastw.dimension=dimension;
+	gastw.name="gastwirth("+name+")";
+	gastw.data={statistics::get_gastwirth_estimator_from_Y(data)};
+	return gastw;
+}
+
+
+
 quantity_t quantity_t::mad()
 {
 	quantity_t mad;
@@ -386,6 +408,7 @@ quantity_t quantity_t::filter_impulse(int window_size, float factor)
 	filtered.dimension=dimension;
 	filtered.unit = unit;
 	if (window_size==0) window_size=0.05*data.size();
+	if (window_size==0) window_size=3;
 	filtered.data = statistics::impulse_filter(data,window_size,factor);
 	return filtered;
 }

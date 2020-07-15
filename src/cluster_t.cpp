@@ -26,7 +26,18 @@
 
 quantity_t cluster_t::total_sputter_depth()
 {
-	return measurement->crater.total_sputter_depths().mean();
+	if (measurement->crater.total_sputter_depths().mean().is_set())
+		return measurement->crater.total_sputter_depths().mean();
+	
+	if (measurement->crater.sputter_rate().is_set() && total_sputter_time().is_set())
+	{
+		quantity_t tsd =  total_sputter_time()*sputter_rate();
+		tsd.data[0] = tsd.data.back();
+		tsd.data.resize(1);
+		tsd.name = "total_sputter_depth";
+		return tsd;
+	}
+	return quantity_t();
 }
 quantity_t cluster_t::total_sputter_time()
 {
@@ -37,7 +48,7 @@ quantity_t cluster_t::sputter_rate()
 {
 	if (sputter_rate_p.is_set()) return sputter_rate_p;
 	if (measurement->crater.sputter_rate_p.is_set()) return measurement->crater.sputter_rate_p;
-	if (already_checked_sputter_rate) return {};
+	if (already_checked_sputter_rate) return {}; // results from previouse calculation are saved in crater
 	already_checked_sputter_rate=true;
 
 	
@@ -53,10 +64,10 @@ quantity_t cluster_t::sputter_rate()
 	{
 		measurement->crater.sputter_rate_p=depth_at_maximum_concentration() / (equilibrium().concentration().polyfit().max_at_x(equilibrium().sputter_time() ));
 	}
-	else if (measurement->measurement_group->SRs().is_set())
-	{
-		measurement->crater.sputter_rate_p = measurement->measurement_group->SRs().mean();
-	}
+// 	else if (measurement->measurement_group->SRs().is_set())
+// 	{
+// 		measurement->crater.sputter_rate_p = measurement->measurement_group->SRs().mean();
+// 	}
 	
 	if (measurement->crater.sputter_rate_p.is_set())calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + measurement->crater.sputter_rate_p.to_str());
 	measurement->crater.sputter_rate_p.unit="nm/s";
@@ -126,6 +137,7 @@ void cluster_t::set_depth_at_maximum_concentration_p(quantity_t& quantity)
 
 void cluster_t::set_depth_at_maximum_concentration_p(double& value)
 {
+	if (value<=0) return;
 	depth_at_maximum_concentration_p.name="depth(max(concentration))";
 	depth_at_maximum_concentration_p.unit="nm";
 	depth_at_maximum_concentration_p.dimension="length";
@@ -140,6 +152,7 @@ void cluster_t::set_dose_p(quantity_t& quantity)
 
 void cluster_t::set_dose_p(double& value)
 {
+	if (value<=0) return;
 	dose_p.name="dose";
 	dose_p.unit="at/cm^2";
 	dose_p.dimension = "amount*(length)^(-2)";
@@ -149,6 +162,7 @@ void cluster_t::set_dose_p(double& value)
 
 void cluster_t::set_maximum_concentration_p(double& value)
 {
+	if (value<=0) return;
 	maximum_concentration_p.name="max(concentration)";
 	maximum_concentration_p.unit="at/cm^3";
 	maximum_concentration_p.dimension="amount*(length)^(-3)";
@@ -164,7 +178,7 @@ quantity_t cluster_t::maximum_concentration()
 quantity_t cluster_t::dose()
 {
 	if (already_checked_dose || dose_p.is_set()) return dose_p;
-	else if (equilibrium().concentration().is_set() && equilibrium().sputter_depth().is_set()) 
+	if (equilibrium().concentration().is_set() && equilibrium().sputter_depth().is_set()) 
 	{
 		dose_p=equilibrium().concentration().integrate(equilibrium().sputter_depth());
 		if (dose_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + dose_p.to_str());
@@ -182,7 +196,7 @@ quantity_t cluster_t::dose()
 
 isotope_t cluster_t::reference_matrix_isotope()
 {
-	for (auto& ref_isotope:measurement->sample_p->matrix.isotopes)
+	for (auto& ref_isotope:measurement->sample_p->matrix.isotopes())
 	{
 		if (leftover_elements({ref_isotope}).size()==0) return ref_isotope;
 	}
@@ -236,7 +250,8 @@ quantity_t cluster_t::SF()
 		SF_p = dose() / (equilibrium().intensity().integrate(equilibrium().sputter_depth()));
 		SF_p = SF_p * 1E7; // nm -> cm
 		SF_p.unit = "at/cm^3 / (cnt/s)";
-// 		cout << "\n+++SF_p.data.size() = " << SF_p.data.size() << endl;
+// 		cout << "\n+++SF_p:\n " << endl;
+// 		SF_p.to_screen();
 	}
 	
 	else if (maximum_concentration().is_set() && equilibrium().intensity().polyfit().max().is_set())
@@ -250,9 +265,11 @@ quantity_t cluster_t::SF()
 		if(conf.standard_reference_intensity_calculation_method=="pbp") SF_p = RSF() / reference_intensity();
 		else if(conf.standard_reference_intensity_calculation_method=="median") SF_p = RSF() / reference_intensity().median();
 		else if(conf.standard_reference_intensity_calculation_method=="mean") SF_p = RSF() / reference_intensity().mean();
+		else if(conf.standard_reference_intensity_calculation_method=="trimmed_mean") SF_p = RSF() / reference_intensity().trimmed_mean();
+		else if(conf.standard_reference_intensity_calculation_method=="gastwirth") SF_p = RSF() / reference_intensity().gastwirth();
 		else if(conf.standard_reference_intensity_calculation_method=="quantile50") SF_p = RSF() / reference_intensity().quantile(0.5);
 		else if(conf.standard_reference_intensity_calculation_method=="quantile75") SF_p = RSF() / reference_intensity().quantile(0.75);
-		else RSF() / reference_intensity();
+		else RSF() / reference_intensity().trimmed_mean();
 	}
 	
 	if (SF_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + SF_p.to_str());
@@ -262,7 +279,7 @@ quantity_t cluster_t::SF()
 quantity_t cluster_t::RSF()
 {
 	if (RSF_p.is_set()) return RSF_p;
-	if (measurement->reference_clusters().size()==1 && measurement->measurement_group->RSFs(name()).is_set()) return measurement->measurement_group->RSFs(name()).mean();
+// 	if (measurement->reference_clusters().size()==1 && measurement->measurement_group->RSFs(name()).is_set()) return measurement->measurement_group->RSFs(name()).mean();
 	if (already_checked_RSF) return {};
 
 	already_checked_RSF=true;
@@ -275,13 +292,25 @@ quantity_t cluster_t::RSF()
 		if (RSF_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + RSF_p.to_str());
 		RSF_p.dimension = "amount*(length)^(-3)";
 		RSF_p.unit = "at/cm^3";
-// 		return RSF_p;
+		if (RSF_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + RSF_p.to_str());
+		return RSF_p;
 	}
 
 	// look in other measurements within this group for the RSF of this cluster
-// 	if (measurement->measurement_group->RSFs(name()).is_set())
-// 		RSF_p = measurement->measurement_group->RSFs(name()).mean();
-	
+	for (auto& M:measurement->measurement_group->measurements)
+	{
+		if (M==measurement) continue;
+		if (M->sample_p->matrix != measurement->sample_p->matrix) continue;
+		for (auto& C:M->clusters)
+		{
+			if (C.second.name()!=name()) continue;
+			if (!C.second.RSF().is_set()) continue;
+			if (RSF_p.is_set()) RSF_p = RSF_p.add_to_data(C.second.RSF());
+			else RSF_p = C.second.RSF();
+			break;
+		}
+	}
+	RSF_p = RSF_p.mean();
 	if (RSF_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + RSF_p.to_str());
 	return RSF_p;
 }
@@ -303,7 +332,7 @@ quantity_t cluster_t::reference_intensity()
 	for (int i=1;i<measurement->reference_clusters().size();i++)
 		reference_intensity_p=reference_intensity_p + measurement->reference_clusters()[i]->intensity();
 // 	cout << "reference_intensity_p.data.size()A=" << reference_intensity_p.data.size() << endl;
-	reference_intensity_p = reduce_quantity_by_equlibrium_starting_pos(reference_intensity_p);
+	if (quantities_reduced_by_equilibrium_starting_pos) reference_intensity_p = reduce_quantity_by_equlibrium_starting_pos(reference_intensity_p);
 // 	cout << "reference_intensity_p.data.size()B=" << reference_intensity_p.data.size() << endl;
 	if (reference_intensity_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + reference_intensity_p.to_str());
 // 	cout << "reference_intensity_p.data.size()=" << reference_intensity_p.data.size() << endl;
@@ -498,8 +527,8 @@ vector<isotope_t> cluster_t::leftover_elements(vector<isotope_t> isotopes_p)
 
 quantity_t cluster_t::reduce_quantity_by_equlibrium_starting_pos(quantity_t& quantity)
 {
-	if (equilibrium_starting_pos<1) return quantity;
-	if (quantity.data.size()<=1) return quantity;
+	if (equilibrium_starting_pos<1) return quantity; 
+	if (quantity.data.size()<=1) return quantity; // no vector
 	quantity_t result=quantity;
 	if (result.is_set()) 
 	{
@@ -509,54 +538,146 @@ quantity_t cluster_t::reduce_quantity_by_equlibrium_starting_pos(quantity_t& qua
 	return result;
 }
 
+void cluster_t::reduce_quantities_by_equlibrium_starting_pos(cluster_t& reduces_this)
+{
+	
+	reduces_this.concentration_p=reduces_this.reduce_quantity_by_equlibrium_starting_pos(concentration_p);
+	reduces_this.intensity_p=reduces_this.reduce_quantity_by_equlibrium_starting_pos(intensity_p);
+	reduces_this.reference_intensity_p=reduces_this.reduce_quantity_by_equlibrium_starting_pos(reference_intensity_p);
+	reduces_this.SF_p=reduces_this.reduce_quantity_by_equlibrium_starting_pos(SF_p);
+	reduces_this.RSF_p=reduces_this.reduce_quantity_by_equlibrium_starting_pos(RSF_p);
+	reduces_this.dose_p=reduces_this.reduce_quantity_by_equlibrium_starting_pos(dose_p);
+	
+	reduces_this.sputter_time_p=reduces_this.reduce_quantity_by_equlibrium_starting_pos(measurement->crater.sputter_time_p);
+	reduces_this.sputter_depth_p=reduces_this.reduce_quantity_by_equlibrium_starting_pos(measurement->crater.sputter_depth_p);
+	reduces_this.sputter_rate_p=reduces_this.reduce_quantity_by_equlibrium_starting_pos(measurement->crater.sputter_rate_p);
+	
+	reduces_this.quantities_reduced_by_equilibrium_starting_pos = true;
+	
+	/*renaming*/
+	
+	if (reduces_this.concentration_p.is_set()) reduces_this.concentration_p.name="equilibrium("+reduces_this.concentration_p.name+")";
+	if (reduces_this.intensity_p.is_set()) reduces_this.intensity_p.name="equilibrium("+reduces_this.intensity_p.name+")";
+	if (reduces_this.reference_intensity_p.is_set()) reduces_this.reference_intensity_p.name="equilibrium("+reduces_this.reference_intensity_p.name+")";
+	if (reduces_this.SF_p.is_set()) reduces_this.SF_p.name="equilibrium("+reduces_this.SF_p.name+")";
+	if (reduces_this.RSF_p.is_set()) reduces_this.RSF_p.name="equilibrium("+reduces_this.RSF_p.name+")";
+	if (reduces_this.dose_p.is_set()) reduces_this.dose_p.name="equilibrium("+reduces_this.dose_p.name+")";
+	
+	if (reduces_this.sputter_time_p.is_set()) reduces_this.sputter_time_p.name="equilibrium("+reduces_this.sputter_time_p.name+")";
+	if (reduces_this.sputter_depth_p.is_set()) reduces_this.sputter_depth_p.name="equilibrium("+reduces_this.sputter_depth_p.name+")";
+	if (reduces_this.sputter_rate_p.is_set()) reduces_this.sputter_rate_p.name="equilibrium("+reduces_this.sputter_rate_p.name+")";
+}
 
-cluster_t cluster_t::equilibrium(bool use_local_cluster_minimum_at_start)
+
+
+cluster_t cluster_t::equilibrium()
 {
 	/*already in equilibrium*/
-	if (equilibrium_starting_pos>0) return *this;
+	if (quantities_reduced_by_equilibrium_starting_pos) return *this;
 	cluster_t result=*this;
-	result.equilibrium_starting_pos=measurement->equilibrium_starting_pos();
+// 	print(name());
+// 	intensity_p.to_screen();
+// 	intensity().to_screen();
+// 	return *this;
 	
-	if (use_local_cluster_minimum_at_start) 
+	if (equilibrium_starting_pos==-1)
 	{
-	
-	/*******************************/
-	/// get local minimum of non-reference-clusters in vicinity of measurement->equilibrium_starting_pos
-	vector<double> local_minima_indices, Y;
-	vector<int> l_ext;
-	
-	if (intensity().is_set()) Y=intensity().moving_window_median(5).data;
-	else  Y=concentration().moving_window_median(5).data;
-// 	// skip low intensity/noisy clusters
-	
-	l_ext = statistics::get_local_minima_indices_by_triangulation(Y,2,4); // 0.1*Y[statistics::get_min_index_from_Y(Y)]
-
-	/// filter local_minima_indices for positions
-	for (auto& min:l_ext)
-	{
-		/*black magic*/
-		if (Y[result.equilibrium_starting_pos]>Y[min] && min<15*result.equilibrium_starting_pos && min>0.9*result.equilibrium_starting_pos && (min<Y.size()*0.25 || min<15*result.equilibrium_starting_pos )) 
+		equilibrium_starting_pos=0;
+		vector<double> Y;
+		
+		if (intensity().is_set())
+			Y = intensity().filter_gaussian(5,4).data; 
+		else if (concentration().is_set())
+			Y = concentration().filter_gaussian(5,4).data; 
+		else return result;
+		
+		double treshold = statistics::get_mad_from_Y(Y);
+		double median = statistics::get_median_from_Y(Y);
+		set<int> extrema_idx;
+// 		extrema_idx.insert(0);
+		vector<int> maxIdx, minIdx;
+		if (!statistics::get_extrema_indices(maxIdx,minIdx,Y,treshold*5))
 		{
-			local_minima_indices.push_back(min);
+// 			cout << endl << "!statistics::get_extrema_indices(maxIdx,minIdx,Y,statistics::get_mad_from_Y(Y)*2)" << endl;
+// 			cout << name() << " type C" << endl;
+			if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold,median+treshold,1);
+// 			else equilibrium_starting_pos = measurement->equilibrium_starting_pos();
+			else equilibrium_starting_pos = 1;
 		}
-	}
-	for (auto& local_minimum_index:local_minima_indices)
-	{
-		if (Y[result.equilibrium_starting_pos] > Y[local_minimum_index]) result.equilibrium_starting_pos=local_minimum_index;
-	}
+		//type C
+		else if (minIdx.size()==0 && maxIdx.size()==1) // just the global maximum
+		{
+// 			cout << name() << " type C" << endl;
+			if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold,median+treshold,1);
+// 			else equilibrium_starting_pos = measurement->equilibrium_starting_pos();
+			else equilibrium_starting_pos = 1;
+		}
+		else
+		{
+			/*remove right sided*/
+			for (auto& m:maxIdx)
+				if (m>0.5*Y.size()) m=0;
+			for (auto& m:minIdx)
+				if (m>0.5*Y.size()) m=0;
+				
+			set<int> maxIdx_set (maxIdx.begin(),maxIdx.end());
+			set<int> minIdx_set (minIdx.begin(),minIdx.end());
+			
+			/*remove trivials*/
+			maxIdx_set.erase(0);
+			maxIdx_set.erase(1);
+			minIdx_set.erase(0);
+			minIdx_set.erase(1);
+			
+// 			print("maxIdx_set: " + name());
+// 			print(maxIdx_set);
+// 			print("minIdx_set: " + name());
+// 			print(minIdx_set);
+			
+			//type E D
+			if (minIdx_set.size()==0 && maxIdx_set.size()==0)
+			{
+// 				cout << name() << " type E or D" << endl;
+				if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold,median+treshold,1);
+// 				else equilibrium_starting_pos = measurement->equilibrium_starting_pos();
+				else equilibrium_starting_pos = 1;
+			}
+			// type G H
+			else if (minIdx_set.size()==0 && maxIdx_set.size()!=0 )
+			{
+				equilibrium_starting_pos=*maxIdx_set.begin(); 
+// 				cout << name() << " type G or H" << endl;
+			}
+			//type A B F
+			else 
+			{
+				equilibrium_starting_pos=*minIdx_set.begin(); 
+// 				cout << name() << " type A or B or F" << endl;
+			}
+		}
+// 		cout << name() <<" equilibrium_starting_pos = " << equilibrium_starting_pos << endl;
 	}
 	
-	result.concentration_p=result.reduce_quantity_by_equlibrium_starting_pos(concentration_p);
-	result.intensity_p=result.reduce_quantity_by_equlibrium_starting_pos(intensity_p);
-	result.reference_intensity_p=result.reduce_quantity_by_equlibrium_starting_pos(reference_intensity_p);
-	
-	result.SF_p=result.reduce_quantity_by_equlibrium_starting_pos(SF_p);
-	result.RSF_p=result.reduce_quantity_by_equlibrium_starting_pos(RSF_p);
-	result.dose_p=result.reduce_quantity_by_equlibrium_starting_pos(dose_p);
-	
-	result.sputter_time_p=result.reduce_quantity_by_equlibrium_starting_pos(measurement->crater.sputter_time_p);
-	result.sputter_depth_p=result.reduce_quantity_by_equlibrium_starting_pos(measurement->crater.sputter_depth_p);
-	result.sputter_rate_p=result.reduce_quantity_by_equlibrium_starting_pos(measurement->crater.sputter_rate_p);
+	result.equilibrium_starting_pos=equilibrium_starting_pos;
+	reduce_quantities_by_equlibrium_starting_pos(result);
 	return result;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

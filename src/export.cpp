@@ -648,7 +648,12 @@ vector<origin_t::column_t> origin_t::format_measurement_cluster_columns_from_con
 				
 		if (col_name=="intensity" || col_name=="intensities")
 			for (auto& cluster : measurement->clusters)
-				if (cluster.second.intensity().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
+				if (cluster.second.intensity().is_set()) 
+				{
+					columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
+// 					filter_gaussian(5,4)
+// 					columns.push_back(column_t(&cluster.second,cluster.second.intensity().filter_gaussian(5,4),"_"+suffix()));
+				}
 		
 		if (col_name=="total_sputter_time")
 		{

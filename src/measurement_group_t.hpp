@@ -77,9 +77,9 @@ public:
 	set<isotope_t> isotopes();
 	isotope_t isotope_from_cluster_name(string cluster_name);
 	/// all matching RSFs from all measurements
-	quantity_t RSFs(string cluster_name);
+// 	quantity_t RSFs(string cluster_name, sample_t::matrix_t& matrix);
 	/// all matching Sputter_Rates for a given matrix/reference for all measurements
-	quantity_t SRs();
+// 	quantity_t SRs(sample_t::matrix_t& matrix);
 	
 	/// returns the sample corresponding value for the specified matrix
 // 	quantity_t RSF(cluster_t& searched_cluster,measurement_t& measurement);

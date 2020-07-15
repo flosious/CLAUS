@@ -332,8 +332,8 @@ int tools::file::mkpath(string pfad, mode_t mode)
 #else
 int tools::file::mkpath(string path, int delme) {
 	tools::str::replace_umlaute_to_windows_compatible(&path);
-	string cmd = string("mkdir ") +path;
-	system(cmd.c_str());
+	string cmd = string("mkdir ") +path + string(" 2>nul");
+	system(cmd.c_str() );
 	return 1;
 }
 #endif

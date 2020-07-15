@@ -26,97 +26,23 @@
 #define TABLENAME_measurement_statistics "measurement_statistics"
 #define TABLENAME_reference_measurement_isotopes "reference_measurement_isotopes"
 
-/// this function consumed 1 GF and 1 sunny weekend :-(
 int measurement_t::equilibrium_starting_pos()
 {
 	if (equilibrium_starting_pos_p>-1) return equilibrium_starting_pos_p;
-	
-	vector<double> local_minima_indices, local_maxima_indices, Y;
-	/*calculate the equlibirium*/
-	/// get local minima from reference clusters
-	set<int> equilibrium_starting_positions;
-	set<int> local_minima_set, local_maxima_set;
-	int ext;
-	vector<int> l_ext;
-	vector<cluster_t*> cluster_pointers;
-	if (reference_clusters().size()==0)
+	set<int> esp;
+	for (auto& ref_cluster:reference_clusters())
 	{
-		for (auto& cluster:clusters)
-			cluster_pointers.push_back(&(cluster.second));
+		esp.insert(ref_cluster->equilibrium().equilibrium_starting_pos);
 	}
-	else cluster_pointers = reference_clusters();
-	for (auto& ref_cluster:cluster_pointers)
+	/*trivials*/
+	esp.erase(0);
+	esp.erase(1);
+	if (esp.size()==0)
 	{
-		if (ref_cluster->intensity().is_set())
-			Y = ref_cluster->intensity().filter_gaussian(5,4)/*.moving_window_sd(5).moving_window_sd(5).moving_window_median(5)*/.data; 
-		else if (ref_cluster->concentration().is_set())
-			Y = ref_cluster->concentration().filter_gaussian(5,4)/*.moving_window_sd(5).moving_window_sd(5).moving_window_median(5)*/.data; 
-		
-// 		double local_max_treshold = 2*statistics::get_mad_from_Y(Y)+	statistics::get_median_from_Y(Y);
-		
-		// global minimum
-// 		local_minima_indices.push_back(statistics::get_min_index_from_Y(Y));
-// 		cout << measurement->filename_p->filename_with_path() << "\t" << ref_cluster->name() << endl;
-// 		print("global minimum");
-// 		cout << statistics::get_min_index_from_Y(Y) << "\t" << Y[statistics::get_min_index_from_Y(Y)] << endl;
-		// global maximum
-// 		local_maxima_indices.push_back(statistics::get_max_index_from_Y(Y));
-// 		print("global maximum");
-// 		cout << statistics::get_max_index_from_Y(Y) << "\t" << Y[statistics::get_max_index_from_Y(Y)] << endl;
-		// local minima
-		l_ext = statistics::get_local_minima_indices(Y,0.5*statistics::get_median_from_Y(Y));
-		local_minima_set.insert(l_ext.begin(),l_ext.end());
-// 		print("local minima");
-// 		print(l_ext);
-		// local maxima
-// 		l_ext = statistics::get_local_maxima_indices(Y,1.5*statistics::get_median_from_Y(Y)); // statistics::get_median_from_Y(Y)+2*statistics::get_mad_from_Y(Y)
-		l_ext = statistics::get_local_maxima_indices(Y,2*statistics::get_mad_from_Y(Y)+	statistics::get_median_from_Y(Y)); // statistics::get_median_from_Y(Y)+2*statistics::get_mad_from_Y(Y)
-		local_maxima_set.insert(l_ext.begin(),l_ext.end());
-// 		local_maxima_indices.insert(local_maxima_indices.end(),l_ext.begin(),l_ext.end());
-// 		print("local maxima");
-// 		print(l_ext);
-// 		cout << "statistics::get_median_from_Y(Y) = " << statistics::get_median_from_Y(Y) << endl;
-// 		cout << "statistics::get_mad_from_Y(Y) = " << statistics::get_mad_from_Y(Y) << endl;
-// 		cout << "local_max_treshold = " << local_max_treshold << endl;
-		
-		local_maxima_set.erase(0);
-		local_minima_set.erase(0);
-// 		print("local_maxima_set:");
-// 		print(local_maxima_set);
-// 		print("local_minima_set:");
-// 		print(local_minima_set);
-		if (local_maxima_set.size()>0 )
-		{
-			local_maxima_indices.assign(local_maxima_set.begin(),local_maxima_set.end());
-			ext = local_maxima_indices[statistics::get_min_index_from_Y(local_minima_indices)];
-// 			equilibrium_starting_positions.insert( statistics::get_index_for_next_value_lower_than_treshold(Y,1.25*statistics::get_median_from_Y(Y)/*+10*statistics::get_mad_from_Y(Y)*/,ext));
-			equilibrium_starting_positions.insert( statistics::get_index_for_next_value_lower_than_treshold(Y,statistics::get_median_from_Y(Y),ext));
-		}
-		else if (local_minima_set.size()>0 )
-		{
-			local_minima_indices.assign(local_minima_set.begin(),local_minima_set.end());
-			ext = local_minima_indices[statistics::get_min_index_from_Y(local_minima_indices)];
-			equilibrium_starting_positions.insert( statistics::get_index_for_next_value_higher_than_treshold(Y,0.9*statistics::get_median_from_Y(Y)/*-10*statistics::get_mad_from_Y(Y)*/,ext));
-		}
-		else
-		{
-			/// minimum value at start
-			if (statistics::get_min_index_from_Y(Y)<1) equilibrium_starting_positions.insert( statistics::get_index_for_next_value_higher_than_treshold(Y,0.9*statistics::get_median_from_Y(Y)));
-			/// maximum value at start
-			else equilibrium_starting_positions.insert( statistics::get_index_for_next_value_lower_than_treshold(Y,1.25*statistics::get_median_from_Y(Y)));	
-		}
+		equilibrium_starting_pos_p = 1;
 	}
-// 	print("equilibrium_starting_positions");
-// 	print(equilibrium_starting_positions);
-	equilibrium_starting_pos_p = 0;
-	if (equilibrium_starting_positions.size()>0)
-	{
-		vector<double> positions(equilibrium_starting_positions.begin(),equilibrium_starting_positions.end());
-		if (positions[statistics::get_min_index_from_Y(positions)]<0.5*Y.size()) equilibrium_starting_pos_p = positions[statistics::get_min_index_from_Y(positions)];
-		else equilibrium_starting_pos_p=0;
-	} 
-// 	if (equilibrium_starting_pos_p==0) return equilibrium_starting_pos_p;
-// 	cout << "equilibrium_starting_pos_p = " << equilibrium_starting_pos_p << endl;
+	else 
+		equilibrium_starting_pos_p = *esp.begin();
 	return equilibrium_starting_pos_p;
 }
 
@@ -203,7 +129,6 @@ bool measurement_t::load_from_database()
 {
 	if (loaded_from_database) return true;
 	std::string sql1, sql2;
-		 
 	sql1 = "SELECT * FROM " \
 			TABLENAME_everything \
 			" WHERE " \
@@ -236,7 +161,7 @@ bool measurement_t::load_from_database()
 	
 	
 	/*set matrix/substrat*/
-	if (sample_p->matrix.isotopes.size()==0)
+	if (sample_p->matrix.isotopes().size()==0)
 	if (!sample_p->matrix.set_isotopes_from_name(lines_map["matrix_elements"][0]))
 	{
 		cout << "measurement_t::load_from_database: !sample_p->matrix.set_isotopes_from_name(" << lines_map["substrat_elements"][0] << ")" << endl;
@@ -245,9 +170,9 @@ bool measurement_t::load_from_database()
 // 	/*populate refence_cluster_names*/ --> shifted to measurement_group_t
 // 	for (auto& cluster:clusters)
 // 	{
-// 		if (cluster.second.leftover_elements(sample_p->matrix.isotopes).size()==0)
+// 		if (cluster.second.leftover_elements(sample_p->matrix.isotopes()).size()==0)
 // 		{
-// // 			cout << "cluster.second.leftover_elements(sample_p->matrix.isotopes).size()=" << cluster.second.leftover_elements(sample_p->matrix.isotopes).size() << endl;
+// // 			cout << "cluster.second.leftover_elements(sample_p->matrix.isotopes()).size()=" << cluster.second.leftover_elements(sample_p->matrix.isotopes()).size() << endl;
 // 			measurement_group->add_to_reference_cluster_names(cluster.second.name());
 // 		}
 // 	}
@@ -345,7 +270,7 @@ vector<std::__cxx11::string> measurement_t::error_messages()
 // 	for (auto& ref_cluster:reference_clusters())
 // 	{
 // 		found = false;
-// 		for (auto& matrix_isotope:sample_p->matrix.isotopes)
+// 		for (auto& matrix_isotope:sample_p->matrix.isotopes())
 // 		{
 // 			
 // 			if (ref_cluster->name().find(matrix_isotope.symbol)!=string::npos)

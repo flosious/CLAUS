@@ -50,6 +50,9 @@ class cluster_t
 // 	friend class calc_models_t::jiang_t;
 // 	friend class measurement_t;
 private:
+	
+	bool quantities_reduced_by_equilibrium_starting_pos=false;
+	void reduce_quantities_by_equlibrium_starting_pos(cluster_t& reduces_this);
 // 	vector<quantity_t*> in_calculation_list_p;
 	quantity_t reduce_quantity_by_equlibrium_starting_pos(quantity_t& quantity);
 // 	cluster_t* equlibrium_p=nullptr;
@@ -92,8 +95,9 @@ private:
 	bool already_checked_sputter_time=false;
 	bool already_checked_sputter_rate=false;
 	
-	int equilibrium_starting_pos=0;
+	
 public:
+	int equilibrium_starting_pos=-1;
 // 	calc_models_t 
 // 	vector<string> settings;
 	
@@ -152,8 +156,10 @@ public:
 	quantity_t total_sputter_time();
 	quantity_t total_sputter_depth();
 	
-	/// returns this cluster within its sputter equlibrium state
-	cluster_t equilibrium(bool use_local_cluster_minimum_at_start=true);
+	/*! returns this cluster within its sputter equlibrium state
+	 *  its a little bit complicated because iterative use is forbidden
+	 */
+	cluster_t equilibrium();
 	
 	void to_screen(string prefix="");
 };

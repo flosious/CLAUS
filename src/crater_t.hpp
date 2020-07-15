@@ -28,7 +28,8 @@
 
 class cluster_t;
 class linescan_t;
-class measurement_t;
+// class measurement_t;
+// class measurement_group_t;
 
 class crater_t 
 {
@@ -40,6 +41,7 @@ class crater_t
 	friend class cluster_t;
 	friend class calc_models_t;
 private:
+// 	measurement_t* measurement;
 	double sputter_depth_resolution=0;
 	double sputter_time_resolution=0;
 	vector<double> sputter_depth_old;

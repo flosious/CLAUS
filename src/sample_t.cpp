@@ -23,9 +23,15 @@
 #define TABLENAME_sample_layers "sample_layers"
  
  
+ std::vector< isotope_t > sample_t::matrix_t::isotopes() const
+{
+	return isotopes_p;
+}
+
+ 
  int sample_t::matrix_t::get_atoms_from_isotope ( isotope_t isotope )
 {
-	for (auto& is:isotopes)
+	for (auto& is:isotopes())
 	{
 		if (isotope.symbol==is.symbol && isotope.nucleons == is.nucleons)
 			return is.atoms;
@@ -36,26 +42,29 @@
  
  quantity_t sample_t::matrix_t::relative_concentration(const isotope_t& isotope) const
 {
+// 	cout << isotope.nucleons << isotope.symbol << isotope.atoms << endl;
 	quantity_t Crel;
 	Crel.name = "relative concentration";
 	Crel.unit = "at%";
 	Crel.dimension = "relative";
 	double sum=0;
-	for (auto is:isotopes)
+	for (auto is:isotopes())
+	{
 		sum = sum +is.atoms;
+// 		is.to_screen("is\t");
+	}
 	if (sum==0) return quantity_t();
-// 	bool is_in_matrix = false;
+
 	double atoms=0;
-	for (auto& is:isotopes)
+	for (auto& is:isotopes())
 		if (isotope.symbol==is.symbol && isotope.nucleons == is.nucleons)
 		{
 			atoms = is.atoms;
-// 			is_in_matrix=true;
 			break;
 		}
-// 	if (atoms>0) Crel.data.push_back(atoms/sum*100);
-// 	else Crel.data.push_back(0);
+	
 	Crel.data.push_back(atoms/sum*100);
+// 	Crel.to_screen();
 	return Crel;
 }
 
@@ -69,9 +78,9 @@ bool sample_t::matrix_t::set_isotopes_from_name(string name)
 	isotope_strings = tools::str::get_strings_between_delimiter(name_p," ");
 	for (auto& isotope_string:isotope_strings)
 	{
-		isotopes.push_back(isotope_t(isotope_string));
+		isotopes_p.push_back(isotope_t(isotope_string));
 	}
-	if (isotopes.size()==0) return false;
+	if (isotopes().size()==0) return false;
 	return true;
 }
 
@@ -99,8 +108,9 @@ bool sample_t::matrix_t::set_isotopes_from_name(string name)
 
 std::__cxx11::string sample_t::matrix_t::name()
 {
+	if (isotopes().size()==0) return "";
 	string result;
-	for(auto& isotope: isotopes)
+	for(auto& isotope: isotopes())
 	{
 		if (isotope.nucleons!=-1) result+=isotope.nucleons;
 		result+=isotope.symbol;
@@ -114,18 +124,27 @@ std::__cxx11::string sample_t::matrix_t::name()
 
 bool sample_t::matrix_t::operator==(const matrix_t& matrix2)
 {
+	if (isotopes().size()==0 || matrix2.isotopes().size()==0) return false;
 	bool found=false;
-	for (auto& matrix_isotope:isotopes)
+	for (auto& matrix_isotope:isotopes())
 	{
+// 		matrix_isotope.to_screen("matrix_isotope\t");
 		found = false;
-		for (auto& matrix_isotope2:matrix2.isotopes)
+		for (auto& matrix_isotope2:matrix2.isotopes())
 		{
-			///TODO: relative_concentration comparison and NOT absolute!
-			if (matrix_isotope==matrix_isotope2 && matrix_isotope.atoms == matrix_isotope2.atoms)
+			
+// 			matrix_isotope2.to_screen("matrix_isotope2\t");
+			if (matrix_isotope == matrix_isotope2 && relative_concentration(matrix_isotope) == matrix2.relative_concentration(matrix_isotope2))
 			{
 				found = true;
-			} 
-			else found = false;
+				break;
+			}
+// 			///TODO: relative_concentration comparison and NOT absolute!
+// 			if (matrix_isotope==matrix_isotope2 && matrix_isotope.atoms == matrix_isotope2.atoms)
+// 			{
+// 				found = true;
+// 			} 
+// 			else found = false;
 		}
 		if (!found) return false;
 	}
@@ -139,7 +158,7 @@ bool sample_t::matrix_t::operator!=(const matrix_t& matrix)
 
 bool sample_t::matrix_t::operator<(const matrix_t& matrix) const
 {
-	for (auto& isotope:isotopes)
+	for (auto& isotope:isotopes())
 	{
 		if (relative_concentration(isotope)<matrix.relative_concentration(isotope)) return true;
 		if (relative_concentration(isotope)!=matrix.relative_concentration(isotope)) return false;

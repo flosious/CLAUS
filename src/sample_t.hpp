@@ -50,10 +50,11 @@ public:
 	{
 	protected:
 		string name_p;
+		vector<isotope_t> isotopes_p;
 	public:
 		/// returns isotope / sum(isotopes)
 		quantity_t relative_concentration(const isotope_t& isotope) const;
-		vector<isotope_t> isotopes;
+		vector<isotope_t> isotopes() const;
 		/// Si40 Ge60 no points!
 		bool set_isotopes_from_name(string name);
 		int get_atoms_from_isotope(isotope_t isotope);

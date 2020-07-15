@@ -250,7 +250,7 @@ pair<quantity_t,quantity_t> calc_models_t::jiang_t::Crel_to_Irel()
 	for (auto& measurement:measurement_group_priv.measurements)
 	{
 		if (!measurement->load_from_database()) continue;
-		if (measurement->sample_p->matrix.isotopes.size()>2 || measurement->sample_p->matrix.isotopes.size()<1) continue;
+		if (measurement->sample_p->matrix.isotopes().size()>2 || measurement->sample_p->matrix.isotopes().size()<1) continue;
 		if (!Crel(measurement->sample_p->matrix).is_set()) continue;
 		if (measurement->reference_clusters().size()!=2) continue;
 		if (!Irel(measurement).is_set()) continue;
@@ -277,7 +277,8 @@ quantity_t calc_models_t::jiang_t::Crel(measurement_t* measurement)
 
 quantity_t calc_models_t::jiang_t::Crel(sample_t::matrix_t& matrix)
 {
-	if (matrix.isotopes.size()>2) return {};
+	if (matrix.isotopes().size()>2) return {};
+	if (!counter_matrix_isotope().is_set() || !denominator_matrix_isotope().is_set() ) return quantity_t();
 	if (!matrix.relative_concentration(counter_matrix_isotope()).is_set()) return {};
 	if (!matrix.relative_concentration(denominator_matrix_isotope()).is_set()) return {};
 	if (matrix.relative_concentration(denominator_matrix_isotope()).data[0]==0) return {}; // catch devision by 0, which should already never be possible to happen
@@ -286,6 +287,7 @@ quantity_t calc_models_t::jiang_t::Crel(sample_t::matrix_t& matrix)
 
 quantity_t calc_models_t::jiang_t::Irel(measurement_t* measurement)
 {
+	if (!counter_matrix_isotope().is_set() || !denominator_matrix_isotope().is_set() ) return quantity_t();
 	string counter_cluster_name = measurement_group_priv.cluster_name_from_isotope(counter_matrix_isotope());
 	string denominator_cluster_name = measurement_group_priv.cluster_name_from_isotope(denominator_matrix_isotope());
 	if (measurement->clusters.find(counter_cluster_name)==measurement->clusters.end()) return {};
@@ -345,7 +347,7 @@ isotope_t calc_models_t::jiang_t::matrix_isotopes_or_elements_with_LEAST_relativ
 	{
 		if (!measurement->load_from_database()) continue;
 // 		if (measurement->sample_p->matrix.isotopes.size()!=2 && measurement->sample_p->matrix.isotopes.size()!=1) continue;
-		for (auto& matrix_isotope:measurement->sample_p->matrix.isotopes)
+		for (auto& matrix_isotope:measurement->sample_p->matrix.isotopes())
 		{
 			if (!measurement->sample_p->matrix.relative_concentration(matrix_isotope).is_set()) continue;
 			if (!matrix_isotopes_or_elements_with_LEAST_relative_concentration_in_ref_sample_p.is_set() || least_relative_atoms > measurement->sample_p->matrix.relative_concentration(matrix_isotope).data[0] )
@@ -364,9 +366,9 @@ set<isotope_t> calc_models_t::jiang_t::single_element_matrix_isotopes()
 	for (auto measurement:measurement_group_priv.measurements)
 	{
 		if (!measurement->load_from_database()) continue;
-		if (measurement->sample_p->matrix.isotopes.size()==1) 
+		if (measurement->sample_p->matrix.isotopes().size()==1) 
 		{
-			isotope_t is = measurement->sample_p->matrix.isotopes[0];
+			isotope_t is = measurement->sample_p->matrix.isotopes()[0];
 			is.atoms = 1; // will overwrite identical isotopes from other samples in other measurements within the MG
 			single_element_matrix_isotopes_p.insert(is);
 		}

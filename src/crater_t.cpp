@@ -17,6 +17,8 @@
 */
 #include "crater_t.hpp"
 #include "cluster_t.hpp"
+// #include "measurement.hpp"
+// #include "measurement_group_t.hpp"
 
 // vector<string> calc_history; // calc_history.push_back("crater"+"\t" + sputter_depth_p.to_str());
 
@@ -134,8 +136,22 @@ quantity_t crater_t::sputter_rate()
 	already_calculated_sputter_rate=true;
 	for (map<string,cluster_t>::iterator it=clusters->begin();it!=clusters->end();++it)
 	{
-		if (it->second.sputter_rate().is_set()) break;
+		/*will automatically populate sputter_rate_p on success*/
+		if (it->second.sputter_rate().is_set()) return sputter_rate_p;
 	}
+	/*look in other measurements/samples within this measurement_group with exactly the same matrix*/
+	if (clusters->size()==0) return quantity_t();
+	for (auto& M:clusters->begin()->second.measurement->measurement_group->measurements)
+	{
+		if (M == clusters->begin()->second.measurement) continue;
+		M->load_from_database();
+		if (M->sample_p->matrix == clusters->begin()->second.measurement->sample_p->matrix && M->crater.sputter_rate().is_set())
+		{
+			if (!sputter_rate_p.is_set()) sputter_rate_p = M->crater.sputter_rate();
+			else sputter_rate_p = sputter_rate_p.add_to_data(M->crater.sputter_rate());
+		}
+	}
+	sputter_rate_p = sputter_rate_p.mean();
 	return sputter_rate_p;
 }
 

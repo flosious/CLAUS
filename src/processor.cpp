@@ -52,6 +52,11 @@ processor::processor(vector<string> arg_list)
 	filenames = filename_t::parse(files.vec(),"_");
 	/// parse the measurements and samples
 	measurements = measurement_tools.measurements(&filenames,&samples);
+	if (measurements.size()==0) 
+	{
+		cout << "no measurement could be parsed" << endl;
+		return;
+	}
 	/// measurement_groups
 	measurement_groups = measurement_group_t::measurement_groups(&measurements);
 	/// managing calculation
@@ -75,7 +80,7 @@ processor::processor(vector<string> arg_list)
 		}
 		else
 		{
-			cout << "failed" << endl;
+			if (conf.use_jiang)  cout << "failed" << endl;
 			for (auto& M:MG.measurements)
 				calc_results_to_screen(M,"\t");
 			
@@ -94,6 +99,11 @@ processor::processor(vector<string> arg_list)
 		else print("\tno errors");
 	}
 	
+	for (auto& c:measurements.front().clusters)
+	{
+		c.second.equilibrium();
+	}
+
 	#ifdef __unix__
 // 	if (measurements.size()<50) plot_t::export_to_files(&measurements);
     #else
@@ -121,21 +131,32 @@ void processor::calc_results_to_screen(measurement_t* M, string prefix)
 		return;
 	}
 	if (M->clusters.begin()->second.total_sputter_depth().is_set())
-		cout << prefix+"\ttotal_sputter_depth = " << M->clusters.begin()->second.total_sputter_depth().data[0] << " " << M->clusters.begin()->second.total_sputter_depth().unit << endl;
+		M->clusters.begin()->second.total_sputter_depth().to_screen(prefix+"\t");
+// 		cout << prefix+"\ttotal_sputter_depth = " << M->clusters.begin()->second.total_sputter_depth().data[0] << " " << M->clusters.begin()->second.total_sputter_depth().unit << endl;
 	if (M->clusters.begin()->second.total_sputter_time().is_set())
-		cout << prefix+"\ttotal_sputter_time = " << M->clusters.begin()->second.total_sputter_time().data[0] << " " << M->clusters.begin()->second.total_sputter_time().unit << endl;
-	if (M->clusters.begin()->second.equilibrium().sputter_depth().is_set())
-		cout << prefix+"\tequilibrium_depth = " << M->clusters.begin()->second.equilibrium().sputter_depth().data[0] << " " << M->clusters.begin()->second.equilibrium().sputter_depth().unit << endl;
-	else if (M->clusters.begin()->second.equilibrium(false).sputter_time().is_set())
-		cout << prefix+"\tequilibrium_sputter_time = " << M->clusters.begin()->second.equilibrium(false).sputter_time().data[0] << " " << M->clusters.begin()->second.equilibrium(false).sputter_time().unit << endl;
+		M->clusters.begin()->second.total_sputter_time().to_screen(prefix+"\t");
+// 		cout << prefix+"\ttotal_sputter_time = " << M->clusters.begin()->second.total_sputter_time().data[0] << " " << M->clusters.begin()->second.total_sputter_time().unit << endl;
+	if (M->crater.sputter_rate().is_set())
+		M->crater.sputter_rate().to_screen(prefix+"\t");
 	if (M->clusters.begin()->second.equilibrium().reference_intensity().is_set())
-	{
 		M->clusters.begin()->second.equilibrium().reference_intensity().to_screen(prefix+"\t");
-	}
 	for (auto& c:M->clusters)
 	{
 		cout << prefix+"\t" << c.second.name() << endl;
-		if (c.second.equilibrium(false).dose().is_set()) c.second.equilibrium(false).dose().to_screen(prefix+"\t");
+		
+		if (c.second.equilibrium().sputter_depth().is_set())
+			cout << prefix+"\tequilibrium_depth = " << c.second.equilibrium().sputter_depth().data[0] << " " << c.second.equilibrium().sputter_depth().unit << endl;
+		else if (c.second.equilibrium().sputter_time().is_set())
+			cout << prefix+"\tequilibrium_sputter_time = " << c.second.equilibrium().sputter_time().data[0] << " " << c.second.equilibrium().sputter_time().unit << endl;
+		
+		if (c.second.RSF().is_set()) 
+			c.second.RSF().to_screen(prefix+"\t");
+		
+		if (c.second.sputter_depth().is_set() && c.second.concentration().is_set()) 
+			c.second.concentration().integrate(c.second.sputter_depth()).to_screen(prefix+"\t");
+		
+		if (c.second.equilibrium().sputter_depth().is_set() && c.second.equilibrium().concentration().is_set()) 
+			c.second.equilibrium().concentration().integrate(c.second.equilibrium().sputter_depth()).to_screen(prefix+"\t");
 	}
 	cout << prefix+"}" << endl;
 }

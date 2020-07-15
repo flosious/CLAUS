@@ -79,6 +79,7 @@ bool filename_t::parse_filename_parts()
 		// no parser worked
 		not_parseable_filename_parts.push_back(filename_part);
 	}
+	if (lot=="" && not_parseable_filename_parts.size()>0) lot=tools::vec::combine_vec_to_string(not_parseable_filename_parts,"_");
 	return true;
 }
 
@@ -88,7 +89,8 @@ bool filename_t::parse_monitor(string filename_part)
 	smatch match;
 	regex reg1 ("^m-*([a-zA-Z0-9]+)$"); 
 	regex reg2 ("^monitor-([a-zA-Z0-9]+)$"); 
-	if (regex_search(filename_part,match,reg1) || regex_search(filename_part,match,reg2)) 
+	regex reg3 ("^[Q|q]-*([a-zA-Z0-9]+)$"); 
+	if (regex_search(filename_part,match,reg1) || regex_search(filename_part,match,reg2) || regex_search(filename_part,match,reg3)) 
 	{
 		monitor = match[1];
 		return true;

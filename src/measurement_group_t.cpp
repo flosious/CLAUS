@@ -63,7 +63,7 @@ map<quantity_t, sample_t::matrix_t> measurement_group_t::SR_vs_matrix()
 	map<quantity_t, sample_t::matrix_t> SR_vs_matrix_p;
 	for (auto& measurement:measurements)
 	{
-		if (measurement->crater.sputter_rate().is_set() && measurement->sample_p->matrix.isotopes.size()>0)
+		if (measurement->crater.sputter_rate().is_set() && measurement->sample_p->matrix.isotopes().size()>0)
 			SR_vs_matrix_p.insert({measurement->crater.sputter_rate(),measurement->sample_p->matrix});
 	}
 	return SR_vs_matrix_p;
@@ -76,7 +76,7 @@ map<quantity_t, sample_t::matrix_t> measurement_group_t::RSF_vs_matrix(std::__cx
 	
 	for (auto& measurement:measurements)
 	{
-		if (measurement->clusters[cluster_name].RSF().is_set() && measurement->sample_p->matrix.isotopes.size()>0)
+		if (measurement->clusters[cluster_name].RSF().is_set() && measurement->sample_p->matrix.isotopes().size()>0)
 			RSF_vs_matrix_p.insert({measurement->clusters[cluster_name].RSF(),measurement->sample_p->matrix});
 	}
 	return RSF_vs_matrix_p;
@@ -88,68 +88,69 @@ map<sample_t::matrix_t, vector<cluster_t *> > measurement_group_t::matrix_vs_ref
 	
 	for (auto& measurement:measurements)
 	{
-		if (measurement->sample_p->matrix.isotopes.size()>0)
+		if (measurement->sample_p->matrix.isotopes().size()>0)
 			matrix_vs_ref_clusters_p.insert({measurement->sample_p->matrix,measurement->reference_clusters()});
 	}
 	
 	return matrix_vs_ref_clusters_p;
 }
 
-quantity_t measurement_group_t::RSFs(string cluster_name)
-{
-	if (RSFs_from_custer_name.find(cluster_name)!=RSFs_from_custer_name.end()) return RSFs_from_custer_name[cluster_name];
-	/// denying multiple tries --> breaking endless loops
-	if (checked_RSF_clusters_list_p.find(cluster_name)!=checked_RSF_clusters_list_p.end()) return {};
-	checked_RSF_clusters_list_p.insert(cluster_name);
-	
-	if (reference_matrix_cluster_names().size()==1)
-	{
-		quantity_t rsf_s;
-		for (auto& measurement_in_MG:measurements)
-		{
-			if (measurement_in_MG->clusters.find(cluster_name)==measurement_in_MG->clusters.end()) continue;
-			if (!measurement_in_MG->clusters[cluster_name].RSF().is_set()) continue;
-// 			cout << measurement_in_MG->filename_p->filename_with_path() << "\t" << cluster_name << endl;
-			if (!rsf_s.is_set()) rsf_s = measurement_in_MG->clusters[cluster_name].RSF();
-			else rsf_s=rsf_s.add_to_data(measurement_in_MG->clusters[cluster_name].RSF());
-// 			if (rsf_s.is_set())
-// 			{
-// 				if (RSFs_from_custer_name[cluster_name].is_set()) RSFs_from_custer_name[cluster_name].add_to_data(rsf_s);
-// 				else RSFs_from_custer_name[cluster_name] = rsf_s;
-// 			}
-		}
-		if (rsf_s.is_set())
-			RSFs_from_custer_name[cluster_name] = rsf_s;
-		else
-			return {};
-// 		if (!RSFs_from_custer_name[cluster_name].is_set()) return {};
-// 		cout << "RSFs_from_custer_name[cluster_name].to_screen()" << endl;
-// 		RSFs_from_custer_name[cluster_name].to_screen();
-		return RSFs(cluster_name);
-	}
-	return {};
-}
+// quantity_t measurement_group_t::RSFs(string cluster_name, sample_t::matrix_t& matrix)
+// {
+// 	if (RSFs_from_custer_name.find(cluster_name)!=RSFs_from_custer_name.end()) return RSFs_from_custer_name[cluster_name];
+// 	/// denying multiple tries --> breaking endless loops
+// 	if (checked_RSF_clusters_list_p.find(cluster_name)!=checked_RSF_clusters_list_p.end()) return {};
+// 	checked_RSF_clusters_list_p.insert(cluster_name);
+// 	
+// // 	if (reference_matrix_cluster_names().size()==1)
+// // 	{
+// 	quantity_t rsf_s;
+// 	for (auto& measurement_in_MG:measurements)
+// 	{
+// 		if (measurement_in_MG->clusters.find(cluster_name)==measurement_in_MG->clusters.end()) continue;
+// 		if (!measurement_in_MG->clusters[cluster_name].RSF().is_set()) continue;
+// // 		cout << measurement_in_MG->filename_p->filename_with_path() << "\t" << cluster_name << endl;
+// 		if (!rsf_s.is_set()) rsf_s = measurement_in_MG->clusters[cluster_name].RSF();
+// 		else rsf_s=rsf_s.add_to_data(measurement_in_MG->clusters[cluster_name].RSF());
+// // 		if (rsf_s.is_set())
+// // 		{
+// // 			if (RSFs_from_custer_name[cluster_name].is_set()) RSFs_from_custer_name[cluster_name].add_to_data(rsf_s);
+// // 			else RSFs_from_custer_name[cluster_name] = rsf_s;
+// // 		}
+// 	}
+// 	if (rsf_s.is_set())
+// 		RSFs_from_custer_name[cluster_name] = rsf_s;
+// 	else
+// 		return {};
+// // 	if (!RSFs_from_custer_name[cluster_name].is_set()) return {};
+// // 	cout << "RSFs_from_custer_name[cluster_name].to_screen()" << endl;
+// // 	RSFs_from_custer_name[cluster_name].to_screen();
+// // 	return RSFs(cluster_name);
+// // 	}
+// 	return {};
+// }
 
-quantity_t measurement_group_t::SRs()
-{
-	if (SRs_p.is_set()) return SRs_p;
-	/// denying multiple tries --> breaking endless loops
-	if (checked_SR) return {};
-	checked_SR=true;
-	
-	if (reference_matrix_cluster_names().size()==1)
-	{
-		for (auto& measurement_in_MG:measurements)
-		{
-			if (!measurement_in_MG->crater.sputter_rate().is_set()) continue;
-			if (SRs_p.is_set()) SRs_p.add_to_data(measurement_in_MG->crater.sputter_rate());
-			else SRs_p=measurement_in_MG->crater.sputter_rate();
-		}
-		if (!SRs_p.is_set()) return {};
-		return SRs();
-	}
-	return {};
-}
+// quantity_t measurement_group_t::SRs(sample_t::matrix_t& matrix)
+// {
+// 	if (SRs_p.is_set()) return SRs_p;
+// 	/// denying multiple tries --> breaking endless loops
+// 	if (checked_SR) return {};
+// 	checked_SR=true;
+// 	
+// // 	if (reference_matrix_cluster_names().size()==1)
+// // 	{
+// 	for (auto& measurement_in_MG:measurements)
+// 	{
+// 		if (matrix!=measurement_in_MG->sample_p->matrix || !measurement_in_MG->crater.sputter_rate().is_set()) continue;
+// 		if (SRs_p.is_set()) SRs_p.add_to_data(measurement_in_MG->crater.sputter_rate());
+// 		else SRs_p=measurement_in_MG->crater.sputter_rate();
+// 	}
+// 	if (!SRs_p.is_set()) return {};
+// 	SRs_p = SRs_p.mean();
+// 	return SRs_p;
+// // 	}
+// 	return {};
+// }
 
 bool measurement_group_t::add(measurement_t* measurement)
 {
@@ -237,7 +238,7 @@ set<string> measurement_group_t::reference_matrix_cluster_names()
 		if (!measurement->load_from_database()) continue;
 		for (auto& cluster:measurement->clusters)
 		{
-			if (cluster.second.leftover_elements(measurement->sample_p->matrix.isotopes).size()==0)
+			if (cluster.second.leftover_elements(measurement->sample_p->matrix.isotopes()).size()==0)
 				reference_cluster_names_p.insert(cluster.second.name());
 		}
 	}
@@ -253,10 +254,12 @@ vector<std::__cxx11::string> measurement_group_t::error_messages()
 set<isotope_t> measurement_group_t::reference_matrix_isotopes()
 {
 	if (reference_matrix_isotopes_p.size()>0) return reference_matrix_isotopes_p;
+	vector<isotope_t> isotopes_;
 	for (auto& measurement:measurements)
 	{
 		if (!measurement->load_from_database()) continue;
-		reference_matrix_isotopes_p.insert(measurement->sample_p->matrix.isotopes.begin(),measurement->sample_p->matrix.isotopes.end());
+		isotopes_ = measurement->sample_p->matrix.isotopes();
+		reference_matrix_isotopes_p.insert(isotopes_.begin(),isotopes_.end());
 	}
 	return reference_matrix_isotopes_p;
 }

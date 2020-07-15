@@ -28,6 +28,7 @@
 #include <gsl/gsl_sort_double.h>
 #include <gsl/gsl_filter.h>
 
+#include "persistence1d.hpp" // from https://www.csc.kth.se/~weinkauf/notes/persistence1d.html
 
 using namespace std;
 
@@ -46,6 +47,12 @@ public:
 	
 	static vector<int> get_local_minima_indices_new(vector<double> Y, double Y_tolerance=0, int x_stepsize=1);
 	
+	/*!
+		populates vectors with indices for maxima and minima.
+		starting with 0 index as global maximum resp. minimum
+		and going on with 1 .... n in decreasing treshold order
+	*/
+	static bool get_extrema_indices(vector<int>& maxIdx, vector<int>& minIdx, vector<double> Y, double treshold=-1);
     ///\brief returns indices of all local maxima for Y, where Y>treshold
     static vector<int> get_local_maxima_indices(vector<double> Y, double treshold=-1, int stepsize=1);
 	/// not tested!
@@ -68,6 +75,19 @@ public:
     static double get_mad_from_Y(vector<double> Y);
 	static double get_sd_from_Y(vector<double> Y);
     static double get_mean_from_Y(vector<double> Y);
+	
+	/*!
+	 * The trimmed mean, or truncated mean, discards a certain number of smallest and largest samples from the input vector
+	 * before computing the mean of the remaining samples. The amount of trimming is specified by a factor alpha [0,0.5]. 
+	 * Then the number of samples discarded from both ends of the input vector is floor(\alpha * n), 
+	 * where n is the length of the input. So to discard 25% of the samples from each end, one would set alpha = 0.25.
+	 */
+	static double get_trimmed_mean_from_Y(vector<double> Y,float alpha=0.25);
+	/*!
+	 * something like "get_trimmed_mean_from_Y" 
+	 * https://www.gnu.org/software/gsl/doc/html/statistics.html#robust-location-estimates
+	 */
+	static double get_gastwirth_estimator_from_Y(vector<double> Y);
     static int get_next_max_index(vector<double> Y, int skip_points=0);
     static int get_next_min_index(vector<double> Y, int skip_points=0);
     static double get_next_min(vector<double> Y, int skip_points=0);
@@ -80,8 +100,8 @@ public:
     static vector<double> fit_poly_XY_transposed(vector<vector<double>> XY, int poly_grad);
     static vector<double> get_poly_Y(vector<double> parameters, vector<double> X);
     static vector<double> derive_vec(vector<double> X, vector<double> Y);
-    static double get_max_index_from_Y(vector<double> Y);
-    static double get_min_index_from_Y(vector<double> Y);
+    static int get_max_index_from_Y(vector<double> Y);
+    static int get_min_index_from_Y(vector<double> Y);
     
 //     static statis get_statistics(vector<double> Y);
     static bool std_mat_to_gsl_vec(vector<vector<double>> *std_mat, gsl_vector ** vec, int col);
@@ -94,7 +114,7 @@ public:
     
     static int get_index_for_next_value_lower_than_treshold(vector<double> Y,double treshold, int start=0, int ende=0);
 	static int get_index_for_next_value_higher_than_treshold(vector<double> Y,double treshold, int start=0, int ende=0);
-    
+    static int get_index_for_next_value_within_treshold(vector<double> Y,double treshold_bottom, double treshold_top, int start=0, int ende=0);
     
     static double get_correlation_from_dataXY(vector<vector<double>> *data_XY1, vector<vector<double>> *data_XY2);
 //     static statis get_statistics_from_dataXY_transposed(vector<vector<double>> *data_XY_transposed);

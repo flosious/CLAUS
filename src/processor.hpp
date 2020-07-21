@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2020 Florian Bärwolf
-	baerwolf@ihp-microelectronics.com
+	floribaer@gmx.de
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -85,8 +85,10 @@ private:
 	vector<string> calculation_order_log;
 	
 	/// calculations
-	void calc_results_to_screen(measurement_t* M, string prefix="");
-	void calc_results_to_screen(measurement_group_t& MG, string prefix="");
+// 	string calc_results_to_string(measurement_group_t& MG, string prefix="");
+// 	string calc_results_to_string(measurement_t* M, string prefix="");
+// 	void calc_results_to_screen(measurement_t* M, string prefix="");
+// 	void calc_results_to_screen(measurement_group_t& MG, string prefix="");
     
 #ifdef __unix__
 //     static void * thread_runner(void *data_p);

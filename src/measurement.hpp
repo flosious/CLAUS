@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2020 Florian Bärwolf
-	baerwolf@ihp-microelectronics.com
+	floribaer@gmx.de
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ private:
 	map<string, quantity_t> reference_clusters_concentrations_p;
 	map<string, quantity_t> reference_clusters_intensities_p;
 	vector<string> error_messages_p;
-	int equilibrium_starting_pos_p=-1;
+// 	int equilibrium_starting_pos_p=-1;
 	
 // 	set<isotope_t> isotopes_from_clusters_p;
 public:
@@ -58,7 +58,7 @@ public:
 	/// all isotopes within this measurement
 	set<isotope_t> isotopes();
 	/// calculates the equlibirum position of the measurement within the data points (0 to end)
-	int equilibrium_starting_pos();
+// 	int equilibrium_starting_pos();
 // 	map<string, cluster_t> equlibrium_clusters_storage;
 	measurement_group_t* measurement_group;
 	filename_t* filename_p;
@@ -113,7 +113,7 @@ public:
 	bool operator == (const measurement_t& measurement);
 	bool operator != (const measurement_t& measurement);
 	
-	
+	string to_str(string prefix="");
 	void to_screen(string prefix="");
 	static void to_screen(vector<measurement_t>* measurements);
 

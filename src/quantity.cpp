@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2020 Florian Bärwolf
-	baerwolf@ihp-microelectronics.com
+	floribaer@gmx.de
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,19 +57,23 @@ void quantity_t::to_screen(string prefix)
 	return;
 }
 
-string quantity_t::to_str()
+string quantity_t::to_str(string prefix)
 {
 	if (name=="") return "";
-	string result;
-	result += name;
-	if (data.size() == 1) result += " = " + to_string(data[0]);
-	else if (data.size() == 0) result += " = EMPTY";
-	else result += " = vector("+ to_string(data.size()) +")";
+	stringstream ss;
+	ss << prefix;
+	ss << name;
+	if (data.size() == 1) ss <<std::scientific  <<  " = "  << data[0];
+	else if (data.size() == 0) ss << " = EMPTY";
+	else 
+	{
+		ss <<std::scientific  << " = vector(" << data.size() <<"), median = " << median().data[0];
+	}
 	
-	if (unit == "") result += " [EMPTY]";
-	else result += " [" + unit + "]";
+	if (unit == "") ss << " [unkown]";
+	else ss << " [" + unit + "]";
 	
-	return result;
+	return ss.str();
 }
 
 
@@ -529,14 +533,34 @@ quantity_t quantity_t::operator+(const quantity_t& quantity)
 	if (!is_set()) return sum;
 	if (dimension != quantity.dimension) return sum;
 	if (unit != quantity.unit) return sum;
-	if (data.size() != quantity.data.size()) return sum;
+	if (data.size()==0 || quantity.data.size()==0 ) return sum;
 	sum.dimension=dimension;
 	sum.unit = unit;
 	sum.name = name;
-	sum.data.resize(data.size());
-	for (int i=0; i< data.size()&&i<quantity.data.size();i++)
+	
+	if (data.size() == quantity.data.size())
 	{
-		sum.data[i] = data[i] + quantity.data[i];
+		sum.data.resize(data.size());
+		for (int i=0; i< data.size()&&i<quantity.data.size();i++)
+		{
+			sum.data[i] = data[i] + quantity.data[i];
+		}
+	} 
+	else if (data.size()==1)
+	{
+		sum.data.resize(quantity.data.size());
+		for (int i=0; i< sum.data.size();i++)
+		{
+			sum.data[i] = data[0] + quantity.data[i];
+		}
+	}
+	else if (quantity.data.size()==1)
+	{
+		sum.data.resize(data.size());
+		for (int i=0; i< sum.data.size();i++)
+		{
+			sum.data[i] = quantity.data[0] + data[i];
+		}
 	}
 	return sum;
 }
@@ -558,20 +582,7 @@ quantity_t quantity_t::operator+(const double summand)
 
 quantity_t quantity_t::operator-(quantity_t& quantity)
 {
-	quantity_t sum;
-	if (!is_set()) return sum;
-	if (dimension != quantity.dimension) return sum;
-	if (unit != quantity.unit) return sum;
-	if (data.size() != quantity.data.size()) return sum;
-	sum.dimension=dimension;
-	sum.unit = unit;
-	sum.name = name;
-	sum.data.resize(data.size());
-	for (int i=0; i< data.size()&&i<quantity.data.size();i++)
-	{
-		sum.data[i] = data[i] - quantity.data[i];
-	}
-	return sum;
+	return quantity*(-1)+*this;
 }
 
 
@@ -633,7 +644,7 @@ quantity_t quantity_t::operator / (const quantity_t& quantity_p)
 	else if (data.size()==1)
 	{
 		quotient.data.resize(quantity_p.data.size());
-		for (int i=0;i<data.size();i++)
+		for (int i=0;i<quotient.data.size();i++)
 		{
 // 			cout << "B: " << data[i] << "/" << quantity_p.data[i] << endl;
 			quotient.data[i]=data[0]/quantity_p.data[i];

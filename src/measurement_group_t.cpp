@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2020 Florian Bärwolf
-	baerwolf@ihp-microelectronics.com
+	floribaer@gmx.de
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -95,62 +95,6 @@ map<sample_t::matrix_t, vector<cluster_t *> > measurement_group_t::matrix_vs_ref
 	return matrix_vs_ref_clusters_p;
 }
 
-// quantity_t measurement_group_t::RSFs(string cluster_name, sample_t::matrix_t& matrix)
-// {
-// 	if (RSFs_from_custer_name.find(cluster_name)!=RSFs_from_custer_name.end()) return RSFs_from_custer_name[cluster_name];
-// 	/// denying multiple tries --> breaking endless loops
-// 	if (checked_RSF_clusters_list_p.find(cluster_name)!=checked_RSF_clusters_list_p.end()) return {};
-// 	checked_RSF_clusters_list_p.insert(cluster_name);
-// 	
-// // 	if (reference_matrix_cluster_names().size()==1)
-// // 	{
-// 	quantity_t rsf_s;
-// 	for (auto& measurement_in_MG:measurements)
-// 	{
-// 		if (measurement_in_MG->clusters.find(cluster_name)==measurement_in_MG->clusters.end()) continue;
-// 		if (!measurement_in_MG->clusters[cluster_name].RSF().is_set()) continue;
-// // 		cout << measurement_in_MG->filename_p->filename_with_path() << "\t" << cluster_name << endl;
-// 		if (!rsf_s.is_set()) rsf_s = measurement_in_MG->clusters[cluster_name].RSF();
-// 		else rsf_s=rsf_s.add_to_data(measurement_in_MG->clusters[cluster_name].RSF());
-// // 		if (rsf_s.is_set())
-// // 		{
-// // 			if (RSFs_from_custer_name[cluster_name].is_set()) RSFs_from_custer_name[cluster_name].add_to_data(rsf_s);
-// // 			else RSFs_from_custer_name[cluster_name] = rsf_s;
-// // 		}
-// 	}
-// 	if (rsf_s.is_set())
-// 		RSFs_from_custer_name[cluster_name] = rsf_s;
-// 	else
-// 		return {};
-// // 	if (!RSFs_from_custer_name[cluster_name].is_set()) return {};
-// // 	cout << "RSFs_from_custer_name[cluster_name].to_screen()" << endl;
-// // 	RSFs_from_custer_name[cluster_name].to_screen();
-// // 	return RSFs(cluster_name);
-// // 	}
-// 	return {};
-// }
-
-// quantity_t measurement_group_t::SRs(sample_t::matrix_t& matrix)
-// {
-// 	if (SRs_p.is_set()) return SRs_p;
-// 	/// denying multiple tries --> breaking endless loops
-// 	if (checked_SR) return {};
-// 	checked_SR=true;
-// 	
-// // 	if (reference_matrix_cluster_names().size()==1)
-// // 	{
-// 	for (auto& measurement_in_MG:measurements)
-// 	{
-// 		if (matrix!=measurement_in_MG->sample_p->matrix || !measurement_in_MG->crater.sputter_rate().is_set()) continue;
-// 		if (SRs_p.is_set()) SRs_p.add_to_data(measurement_in_MG->crater.sputter_rate());
-// 		else SRs_p=measurement_in_MG->crater.sputter_rate();
-// 	}
-// 	if (!SRs_p.is_set()) return {};
-// 	SRs_p = SRs_p.mean();
-// 	return SRs_p;
-// // 	}
-// 	return {};
-// }
 
 bool measurement_group_t::add(measurement_t* measurement)
 {
@@ -346,6 +290,21 @@ std::__cxx11::string measurement_group_t::name()
 	string result = name_p.str();
 	result.erase(result.begin()+result.size()-1);
 	return result;
+}
+
+std::__cxx11::string measurement_group_t::to_str(std::__cxx11::string prefix)
+{
+	stringstream ss;
+	int i=0;
+	ss << prefix << name() << endl;
+	ss << prefix << "{" << endl;
+	for (auto& M:measurements)
+	{
+		ss << "\t" << prefix << M->to_str(prefix+"M["+to_string(i)+"]\t");
+		i++;
+	}
+	ss << prefix << "}" << endl;
+	return ss.str();
 }
 
 

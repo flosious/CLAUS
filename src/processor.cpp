@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2020 Florian Bärwolf
-	baerwolf@ihp-microelectronics.com
+	floribaer@gmx.de
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 // pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 vector<string> calc_history;
+
 
 processor::processor(vector<string> arg_list) 
 {
@@ -62,7 +63,7 @@ processor::processor(vector<string> arg_list)
 	/// managing calculation
 // 	calc_manager_t calc_manager(measurement_groups);
 
-	/* tanya: shake it baby! */
+	/* shake it baby! */
 	for (auto& MG:measurement_groups)
 	{
 		calc_models_t::jiang_t jiang(MG);
@@ -72,22 +73,22 @@ processor::processor(vector<string> arg_list)
 		if (conf.use_jiang && jiang.calc())
 		{
 			cout << "SUCCESS!" <<endl;
-			for (auto& M:jiang.measurement_group().measurements)
-				calc_results_to_screen(M,"\t");
+// 			cout << jiang.measurement_group().to_str() << endl;
 			
 			origin_t::export_to_files(jiang.measurement_group());
 			origin_t::export_jiang_parameters_to_file(jiang);
+			export2_t::export_contents_to_file(jiang.measurement_group().to_str(),MG.name()+"_calculation_results.txt",jiang.measurement_group(),conf.calc_location);
 		}
 		else
 		{
 			if (conf.use_jiang)  cout << "failed" << endl;
-			for (auto& M:MG.measurements)
-				calc_results_to_screen(M,"\t");
+// 			cout << MG.to_str() << endl;
 			
 			origin_t::export_to_files(MG);
 			origin_t::export_MG_parameters_to_file(MG);
+			export2_t::export_contents_to_file(MG.to_str(),MG.name()+"_calculation_results.txt",MG,conf.calc_location);
 		}
-		export2_t::export_contents_to_file(calc_history,"detailed_calculation_history.txt",MG,conf.calc_location);
+		export2_t::export_contents_to_file(calc_history,MG.name()+"_detailed_calculation_history.txt",MG,conf.calc_location);
 		origin_t::export_settings_mass_calibration_to_file(MG);
 		cout << "}" << endl;
 	}
@@ -99,66 +100,15 @@ processor::processor(vector<string> arg_list)
 		else print("\tno errors");
 	}
 	
-	for (auto& c:measurements.front().clusters)
-	{
-		c.second.equilibrium();
-	}
-
+	//tests
+	
+	
 	#ifdef __unix__
-// 	if (measurements.size()<50) plot_t::export_to_files(&measurements);
+// 	plot_t::export_to_files(measurement_groups);
     #else
 	system("pause");
 	#endif
 	
-}
-
-void processor::calc_results_to_screen(measurement_group_t& MG, std::__cxx11::string prefix)
-{
-	for (auto& M:MG.measurements)
-	{
-		calc_results_to_screen(M,prefix+"\t");
-	}
-}
-
-
-void processor::calc_results_to_screen(measurement_t* M, string prefix)
-{
-	cout << prefix+"measurement: " << M->filename_p->filename_without_crater_depths() << endl;
-	cout << prefix+"{" << endl;
-	if (M->clusters.size()==0) 
-	{
-		cout << prefix+"\tno clusters" << endl;
-		return;
-	}
-	if (M->clusters.begin()->second.total_sputter_depth().is_set())
-		M->clusters.begin()->second.total_sputter_depth().to_screen(prefix+"\t");
-// 		cout << prefix+"\ttotal_sputter_depth = " << M->clusters.begin()->second.total_sputter_depth().data[0] << " " << M->clusters.begin()->second.total_sputter_depth().unit << endl;
-	if (M->clusters.begin()->second.total_sputter_time().is_set())
-		M->clusters.begin()->second.total_sputter_time().to_screen(prefix+"\t");
-// 		cout << prefix+"\ttotal_sputter_time = " << M->clusters.begin()->second.total_sputter_time().data[0] << " " << M->clusters.begin()->second.total_sputter_time().unit << endl;
-	if (M->crater.sputter_rate().is_set())
-		M->crater.sputter_rate().to_screen(prefix+"\t");
-	if (M->clusters.begin()->second.equilibrium().reference_intensity().is_set())
-		M->clusters.begin()->second.equilibrium().reference_intensity().to_screen(prefix+"\t");
-	for (auto& c:M->clusters)
-	{
-		cout << prefix+"\t" << c.second.name() << endl;
-		
-		if (c.second.equilibrium().sputter_depth().is_set())
-			cout << prefix+"\tequilibrium_depth = " << c.second.equilibrium().sputter_depth().data[0] << " " << c.second.equilibrium().sputter_depth().unit << endl;
-		else if (c.second.equilibrium().sputter_time().is_set())
-			cout << prefix+"\tequilibrium_sputter_time = " << c.second.equilibrium().sputter_time().data[0] << " " << c.second.equilibrium().sputter_time().unit << endl;
-		
-		if (c.second.RSF().is_set()) 
-			c.second.RSF().to_screen(prefix+"\t");
-		
-		if (c.second.sputter_depth().is_set() && c.second.concentration().is_set()) 
-			c.second.concentration().integrate(c.second.sputter_depth()).to_screen(prefix+"\t");
-		
-		if (c.second.equilibrium().sputter_depth().is_set() && c.second.equilibrium().concentration().is_set()) 
-			c.second.equilibrium().concentration().integrate(c.second.equilibrium().sputter_depth()).to_screen(prefix+"\t");
-	}
-	cout << prefix+"}" << endl;
 }
 
 

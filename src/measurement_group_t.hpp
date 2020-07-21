@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2020 Florian Bärwolf
-	baerwolf@ihp-microelectronics.com
+	floribaer@gmx.de
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -120,6 +120,7 @@ public:
 // 	void add_to_reference_cluster_names(string cluster_name);
 // 	void set_reference_cluster_names(vector<string> cluster_names);
 	
+	string to_str(string prefix="");
 	void to_screen(string prefix="");
 	
 	/*OPERATORS*/

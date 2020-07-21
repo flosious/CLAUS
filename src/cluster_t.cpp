@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2020 Florian Bärwolf
-	baerwolf@ihp-microelectronics.com
+	floribaer@gmx.de
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,14 +29,14 @@ quantity_t cluster_t::total_sputter_depth()
 	if (measurement->crater.total_sputter_depths().mean().is_set())
 		return measurement->crater.total_sputter_depths().mean();
 	
-	if (measurement->crater.sputter_rate().is_set() && total_sputter_time().is_set())
-	{
-		quantity_t tsd =  total_sputter_time()*sputter_rate();
-		tsd.data[0] = tsd.data.back();
-		tsd.data.resize(1);
-		tsd.name = "total_sputter_depth";
-		return tsd;
-	}
+// 	if (measurement->crater.sputter_rate().is_set() && total_sputter_time().is_set())
+// 	{
+// 		quantity_t tsd =  total_sputter_time()*sputter_rate();
+// 		tsd.data[0] = tsd.data.back();
+// 		tsd.data.resize(1);
+// 		tsd.name = "total_sputter_depth";
+// 		return tsd;
+// 	}
 	return quantity_t();
 }
 quantity_t cluster_t::total_sputter_time()
@@ -172,12 +172,14 @@ void cluster_t::set_maximum_concentration_p(double& value)
 
 quantity_t cluster_t::maximum_concentration()
 {
+// 	if (maximum_concentration_p.is_set()) return maximum_concentration_p;
 	return maximum_concentration_p;
 }
 
 quantity_t cluster_t::dose()
 {
 	if (already_checked_dose || dose_p.is_set()) return dose_p;
+	if (is_reference()) return quantity_t();
 	if (equilibrium().concentration().is_set() && equilibrium().sputter_depth().is_set()) 
 	{
 		dose_p=equilibrium().concentration().integrate(equilibrium().sputter_depth());
@@ -208,10 +210,6 @@ quantity_t cluster_t::concentration()
 	if (already_checked_concentration || concentration_p.is_set()) return concentration_p;
 	already_checked_concentration=true;
 	
-	/*reference sample from database*/
-// 	if (is_reference() && measurement->load_from_database() && reference_matrix_isotope().is_set() && intensity().is_set())
-// 		concentration_p = measurement->sample_p->matrix.relative_concentration(reference_matrix_isotope())*intensity()/intensity().median();
-	
 	if (intensity().is_set() && SF().is_set())
 	{
 		concentration_p=intensity() * SF();
@@ -219,6 +217,14 @@ quantity_t cluster_t::concentration()
 		concentration_p.name="concentration";
 // 		if (concentration_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + concentration_p.to_str());
 // 		return concentration_p;
+	}
+	/*reference sample from database*/
+	else if (measurement->load_from_database() && is_reference() && reference_matrix_isotope().is_set() && intensity().is_set())
+	{
+		concentration_p = measurement->sample_p->matrix.relative_concentration(reference_matrix_isotope())*intensity()/(intensity().trimmed_mean());
+		concentration_p.unit="at%";
+		concentration_p.name="concentration";
+		concentration_p.dimension="relative";
 	}
 	
 	if (concentration_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + concentration_p.to_str());
@@ -244,19 +250,18 @@ quantity_t cluster_t::SF()
 // 	else if (concentration().is_set() && intensity().is_set())
 // 		SF_p = concentration().divide_by(intensity());
 	
+	/*low intensity back ground*/
 	if (dose().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_depth().is_set() && equilibrium().intensity().max().is_set() && equilibrium().intensity().max().data[0]*0.05>intensity().data.back())
 	{
 		// nur wenn die intensität am ende des profils auf unter 5% des maximums fällt
 		SF_p = dose() / (equilibrium().intensity().integrate(equilibrium().sputter_depth()));
 		SF_p = SF_p * 1E7; // nm -> cm
 		SF_p.unit = "at/cm^3 / (cnt/s)";
-// 		cout << "\n+++SF_p:\n " << endl;
-// 		SF_p.to_screen();
 	}
-	
+	/*use maximum concentration and intensity*/
 	else if (maximum_concentration().is_set() && equilibrium().intensity().polyfit().max().is_set())
 	{
-		SF_p = maximum_concentration() / equilibrium().intensity().polyfit().max();
+		SF_p = maximum_concentration() / (equilibrium().intensity().polyfit().max());
 // 		cout << "\n---SF_p.data.size() = " << SF_p.data.size() << endl;
 	}
 	
@@ -269,9 +274,19 @@ quantity_t cluster_t::SF()
 		else if(conf.standard_reference_intensity_calculation_method=="gastwirth") SF_p = RSF() / reference_intensity().gastwirth();
 		else if(conf.standard_reference_intensity_calculation_method=="quantile50") SF_p = RSF() / reference_intensity().quantile(0.5);
 		else if(conf.standard_reference_intensity_calculation_method=="quantile75") SF_p = RSF() / reference_intensity().quantile(0.75);
-		else RSF() / reference_intensity().trimmed_mean();
+		else SF_p = RSF() / reference_intensity().trimmed_mean();
 	}
-	
+	/*high intensity back ground*/
+	else if (dose().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_depth().is_set())
+	{
+		quantity_t bg = equilibrium().intensity();
+		bg.data.resize(1);
+		bg.data[0] = intensity().data.back();
+		SF_p = dose() / ((equilibrium().intensity()-bg).integrate(equilibrium().sputter_depth()));
+		SF_p.unit = "at/cm^3 / (cnt/s)";
+		SF_p = SF_p * 1E7; // nm -> cm
+		
+	}
 	if (SF_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + SF_p.to_str());
 	return SF_p;
 }
@@ -288,7 +303,7 @@ quantity_t cluster_t::RSF()
 	if (reference_intensity().is_set() && SF().is_set())
 	{
 // 		cout << "SF\n";
-		RSF_p = SF() * reference_intensity().median();
+		RSF_p = SF() * reference_intensity().trimmed_mean();
 		if (RSF_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + RSF_p.to_str());
 		RSF_p.dimension = "amount*(length)^(-3)";
 		RSF_p.unit = "at/cm^3";
@@ -398,44 +413,6 @@ void cluster_t::to_screen(string prefix)
 	
 	return;
 }
-
-// bool cluster_t::is_element_in_cluster(vector<isotope_t>& isotopes_p)
-// {
-// 	bool found;
-// 	for (auto& isotope:isotopes_p)
-// 	{
-// 		found = false;
-// 		for (auto& isotope_in_cluster:isotopes)
-// 		{
-// 			if (isotope_in_cluster.symbol == isotope.symbol)
-// 			{
-// 				return true;
-// // 				break;
-// 			}
-// 		}
-// 		if (!found) return false;
-// 	}
-// 	return true;
-// }
-// 
-// bool cluster_t::is_isotope_in_cluster(vector<isotope_t>& isotopes_p)
-// {
-// 	bool found;
-// 	for (auto& isotope:isotopes_p)
-// 	{
-// 		found = false;
-// 		for (auto& isotope_in_cluster:isotopes)
-// 		{
-// 			if (isotope_in_cluster.symbol == isotope.symbol && isotope_in_cluster.nucleons==isotope.nucleons)
-// 			{
-// 				return true;
-// // 				break;
-// 			}
-// 		}
-// 		if (!found) return false;
-// 	}
-// 	return true;
-// }
 
 bool cluster_t::is_element_in_cluster ( isotope_t isotope )
 {
@@ -582,6 +559,7 @@ cluster_t cluster_t::equilibrium()
 	
 	if (equilibrium_starting_pos==-1)
 	{
+// 		int offset = 0;
 		equilibrium_starting_pos=0;
 		vector<double> Y;
 		
@@ -591,26 +569,38 @@ cluster_t cluster_t::equilibrium()
 			Y = concentration().filter_gaussian(5,4).data; 
 		else return result;
 		
-		double treshold = statistics::get_mad_from_Y(Y);
+		double treshold = statistics::get_quantile_from_Y(Y,0.01);
+// 		double treshold = statistics::get_mad_from_Y(Y);
 		double median = statistics::get_median_from_Y(Y);
 		set<int> extrema_idx;
 // 		extrema_idx.insert(0);
 		vector<int> maxIdx, minIdx;
-		if (!statistics::get_extrema_indices(maxIdx,minIdx,Y,treshold*5))
+		
+// 		for (int i=0; i<Y.size();i++ )
+// 		{
+// 			if (Y[i]==0)
+// 			{
+// 				Y[i]=1;
+// 				offset = i;
+// 			} 
+// 			else break;
+// 		}
+			
+		if (!statistics::get_extrema_indices(maxIdx,minIdx,Y,treshold))
 		{
 // 			cout << endl << "!statistics::get_extrema_indices(maxIdx,minIdx,Y,statistics::get_mad_from_Y(Y)*2)" << endl;
-// 			cout << name() << " type C" << endl;
+// 			cout << name() << " type C1" << endl;
 			if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold,median+treshold,1);
 // 			else equilibrium_starting_pos = measurement->equilibrium_starting_pos();
-			else equilibrium_starting_pos = 1;
+			else equilibrium_starting_pos = 0;
 		}
 		//type C
 		else if (minIdx.size()==0 && maxIdx.size()==1) // just the global maximum
 		{
-// 			cout << name() << " type C" << endl;
+// 			cout << name() << " type C2" << endl;
 			if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold,median+treshold,1);
 // 			else equilibrium_starting_pos = measurement->equilibrium_starting_pos();
-			else equilibrium_starting_pos = 1;
+			else equilibrium_starting_pos = 0;
 		}
 		else
 		{
@@ -640,18 +630,29 @@ cluster_t cluster_t::equilibrium()
 // 				cout << name() << " type E or D" << endl;
 				if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold,median+treshold,1);
 // 				else equilibrium_starting_pos = measurement->equilibrium_starting_pos();
-				else equilibrium_starting_pos = 1;
+				else equilibrium_starting_pos = 0;
 			}
 			// type G H
 			else if (minIdx_set.size()==0 && maxIdx_set.size()!=0 )
 			{
-				equilibrium_starting_pos=*maxIdx_set.begin(); 
+				if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold,median+treshold,*maxIdx_set.begin());
+				else equilibrium_starting_pos = 0;
+// 				equilibrium_starting_pos=*maxIdx_set.begin(); 
 // 				cout << name() << " type G or H" << endl;
 			}
 			//type A B F
 			else 
 			{
 				equilibrium_starting_pos=*minIdx_set.begin(); 
+				/* check total signal sum for miss interpretation */
+				double sum=0;
+				double sum_equilibrium=0;
+				for (int i=0;i<Y.size();i++)
+					sum+=Y[i];
+				for (int i=equilibrium_starting_pos;i<Y.size();i++)
+					sum_equilibrium+=Y[i];
+				if (sum_equilibrium/sum<0.7)
+					equilibrium_starting_pos=0;
 // 				cout << name() << " type A or B or F" << endl;
 			}
 		}
@@ -665,6 +666,63 @@ cluster_t cluster_t::equilibrium()
 
 
 
+std::__cxx11::string cluster_t::to_str(std::__cxx11::string prefix)
+{
+	stringstream ss;
+	ss << prefix << name() << endl;
+	ss << prefix << "{" << endl;
+	if (equilibrium().sputter_depth().is_set())
+		ss  <<std::scientific << prefix+"\tequilibrium_depth: " << equilibrium().sputter_depth().data[0] << " " << equilibrium().sputter_depth().unit << endl;
+	else if (equilibrium().sputter_time().is_set())
+		ss <<std::scientific  << prefix+"\tequilibrium_sputter_time: " << equilibrium().sputter_time().data[0] << " " << equilibrium().sputter_time().unit << endl;
+	if (dose().is_set()) 
+		ss <<std::scientific  << prefix << "\tDB_dose(): " << dose().to_str() << endl;
+	if (concentration().is_set() && sputter_depth().is_set())
+		ss <<std::scientific  << prefix << "\tdose_integral(): " << concentration().integrate(sputter_depth()).to_str() << endl;
+	if ( equilibrium().concentration().is_set())
+	{
+		if (equilibrium().sputter_time().is_set())
+			ss  <<std::scientific  << prefix << "\tequilibrium_concentration_integral(sputter_time): " << equilibrium().concentration().integrate(equilibrium().sputter_time()).to_str() << endl;
+		if (equilibrium().sputter_depth().is_set())
+			ss  <<std::scientific << prefix << "\tequilibrium_concentration_integral(sputter_depth): " << equilibrium().concentration().integrate(equilibrium().sputter_depth()).to_str() << endl;
+	}
+	if ( equilibrium().intensity().is_set())
+	{
+		if (equilibrium().sputter_time().is_set())
+			ss <<std::scientific  << prefix << "\tequilibrium_intensity_integral(sputter_time): " << equilibrium().intensity().integrate(equilibrium().sputter_time()).to_str() << endl;
+		if (equilibrium().sputter_depth().is_set())
+			ss  <<std::scientific << prefix << "\tequilibrium_intensity_integral(sputter_depth): " << equilibrium().intensity().integrate(equilibrium().sputter_depth()).to_str() << endl;
+	}
+	
+	if (SF().is_set())
+		ss  <<std::scientific  << prefix << "\tSF: " << SF().to_str() << endl;
+	if (RSF().is_set()) 
+		ss  <<std::scientific  << prefix << "\tRSF: " << RSF().to_str() << endl;
+	
+	if (maximum_concentration().is_set())
+		ss  <<std::scientific  << prefix << "\tDB_max_concentration: " << maximum_concentration().to_str() << endl;
+	if (depth_at_maximum_concentration().is_set())
+		ss  <<std::scientific  << prefix << "\tDB_depth_at_max_concentration: " << depth_at_maximum_concentration().to_str() << endl;
+	
+	if (equilibrium().concentration().polyfit(17).max().is_set())
+	{
+		ss  <<std::scientific  << prefix << "\tmax_concentration: " << equilibrium().concentration().polyfit(17).max().to_str() << endl;
+		if (sputter_time().is_set())
+			ss <<std::scientific  << prefix << "\tsputter_time_at_max_concentration: " << equilibrium().concentration().polyfit(17).max_at_x(equilibrium().sputter_time()).to_str() << endl;
+		if (sputter_depth().is_set())
+			ss <<std::scientific  << prefix << "\tdepth_at_max_concentration: " << equilibrium().concentration().polyfit(17).max_at_x(equilibrium().sputter_depth()).to_str() << endl;
+	}
+	if (equilibrium().intensity().polyfit(17).max().is_set())
+	{
+		ss <<std::scientific  << prefix << "\tmax_intensity: " << equilibrium().intensity().polyfit(17).max().to_str() << endl;
+		if (sputter_time().is_set())
+			ss <<std::scientific  << prefix << "\tsputter_time_at_max_intensity: " << equilibrium().intensity().polyfit(17).max_at_x(equilibrium().sputter_time()).to_str() << endl;
+		if (sputter_depth().is_set())
+			ss <<std::scientific  << prefix << "\tdepth_at_max_intensity: " << equilibrium().intensity().polyfit(17).max_at_x(equilibrium().sputter_depth()).to_str() << endl;
+	}
+	ss << prefix << "}" << endl;
+	return ss.str();
+}
 
 
 

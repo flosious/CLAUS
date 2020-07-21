@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2020 Florian Bärwolf
-	baerwolf@ihp-microelectronics.com
+	floribaer@gmx.de
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,7 +39,16 @@ quantity_t crater_t::total_sputter_depths()
 {
 	/// this prefers manual input over automatically calculated 
 	if (total_sputter_depths_from_filename().is_set()) return total_sputter_depths_from_filename(); // manually
-	return total_sputter_depths_from_linescans();
+	if (total_sputter_depths_from_linescans().is_set()) return total_sputter_depths_from_linescans();
+	if (sputter_rate().is_set() && total_sputter_time().is_set())
+	{
+		quantity_t tsd =  total_sputter_time()*sputter_rate();
+		tsd.data[0] = tsd.data.back();
+		tsd.data.resize(1);
+		tsd.name = "total_sputter_depth";
+		return tsd;
+	}
+	return quantity_t();
 }
 
 quantity_t crater_t::total_sputter_depths_from_linescans()

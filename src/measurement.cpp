@@ -1,6 +1,6 @@
 /*
 	Copyright (C) 2020 Florian Bärwolf
-	baerwolf@ihp-microelectronics.com
+	floribaer@gmx.de
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,25 +26,25 @@
 #define TABLENAME_measurement_statistics "measurement_statistics"
 #define TABLENAME_reference_measurement_isotopes "reference_measurement_isotopes"
 
-int measurement_t::equilibrium_starting_pos()
-{
-	if (equilibrium_starting_pos_p>-1) return equilibrium_starting_pos_p;
-	set<int> esp;
-	for (auto& ref_cluster:reference_clusters())
-	{
-		esp.insert(ref_cluster->equilibrium().equilibrium_starting_pos);
-	}
-	/*trivials*/
-	esp.erase(0);
-	esp.erase(1);
-	if (esp.size()==0)
-	{
-		equilibrium_starting_pos_p = 1;
-	}
-	else 
-		equilibrium_starting_pos_p = *esp.begin();
-	return equilibrium_starting_pos_p;
-}
+// int measurement_t::equilibrium_starting_pos()
+// {
+// 	if (equilibrium_starting_pos_p>-1) return equilibrium_starting_pos_p;
+// 	set<int> esp;
+// 	for (auto& ref_cluster:reference_clusters())
+// 	{
+// 		esp.insert(ref_cluster->equilibrium().equilibrium_starting_pos);
+// 	}
+// 	/*trivials*/
+// 	esp.erase(0);
+// 	esp.erase(1);
+// 	if (esp.size()==0)
+// 	{
+// 		equilibrium_starting_pos_p = 1;
+// 	}
+// 	else 
+// 		equilibrium_starting_pos_p = *esp.begin();
+// 	return equilibrium_starting_pos_p;
+// }
 
 
 int measurement_t::chip_x()
@@ -95,6 +95,30 @@ std::__cxx11::string measurement_t::tool_name()
 std::__cxx11::string measurement_t::repetition()
 {
 	return filename_p->repetition;
+}
+
+std::__cxx11::string measurement_t::to_str(std::__cxx11::string prefix)
+{
+	stringstream ss;
+	ss << endl;
+	ss << prefix << filename_p->filename() << endl;
+	ss << prefix << "{" << endl;
+	if (crater.total_sputter_depths().is_set())
+		ss <<std::scientific <<   prefix << "\ttotal_sputter_depths(): " << crater.total_sputter_depths().to_str() << endl;
+	if (crater.total_sputter_time().is_set())
+		ss <<std::scientific  << prefix << "\ttotal_sputter_time(): " << crater.total_sputter_time().to_str() << endl;
+	if (clusters.size()==0)
+	{
+		ss << prefix<<"\tno clusters" << endl;
+		return ss.str();
+	}
+	
+	if (clusters.begin()->second.reference_intensity().is_set())
+		ss  <<std::scientific  << prefix <<"\t" << clusters.begin()->second.reference_intensity().to_str() << endl;
+	for (auto& C:clusters)
+		ss << C.second.to_str(prefix+"\t");
+	ss << prefix << "}" << endl;
+	return ss.str();
 }
 
 void measurement_t::to_screen(string prefix) 
@@ -244,53 +268,6 @@ vector<std::__cxx11::string> measurement_t::error_messages()
 {
 	return error_messages_p;
 }
-
-// map<std::__cxx11::string, quantity_t> measurement_t::reference_clusters_intensities()
-// {
-// 	if (reference_clusters_intensities_p.size()>0) return reference_clusters_intensities_p;
-// 	
-// 	// get I of each ref_cluster
-// 	for (auto& ref_cluster:reference_clusters())
-// 	{
-// 		reference_clusters_intensities_p[ref_cluster->name()]=ref_cluster->intensity().median();
-// 	}
-// 	return reference_clusters_intensities_p;
-// }
-// 
-// 
-// map<std::__cxx11::string, quantity_t> measurement_t::reference_clusters_concentrations()
-// {
-// 	if (reference_clusters_concentrations_p.size()>0) return reference_clusters_concentrations_p;
-// 	quantity_t conc;
-// 	conc.dimension="amount";
-// 	conc.unit="at";
-// 	conc.name="concentration";
-// 	conc.data.resize(1);
-// 	bool found;
-// 	for (auto& ref_cluster:reference_clusters())
-// 	{
-// 		found = false;
-// 		for (auto& matrix_isotope:sample_p->matrix.isotopes())
-// 		{
-// 			
-// 			if (ref_cluster->name().find(matrix_isotope.symbol)!=string::npos)
-// 			{
-// 				found = true;
-// 				conc.data[0]=matrix_isotope.atoms;
-// // 				cout << filename_p->filename_with_path() << "::"<< ref_cluster->name() << "::::" << matrix_isotope.nucleons << matrix_isotope.symbol << matrix_isotope.atoms << endl;
-// // 				cout << "ref_cluster->name():" << ref_cluster->name() << "\t" << matrix_isotope.atoms << endl;
-// // 				conc.to_screen();
-// // 				reference_clusters_concentrations_p[ref_cluster->name()]=conc;
-// 				break;
-// 			}
-// 		}
-// 		if (!found)	conc.data[0]=0;
-// 		reference_clusters_concentrations_p[ref_cluster->name()]=conc;
-// 		
-// 		
-// 	}
-// 	return reference_clusters_concentrations_p;
-// }
 
 set<isotope_t> measurement_t::isotopes()
 {

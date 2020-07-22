@@ -218,6 +218,10 @@ void config_t::save_measurement_definition(string value)
 	measurement_definition_groupid=false;
 	measurement_definition_repetition=false;
 	
+	measurement_definition_polarity=false;
+	measurement_definition_sputter_element=false;
+	measurement_definition_sputter_energy=false;
+	
 	for (auto& definition:definitions)
 	{
 		if (definition=="olcdbid" || definition=="olcdb") measurement_definition_olcdbid=true;
@@ -228,5 +232,8 @@ void config_t::save_measurement_definition(string value)
 		else if (definition=="chip") measurement_definition_chip=true;
 		else if (definition=="groupid" || definition=="group") measurement_definition_groupid=true;
 		else if (definition=="repetition") measurement_definition_repetition=true;
+		else if (definition=="sputter_energy") measurement_definition_sputter_energy=true;
+		else if (definition=="polarity") measurement_definition_polarity=true;
+		else if (definition=="sputter_element") measurement_definition_sputter_element=true;
 	}
 }

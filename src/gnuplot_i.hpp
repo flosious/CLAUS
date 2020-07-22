@@ -354,6 +354,9 @@ class Gnuplot
     /// switches legend on/off
     /// position: inside/outside, left/center/right, top/center/bottom, nobox/box
     Gnuplot& set_legend(const std::string &position = "default"); 
+	
+	/// switches to UTF8 encoding
+	Gnuplot& set_utf8();
 
     // ------------------------------------------------------------------
     /// \brief  Switches legend off
@@ -1115,6 +1118,20 @@ Gnuplot& Gnuplot::set_legend(const std::string &position)
 
 //------------------------------------------------------------------------------
 //
+// Switches to UTF8 encoding
+//
+Gnuplot& Gnuplot::set_utf8()
+{
+    std::ostringstream cmdstr;
+    cmdstr << "set encoding utf8";
+
+    cmd(cmdstr.str());
+
+    return *this;
+}
+
+//------------------------------------------------------------------------------
+//
 // turns on log scaling for the x axis
 //
 Gnuplot& Gnuplot::set_xlogscale(const double base)
@@ -1756,7 +1773,6 @@ void Gnuplot::init()
         showonscreen();
 //     savetops("/tmp/test");
 
-    
     return;
 }
 

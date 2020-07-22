@@ -58,7 +58,7 @@ private:
 	bool checked_SR=false;
 	map<string,quantity_t> RSFs_from_custer_name;
 	quantity_t SRs_p;
-	
+	set<string> cluster_names_p;
 	map<string,isotope_t> cluster_name_to_isotope_p;
 public:
 	/// tries to generate some name for this group
@@ -70,26 +70,14 @@ public:
 	set<string> reference_matrix_cluster_names();
 	set<isotope_t> reference_matrix_isotopes();
 	/// cluster_name to the belonging isotope or element
+	/// ATTENTION! "28Si 11B" and "30Si 11B" can not be distinguished! this function is bijective: isotope <=> cluster
 	string cluster_name_from_isotope (isotope_t isotope);
 	/// cluster_names from all measurements and clusters within the group
 	set<string> cluster_names();
 	/// isotopes from all measurements and clusters within the grou
 	set<isotope_t> isotopes();
+	/// ATTENTION! "28Si 11B" and "30Si 11B" can not be distinguished! this function is bijective: isotope <=> cluster
 	isotope_t isotope_from_cluster_name(string cluster_name);
-	/// all matching RSFs from all measurements
-// 	quantity_t RSFs(string cluster_name, sample_t::matrix_t& matrix);
-	/// all matching Sputter_Rates for a given matrix/reference for all measurements
-// 	quantity_t SRs(sample_t::matrix_t& matrix);
-	
-	/// returns the sample corresponding value for the specified matrix
-// 	quantity_t RSF(cluster_t& searched_cluster,measurement_t& measurement);
-// 	quantity_t SR(cluster_t& searched_cluster,measurement_t& measurement);
-	
-	/// Irel --> Crel for the given ref_cluster_name; concentrations from reference samples
-// 	pair<quantity_t,quantity_t> Irel_Crel_bases(string ref_cluster_name);
-	/// Irel --> Crel for all ref_cluster_name; concentrations from reference samples
-// 	map<string, pair<quantity_t,quantity_t>> Irel_Crel_bases();
-// 	map<string, map<string,quantity_t>> Irel_Crel_bases();
 
 	/// from all measurements within the group, where sample_t::matrix_t is not empty
 	map<quantity_t,sample_t::matrix_t> SR_vs_matrix();
@@ -103,22 +91,26 @@ public:
 	int group();
 	string tool_name();
 	measurement_settings_t settings();
-	
-// 	static bool comparator(const measurement_group_t& A, const measurement_group_t& B);
+
 	
 	static list<measurement_group_t> measurement_groups(list<measurement_t>* measurements);
 	
-	
-// 	measurement_group_t();
 	measurement_group_t(measurement_t* measurement_p);
 	measurement_group_t();
 	/// adds a measurement to the group: TRUE if success; FALSE if failed (no change to group)
 	bool add(measurement_t* measurement);
 	/// adds another measurement_group to this group: TRUE if success; FALSE if failed (no change to group(s))
 	bool add(measurement_group_t* measurement_group);
-	
-// 	void add_to_reference_cluster_names(string cluster_name);
-// 	void set_reference_cluster_names(vector<string> cluster_names);
+	/// lists filenames with path from all measurements within this group
+	vector<string> filenames_with_path();
+	/// maps clustername to RSFs for all clusters in all measurements in this group; -1 if empty
+	map<string,quantity_t> clustername_to_RSFs_from_all_measurements();
+	/// maps clustername to concentrations for all clusters in all measurements in this group; -1 if empty
+	map<string,quantity_t> clustername_to_concentrations_from_all_measurements();
+	/// maps clustername to intensities for all clusters in all measurements in this group; -1 if empty
+	map<string,quantity_t> clustername_to_intensities_from_all_measurements();
+	/// SRs from all measurements in this group; -1 if empty
+	quantity_t SRs_from_all_measurements();
 	
 	string to_str(string prefix="");
 	void to_screen(string prefix="");

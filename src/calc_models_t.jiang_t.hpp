@@ -30,7 +30,7 @@
 class calc_models_t::jiang_t
 {
 	/// just for debugging, please remove !!
-		friend class origin_t;
+// 		friend class origin_t;
 private:
 	
 	measurement_group_t measurement_group_priv;

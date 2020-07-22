@@ -215,18 +215,22 @@ quantity_t cluster_t::concentration()
 		concentration_p=intensity() * SF();
 		concentration_p.unit="at/cm^3";
 		concentration_p.name="concentration";
-// 		if (concentration_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + concentration_p.to_str());
-// 		return concentration_p;
 	}
+	
 	/*reference sample from database*/
-	else if (measurement->load_from_database() && is_reference() && reference_matrix_isotope().is_set() && intensity().is_set())
+// 	else if (measurement->load_from_database() && is_reference() && reference_matrix_isotope().is_set() && intensity().is_set())
+	else if (measurement->load_from_database() && is_reference() && intensity().is_set())
 	{
-		concentration_p = measurement->sample_p->matrix.relative_concentration(reference_matrix_isotope())*intensity()/(intensity().trimmed_mean());
+		
+		if (reference_matrix_isotope().is_set())
+			concentration_p = measurement->sample_p->matrix.relative_concentration(reference_matrix_isotope())*intensity()/(intensity().trimmed_mean());
+		else 
+			concentration_p.data.assign(intensity().data.size(),0);
 		concentration_p.unit="at%";
 		concentration_p.name="concentration";
 		concentration_p.dimension="relative";
 	}
-	
+
 	if (concentration_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + concentration_p.to_str());
 	return concentration_p;
 }
@@ -258,13 +262,8 @@ quantity_t cluster_t::SF()
 		SF_p = SF_p * 1E7; // nm -> cm
 		SF_p.unit = "at/cm^3 / (cnt/s)";
 	}
-	/*use maximum concentration and intensity*/
-	else if (maximum_concentration().is_set() && equilibrium().intensity().polyfit().max().is_set())
-	{
-		SF_p = maximum_concentration() / (equilibrium().intensity().polyfit().max());
-// 		cout << "\n---SF_p.data.size() = " << SF_p.data.size() << endl;
-	}
 	
+	/*RSF from other measurements*/
 	else if (reference_intensity().is_set() && RSF().is_set())
 	{
 		if(conf.standard_reference_intensity_calculation_method=="pbp") SF_p = RSF() / reference_intensity();
@@ -276,6 +275,12 @@ quantity_t cluster_t::SF()
 		else if(conf.standard_reference_intensity_calculation_method=="quantile75") SF_p = RSF() / reference_intensity().quantile(0.75);
 		else SF_p = RSF() / reference_intensity().trimmed_mean();
 	}
+	
+	/*use maximum concentration and intensity*/
+	else if (maximum_concentration().is_set() && equilibrium().intensity().polyfit().max().is_set())
+		SF_p = maximum_concentration() / (equilibrium().intensity().polyfit().max());
+	
+	
 	/*high intensity back ground*/
 	else if (dose().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_depth().is_set())
 	{
@@ -569,8 +574,8 @@ cluster_t cluster_t::equilibrium()
 			Y = concentration().filter_gaussian(5,4).data; 
 		else return result;
 		
-		double treshold = statistics::get_quantile_from_Y(Y,0.01);
-// 		double treshold = statistics::get_mad_from_Y(Y);
+// 		double treshold = statistics::get_quantile_from_Y(Y,0.01);
+		double treshold = statistics::get_mad_from_Y(Y)/2;
 		double median = statistics::get_median_from_Y(Y);
 		set<int> extrema_idx;
 // 		extrema_idx.insert(0);
@@ -590,7 +595,7 @@ cluster_t cluster_t::equilibrium()
 		{
 // 			cout << endl << "!statistics::get_extrema_indices(maxIdx,minIdx,Y,statistics::get_mad_from_Y(Y)*2)" << endl;
 // 			cout << name() << " type C1" << endl;
-			if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold,median+treshold,1);
+			if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold/2,median+treshold/2,1);
 // 			else equilibrium_starting_pos = measurement->equilibrium_starting_pos();
 			else equilibrium_starting_pos = 0;
 		}
@@ -598,7 +603,7 @@ cluster_t cluster_t::equilibrium()
 		else if (minIdx.size()==0 && maxIdx.size()==1) // just the global maximum
 		{
 // 			cout << name() << " type C2" << endl;
-			if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold,median+treshold,1);
+			if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold/2,median+treshold/2,1);
 // 			else equilibrium_starting_pos = measurement->equilibrium_starting_pos();
 			else equilibrium_starting_pos = 0;
 		}
@@ -628,14 +633,14 @@ cluster_t cluster_t::equilibrium()
 			if (minIdx_set.size()==0 && maxIdx_set.size()==0)
 			{
 // 				cout << name() << " type E or D" << endl;
-				if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold,median+treshold,1);
+				if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold/2,median+treshold/2,1);
 // 				else equilibrium_starting_pos = measurement->equilibrium_starting_pos();
 				else equilibrium_starting_pos = 0;
 			}
 			// type G H
 			else if (minIdx_set.size()==0 && maxIdx_set.size()!=0 )
 			{
-				if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold,median+treshold,*maxIdx_set.begin());
+				if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold/2,median+treshold/2,*maxIdx_set.begin());
 				else equilibrium_starting_pos = 0;
 // 				equilibrium_starting_pos=*maxIdx_set.begin(); 
 // 				cout << name() << " type G or H" << endl;

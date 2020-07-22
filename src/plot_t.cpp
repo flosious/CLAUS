@@ -47,8 +47,6 @@ void plot_t::export_to_files(list<measurement_group_t>& MGs)
 		export_to_files(&MG);
 }
 
-
-
 plot_t::plot_t(measurement_t* measurement) : export2_t (measurement)
 {
 	if (conf.plots_location=="") return;
@@ -58,17 +56,20 @@ plot_t::plot_t(measurement_t* measurement) : export2_t (measurement)
 	string title, outputfile;
     tools::file::mkpath(root_directory(conf.plots_location),0750);
     outputfile = root_directory(conf.plots_location)+measurement->filename_p->filename()+"_PLOT";
-// 	cout << "outputfile=" << outputfile<< endl;
+	cout << "outputfile=" << outputfile<< endl;
+	tools::str::replace_chars(&outputfile,"_",""); // \\\\U+005F
+	outputfile = "/tmp/plots/test";
+	cout << "outputfile=" << outputfile.c_str()<< endl;
+	
     title=measurement->filename_p->filename();
-// 	title="";
     tools::str::replace_chars(&title,"_","\\\\_");
     Gnuplot g1;
-    
-//     g1.set_title(title);
+    g1.set_utf8();
+    g1.set_title(title);
     if (logscale) g1.set_ylogscale();
 	vector<double> Y,X ;
-	quantity_t Xq;
-	
+// 	quantity_t Xq;
+// 	if (save) g1.savetops(outputfile.c_str());
 	for (auto& cluster:measurement->clusters)
 	{
 		
@@ -110,9 +111,12 @@ plot_t::plot_t(measurement_t* measurement) : export2_t (measurement)
 				X = cluster.second.sputter_time().data;
 				g1.set_xlabel(cluster.second.sputter_time().name + "["+ cluster.second.sputter_time().unit + "]");
 			}
-			cout << "cluster.name()=" << cluster.second.name() << endl;
-			cout << "Y.size()=" << Y.size() << endl;
-			cout << "X.size()=" << X.size() << endl;
+// 			cout << "outputfile: " << outputfile << endl;
+// 			cout << "title: " << title << endl;
+// 			cout << "plotname: " << plotname << endl;
+// 			cout << "cluster.name()=" << cluster.second.name() << endl;
+// 			cout << "Y.size()=" << Y.size() << endl;
+// 			cout << "X.size()=" << X.size() << endl;
 /////	/// SKIP
 // 			if (statistics::get_median_from_Y(Y)>1E6) continue;
 			

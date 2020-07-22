@@ -259,7 +259,7 @@ vector<cluster_t*> measurement_t::reference_clusters()
 	if (reference_clusters_p.size()!=measurement_group->reference_matrix_cluster_names().size())
 	{
 		error_messages_p.push_back("measurement_t::reference_clusters(): reference_clusters_p.size()!=measurement_group->reference_cluster_names().size() --> measurements in measurement_group have not the same tool export settings");
-		return {};
+// 		return {};
 	}
 	return reference_clusters_p;
 }
@@ -297,6 +297,9 @@ bool measurement_t::operator==(const measurement_t& measurement)
 	if (conf.measurement_definition_groupid && filename_p->group!=measurement.filename_p->group) return false;
 	if (conf.measurement_definition_repetition && filename_p->repetition!=measurement.filename_p->repetition) return false;
 	
+	if (conf.measurement_definition_sputter_element && filename_p->sputter_element != measurement.filename_p->sputter_element) return false;
+	if (conf.measurement_definition_sputter_energy && filename_p->sputter_energy != measurement.filename_p->sputter_energy) return false;
+	if (conf.measurement_definition_polarity && filename_p->polarity != measurement.filename_p->polarity) return false;
 	
 	if ((filename_p->lot=="" && measurement.filename_p->lot=="") || (filename_p->wafer==-1 && measurement.filename_p->wafer==-1) )
 	{

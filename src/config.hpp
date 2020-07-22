@@ -154,6 +154,10 @@ public:
 	bool measurement_group_definition_settings=true;
 	bool measurement_group_definition_tool=true;
 	
+	bool measurement_group_definition_sputter_energy=true;
+	bool measurement_group_definition_sputter_element=true;
+	bool measurement_group_definition_polarity=true;
+	
 	bool measurement_definition_olcdbid=true;
 	bool measurement_definition_lot=true;
 	bool measurement_definition_lot_split=false;
@@ -162,6 +166,10 @@ public:
 	bool measurement_definition_chip=true;
 	bool measurement_definition_groupid=true;
 	bool measurement_definition_repetition=true;
+	
+	bool measurement_definition_sputter_energy=true;
+	bool measurement_definition_sputter_element=true;
+	bool measurement_definition_polarity=true;
 	
 	// könnte man als schnittstelle für eine Skriptsprache in der config nehmen: "median(concentration) + 
 	bool export_type_sputter_time	=false;

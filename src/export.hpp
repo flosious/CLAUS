@@ -55,34 +55,7 @@ public:
 	export2_t(measurement_t* measurement_p);
 	static void export_contents_to_file(vector<string> contents, string filename_p, measurement_group_t MG, string sub_directory="");
 	static void export_contents_to_file(string contents, string filename_p, measurement_group_t MG, string sub_directory="");
-	
 };
-
-// class export_t
-// {
-// protected:
-// 	string olcdb,lot,wafer,group,chip,monitor,tool,lot_split;
-// 	bool format_id();
-// 	
-// 	/// parses the export directory name given in the config: like "C:\{oldbid}\{lotid}\..." and replaces them
-// 	bool check_replacements(string& check_this);
-// 	string directory;
-// 	string filename;
-// 	string output;
-// 	measurement_t *measurement;
-// 	/// writes output to file
-// 	bool write_to_file();
-// 	bool get_filename(string file_ending = "_EXPORT.txt");
-// 	bool get_directory();
-// 	static string get_directory(measurement_t *measurement);
-// 	
-// public:
-// 	export_t(measurement_t *measurement);
-// // 	export_t(measurement_group_t *MG);
-// 	/// sets output with origin formatted string
-// 	static bool samples_overview(list<measurement_t> *measurements);
-// 	static bool Ipr_global(list<measurement_t> *measurement);
-// };
 
 class origin_t : export2_t
 {
@@ -121,7 +94,10 @@ public:
 	static void export_settings_mass_calibration_to_file(measurement_group_t MG_p);
 	static void export_to_files(measurement_group_t MG_p);
 	static void export_MG_parameters_to_file(measurement_group_t& MG_p);
+	static void export_MG_parameters_to_file_V2(measurement_group_t& MG_p);
 	static void export_jiang_parameters_to_file(calc_models_t::jiang_t& jiang);
+	/*set -1 in data to empty string ""*/
+	static vector<string> quantity_data_to_string(quantity_t& q);
 };
 
 class plot_t : export2_t

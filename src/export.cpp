@@ -20,7 +20,7 @@
 
 
 #define LOT_DEFAULT "lot-unkown"
-#define WAFER_DEFAULT "wafer-unkown"
+#define WAFER_DEFAULT ""
 #define OLCDB_DEFAULT "olcdbid-unkown"
 #define GROUP_DEFAULT "group-unkown"
 #define repetition_DEFAULT ""
@@ -205,7 +205,8 @@ std::__cxx11::string export2_t::root_directory(string directory)
 
 std::__cxx11::string export2_t::filename(string filename, string file_ending)
 {
-	if (filename != "" && lot()!=LOT_DEFAULT && wafer()!=WAFER_DEFAULT) check_placeholders(filename);
+// 	if (filename != "" && lot()!=LOT_DEFAULT && wafer()!=WAFER_DEFAULT) check_placeholders(filename);
+	if (filename != "") check_placeholders(filename);
 	else
 	{
 		filename = olcdb();
@@ -565,9 +566,19 @@ origin_t::column_t::column_t(cluster_t* cluster, quantity_t* quantity, string su
 			if (ii!=isotopes->size()-1) name+=" ";
 		}
 	}
-	longname = name +" "+quantity->name;
+	if (quantity->unit=="at%") 
+	{
+		isotope_t element = cluster->measurement->measurement_group->isotope_from_cluster_name(cluster->name());
+		longname = element.symbol +" "+quantity->name;
+		comment = element.symbol+suffix;
+	}
+	else 
+	{
+		longname = name +" "+quantity->name;
+		comment = name+suffix;
+	}
 	unit = quantity->unit;
-	comment = name+suffix;
+	
 	data = tools::mat::double_vec_to_str_vec(quantity->data);
 	populated=true;
 	return;
@@ -621,8 +632,10 @@ vector<origin_t::column_t> origin_t::format_measurement_cluster_columns()
 // 	columns.push_back(column_t(measurement->crater.global_sputter_time(),"crater_"+suffix()));
 	for (auto& cluster : measurement->clusters)
 	{
-		if (cluster.second.concentration().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
-		else columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
+		if (cluster.second.concentration().is_set()) 
+			columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
+		else 
+			columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
 	}
 // 	columns.push_back(column_t(measurement->crater.sputter_current(),"crater_"+suffix()));
 // 	columns.push_back(column_t(measurement->crater.total_sputter_time(),"crater_"+suffix()));
@@ -796,6 +809,47 @@ void origin_t::export_to_files(measurement_group_t MG_p)
 	}
 }
 
+vector<std::__cxx11::string> origin_t::quantity_data_to_string(quantity_t& q)
+{
+	if (q.data.size()==0) return {};
+	
+	vector<string> q_string(q.data.size());
+	for (int i=0;i<q_string.size();i++)
+	{
+		if (q.data[i]<0) q_string[i]="";
+		else q_string[i] = to_string(q.data[i]);
+	}
+	return q_string;
+}
+
+
+/*
+ * this method is more robust and allows measurements in same group with different clusters
+ */
+void origin_t::export_MG_parameters_to_file_V2(measurement_group_t& MG_p)
+{
+	if (MG_p.filenames_with_path().size()==0) return;
+	
+	vector<column_t> cols;
+	quantity_t SRs = MG_p.SRs_from_all_measurements();
+	
+	for (auto& clustername:MG_p.cluster_names())
+	{
+		quantity_t Cs = MG_p.clustername_to_concentrations_from_all_measurements()[clustername];
+		cols.push_back(column_t(quantity_data_to_string(Cs),clustername+" concentration",Cs.unit,""));
+		quantity_t Is = MG_p.clustername_to_intensities_from_all_measurements()[clustername];
+		cols.push_back(column_t(quantity_data_to_string(Is),clustername+" intensity",Is.unit,""));
+		quantity_t RSFs = MG_p.clustername_to_RSFs_from_all_measurements()[clustername];
+		cols.push_back(column_t(quantity_data_to_string(RSFs),clustername + " RSF",RSFs.unit,""));
+	}
+	
+	cols.push_back(column_t(quantity_data_to_string(SRs),"sputter_rates",SRs.unit,""));
+	cols.push_back(column_t(MG_p.filenames_with_path(),"filenames","",""));
+		
+	for (auto& dir:root_directories(MG_p))
+		write_to_file(cols,dir+conf.calc_location,MG_p.name()+"_parameters.txt");
+}
+
 void origin_t::export_MG_parameters_to_file(measurement_group_t& MG_p)
 {
 // 	set<string> root_directories;
@@ -958,7 +1012,7 @@ void origin_t::export_MG_parameters_to_file(measurement_group_t& MG_p)
 	
 	
 	for (auto& dir:root_directories(MG_p))
-		write_to_file(cols,dir+conf.calc_location,"MG-parameters.txt");
+		write_to_file(cols,dir+conf.calc_location,MG_p.name()+"_parameters.txt");
 }
 
 

@@ -38,6 +38,9 @@ processor::processor(vector<string> arg_list)
 	#endif
 	cout << intro;
 	
+	cout << "use the same clusters in each measurement in one common measurement group" << endl;
+	cout << "cluster names must be unique for each isotope ((e.g. just \"11B 28Si\") for \"11B\") (bijective transformation)" << endl;
+	
     // save args
     args = arg_list;
 	cout << "input files:" << endl;
@@ -85,7 +88,7 @@ processor::processor(vector<string> arg_list)
 // 			cout << MG.to_str() << endl;
 			
 			origin_t::export_to_files(MG);
-			origin_t::export_MG_parameters_to_file(MG);
+			origin_t::export_MG_parameters_to_file_V2(MG);
 			export2_t::export_contents_to_file(MG.to_str(),MG.name()+"_calculation_results.txt",MG,conf.calc_location);
 		}
 		export2_t::export_contents_to_file(calc_history,MG.name()+"_detailed_calculation_history.txt",MG,conf.calc_location);
@@ -105,6 +108,7 @@ processor::processor(vector<string> arg_list)
 	
 	#ifdef __unix__
 // 	plot_t::export_to_files(measurement_groups);
+// 	plot_t::fast_plot(measurements.begin()->crater.sputter_time(),measurements.begin()->clusters.begin()->second.intensity(),"/tmp/test");
     #else
 	system("pause");
 	#endif

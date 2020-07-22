@@ -170,15 +170,6 @@ bool calc_models_t::jiang_t::calc()
 	calc_history.push_back("jiang_t\t" + measurement_group_priv.name() +"\tstop - SUCCESS");
 	error_p = false;
 	
-// 	for (auto& M:measurement_group_priv.measurements)
-// 	{
-// 		cout << M->filename_p->filename_without_crater_depths() << endl;
-// 		for (auto& cluster:M->clusters)
-// 		{
-// 			cout << "equilibrium_starting_pos= " << cluster.second.equilibrium_starting_pos << endl;
-// // 			cluster.second.reference_intensity().to_screen();
-// 		}
-// 	}
 	return true;
 }
 

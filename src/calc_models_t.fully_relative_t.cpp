@@ -1,7 +1,7 @@
 /*
 	Copyright (C) 2020 Florian Bärwolf
 	floribaer@gmx.de
-
+	
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -15,31 +15,35 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef CALC_MODELS_HPP
-#define CALC_MODELS_HPP
+#include "calc_models_t.fully_relative_t.hpp"
+#include "globalvars.hpp"
 
-#include "quantity.hpp"
-#include "measurement.hpp"
-#include "cluster_t.hpp"
-#include "fit_functions.hpp"
-#include "measurement_group_t.hpp"
-
-/*
- * classes for advanced physical-mathematical models for more complex calculation
- */
-
-using namespace std;
-
-// class measurement_group_t;
-
-class calc_models_t
+vector<std::__cxx11::string> calc_models_t::fully_relative_t::error_messages()
 {
-public:
-	/// jiangs protocol
-	class jiang_t;
-	/// fully relative model
-	class fully_relative_t;
-};
+	return error_messages_p;
+}
 
+bool calc_models_t::fully_relative_t::is_error()
+{
+	return error_p;
+}
 
-#endif // CALC_MODELS_HPP
+measurement_group_t calc_models_t::fully_relative_t::measurement_group()
+{
+	return MG;
+}
+
+calc_models_t::fully_relative_t::fully_relative_t(measurement_group_t& MG_p)
+{
+	// local copy to play with
+	MG=MG_p;
+}
+
+bool calc_models_t::fully_relative_t::calc()
+{
+	if (!error_p) return true;
+	calc_history.push_back("fully_relative_t\t" + MG.name());
+	
+	return true;
+}
+

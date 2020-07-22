@@ -208,7 +208,7 @@ set<isotope_t> measurement_group_t::reference_matrix_isotopes()
 	return reference_matrix_isotopes_p;
 }
 
-
+/*ATTENTION! "28Si 11B" and "30Si 11B" can not be distinguished! this function is bijective: isotope <=> cluster*/
 isotope_t measurement_group_t::isotope_from_cluster_name(string cluster_name)
 {
 	if (cluster_name_to_isotope_p.size()>0 && cluster_name_to_isotope_p.find(cluster_name)!=cluster_name_to_isotope_p.end()) return cluster_name_to_isotope_p[cluster_name];
@@ -221,8 +221,29 @@ isotope_t measurement_group_t::isotope_from_cluster_name(string cluster_name)
 	
 	if (cluster_name_to_isotope_p.find(cluster_name)!=cluster_name_to_isotope_p.end()) return cluster_name_to_isotope_p[cluster_name];
 	return {};
-
 }
+
+// isotope_t measurement_group_t::isotope_from_cluster_name(string cluster_name)
+// {	
+// 	
+// 	for (auto& reference_matrix_isotope:reference_matrix_isotopes())
+// 	{
+// 		
+// 	}
+// 	
+// 	for (auto& measurement:measurements)
+// 	{
+// 		if (!measurement->load_from_database()) continue;
+// 		for (auto& cluster:measurement->clusters)
+// 		{
+// 			if (cluster.second.leftover_elements(measurement->sample_p->matrix.isotopes()).size()==0)
+// 				reference_cluster_names_p.insert(cluster.second.name());
+// 		}
+// 	}
+// 	return {};
+// }
+
+
 
 set<isotope_t> measurement_group_t::isotopes()
 {
@@ -238,7 +259,7 @@ set<isotope_t> measurement_group_t::isotopes()
 
 set<std::__cxx11::string> measurement_group_t::cluster_names()
 {
-	set<string> cluster_names_p;
+	if (cluster_names_p.size()>0) return cluster_names_p;
 	for (auto& measurement:measurements)
 	{
 		for (auto& cluster:measurement->clusters)
@@ -247,6 +268,7 @@ set<std::__cxx11::string> measurement_group_t::cluster_names()
 	return cluster_names_p;
 }
 
+/*ATTENTION! "28Si 11B" and "30Si 11B" can not be distinguished! this function is bijective: isotope <=> cluster*/
 std::__cxx11::string measurement_group_t::cluster_name_from_isotope(isotope_t isotope)
 {	
 // 	vector<string> isotope_names_in_cluster = tools::str::get_strings_between_delimiter();
@@ -307,13 +329,143 @@ std::__cxx11::string measurement_group_t::to_str(std::__cxx11::string prefix)
 	return ss.str();
 }
 
+map<std::__cxx11::string, quantity_t> measurement_group_t::clustername_to_concentrations_from_all_measurements()
+{
+	map<string,quantity_t> clustername_to_concentrations_from_all_measurements;
+	for (auto& cluster_name:cluster_names())
+	{
+		for (auto& M:measurements)
+		{
+			/*cluster is not in this measurement*/
+			if (M->clusters.find(cluster_name)==M->clusters.end())
+			{
+				clustername_to_concentrations_from_all_measurements[cluster_name].data.push_back(-1);
+				continue;
+			}
+			/*cluster is in this measurement*/
+			
+			if (M->clusters[cluster_name].concentration().is_set())
+			{
+				clustername_to_concentrations_from_all_measurements[cluster_name].data.push_back(M->clusters[cluster_name].concentration().trimmed_mean().data[0]);
+// 				cout << "measurement:\t" << M->filename_p->filename_with_path() << endl; 
+// 				cout << "cluster_name:\t" << cluster_name << endl; 
+// 				M->clusters[cluster_name].concentration().to_screen();
+				if (!clustername_to_concentrations_from_all_measurements[cluster_name].is_set())
+				{
+					clustername_to_concentrations_from_all_measurements[cluster_name].dimension = M->clusters[cluster_name].concentration().dimension;
+					clustername_to_concentrations_from_all_measurements[cluster_name].unit = M->clusters[cluster_name].concentration().unit;
+				}
+			}
+			else 
+				clustername_to_concentrations_from_all_measurements[cluster_name].data.push_back(-1);
+		}
+	}
+	return clustername_to_concentrations_from_all_measurements;
+}
+
+map<std::__cxx11::string, quantity_t> measurement_group_t::clustername_to_intensities_from_all_measurements()
+{
+	map<string,quantity_t> clustername_to_intensities_from_all_measurements;
+	for (auto& cluster_name:cluster_names())
+	{
+		for (auto& M:measurements)
+		{
+			/*cluster is not in this measurement*/
+			if (M->clusters.find(cluster_name)==M->clusters.end())
+			{
+				clustername_to_intensities_from_all_measurements[cluster_name].data.push_back(-1);
+				continue;
+			}
+			/*cluster is in this measurement*/
+			
+			if (M->clusters[cluster_name].intensity().is_set())
+			{
+				clustername_to_intensities_from_all_measurements[cluster_name].data.push_back(M->clusters[cluster_name].intensity().trimmed_mean().data[0]);
+				if (!clustername_to_intensities_from_all_measurements[cluster_name].is_set())
+				{
+					clustername_to_intensities_from_all_measurements[cluster_name].dimension = M->clusters[cluster_name].intensity().dimension;
+					clustername_to_intensities_from_all_measurements[cluster_name].unit = M->clusters[cluster_name].intensity().unit;
+				}
+			}
+			else 
+				clustername_to_intensities_from_all_measurements[cluster_name].data.push_back(-1);
+		}
+	}
+	return clustername_to_intensities_from_all_measurements;
+}
+
+map<std::__cxx11::string, quantity_t> measurement_group_t::clustername_to_RSFs_from_all_measurements()
+{
+	map<string,quantity_t> clustername_to_RSFs_from_all_measurements;
+	for (auto& cluster_name:cluster_names())
+	{
+		for (auto& M:measurements)
+		{
+			/*cluster is not in this measurement*/
+			if (M->clusters.find(cluster_name)==M->clusters.end())
+			{
+				clustername_to_RSFs_from_all_measurements[cluster_name].data.push_back(-1);
+				continue;
+			}
+			/*cluster is in this measurement*/
+			
+			if (M->clusters[cluster_name].RSF().is_set())
+			{
+				if (M->clusters[cluster_name].RSF().is_skalar_data())
+					clustername_to_RSFs_from_all_measurements[cluster_name].data.push_back(M->clusters[cluster_name].RSF().data[0]);
+				else
+					clustername_to_RSFs_from_all_measurements[cluster_name].data.push_back(M->clusters[cluster_name].RSF().median().data[0]);
+				if (!clustername_to_RSFs_from_all_measurements[cluster_name].is_set())
+				{
+					clustername_to_RSFs_from_all_measurements[cluster_name].dimension = M->clusters[cluster_name].RSF().dimension;
+					clustername_to_RSFs_from_all_measurements[cluster_name].unit = M->clusters[cluster_name].RSF().unit;
+				}
+			}
+			else 
+				clustername_to_RSFs_from_all_measurements[cluster_name].data.push_back(-1);
+		}
+	}
+	return clustername_to_RSFs_from_all_measurements;
+}
+
+vector<std::__cxx11::string> measurement_group_t::filenames_with_path()
+{
+	vector<string> filenames;
+	for (auto& M:measurements)
+		filenames.push_back(M->filename_p->filename_with_path());
+	return filenames;
+}
+
+
+/*relies on same unit and dimension in all measurements*/
+quantity_t measurement_group_t::SRs_from_all_measurements()
+{
+	quantity_t SRs;
+	for (auto& M:measurements)
+	{
+		if (!SRs.is_set() && M->crater.sputter_rate().is_set())
+		{
+			SRs.dimension=M->crater.sputter_rate().dimension;
+			SRs.unit=M->crater.sputter_rate().unit;
+			SRs.name=M->crater.sputter_rate().name;
+			SRs.data.push_back(M->crater.sputter_rate().data[0]);
+		}
+		else if (M->crater.sputter_rate().is_set())
+		{
+			SRs.data.push_back(M->crater.sputter_rate().data[0]);
+		}
+		else SRs.data.push_back(-1); // empty
+	}
+	return SRs;
+}
+
 
 /*OPERATORS*/
 
 bool measurement_group_t::operator==(measurement_group_t& measurement_group)
 {
 	// only add measurements with exactly same cluster_names into one common group
-	if (!check_cluster_names(&measurement_group)) return false;
+// 	if (!check_cluster_names(&measurement_group)) return false;
 	if (conf.measurement_group_definition_tool && tool_name_p!=measurement_group.tool_name_p) return false;
 	if (conf.measurement_group_definition_groupid && group_p != measurement_group.group_p) return false;
 	if (conf.measurement_group_definition_olcdbid && olcdb_p != measurement_group.olcdb_p) return false;

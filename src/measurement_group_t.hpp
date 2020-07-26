@@ -111,6 +111,10 @@ public:
 	map<string,quantity_t> clustername_to_intensities_from_all_measurements();
 	/// SRs from all measurements in this group; -1 if empty
 	quantity_t SRs_from_all_measurements();
+	/// returns all SRs within the group for the specific sample matrix
+	quantity_t SRs(sample_t::matrix_t& matrix);
+	/// returns all RSFs within the group for the specific matrix
+	quantity_t RSFs(cluster_t& cluster);
 	
 	string to_str(string prefix="");
 	void to_screen(string prefix="");

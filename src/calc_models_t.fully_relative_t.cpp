@@ -44,6 +44,8 @@ bool calc_models_t::fully_relative_t::calc()
 	if (!error_p) return true;
 	calc_history.push_back("fully_relative_t\t" + MG.name());
 	
+	
+	calc_history.push_back("fully_relative_t\t" + MG.name() +"\tstop - SUCCESS");
 	return true;
 }
 

@@ -37,9 +37,7 @@ private:
 	
 	bool error_p=true;
 	
-	fit_functions::polynom_t SR_to_Crel_polyfit;
-	fit_functions::polynom_t CRel_to_Irel_polyfit;
-	map<string, fit_functions::polynom_t> clustername_to_RSFs_to_Crel_polyfit;
+	
 	
 	vector<string> error_messages_p;
 	/// C(matrix_isotope2.atoms) / C(matrix_isotope1.atoms)
@@ -54,17 +52,23 @@ private:
 	/// atoms=1; isotopes with 100at% concentration in MG
 	set<isotope_t> single_element_matrix_isotopes();
 	
-	/// zähler
-	isotope_t counter_matrix_isotope(); 
+	
 	isotope_t counter_matrix_isotope_p;
-	/// nenner
-	isotope_t denominator_matrix_isotope(); 
+	
 	isotope_t denominator_matrix_isotope_p;
 	
 	pair<quantity_t,quantity_t> SRs_to_Crel_p;
 	pair<quantity_t,quantity_t> Crel_to_Irel_p;
 	map<string,pair<quantity_t,quantity_t>> clustername_to_RSFs_to_Crel_p;
 public:
+	fit_functions::polynom_t SR_to_Crel_polyfit;
+	fit_functions::polynom_t CRel_to_Irel_polyfit;
+	map<string, fit_functions::polynom_t> clustername_to_RSFs_to_Crel_polyfit;
+	
+	/// zähler
+	isotope_t counter_matrix_isotope(); 
+	/// nenner
+	isotope_t denominator_matrix_isotope(); 
 	bool is_error();
 	pair<quantity_t,quantity_t> SRs_to_Crel();
 	pair<quantity_t,quantity_t> Crel_to_Irel();

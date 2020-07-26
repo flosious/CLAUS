@@ -47,6 +47,37 @@ bool measurement_group_t::check_cluster_names(measurement_group_t* measurement_g
 	return true;
 }
 
+quantity_t measurement_group_t::RSFs(cluster_t& cluster)
+{
+	quantity_t RSFs_p;
+	for (auto& M:measurements)
+	{
+		if (M->sample_p->matrix != cluster.measurement->sample_p->matrix) continue;
+		for (auto& C:M->clusters)
+		{
+			if (C.second.name()!=cluster.name()) continue;
+			if (!C.second.RSF().is_set()) continue;
+			if (RSFs_p.is_set()) RSFs_p = RSFs_p.add_to_data(C.second.RSF());
+			else RSFs_p = C.second.RSF();
+			break;
+		}
+	}
+	return RSFs_p;
+}
+
+quantity_t measurement_group_t::SRs(sample_t::matrix_t& matrix)
+{
+	quantity_t SRs_p;
+	for (auto& M:measurements)
+	{
+		if (M->sample_p->matrix != matrix) continue;
+		if (SRs_p.is_set()) SRs_p = SRs_p.add_to_data(M->crater.sputter_rate());
+		else SRs_p = M->crater.sputter_rate();
+	}
+	return SRs_p;
+}
+
+
 
 measurement_group_t::measurement_group_t(measurement_t* measurement_p)
 {

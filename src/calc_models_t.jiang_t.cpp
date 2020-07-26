@@ -64,7 +64,9 @@ bool calc_models_t::jiang_t::calc()
 			tools::vec::combine_vecs_to_map(RSFs_to_Crel.second.second.data,RSFs_to_Crel.second.first.data,&data_XY);
 			if (data_XY.size()>1) 
 			{
-				clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,Crels_unique.size()-1);
+				/*maximum grade 2 (parabolic)*/
+				if (Crels_unique.size()>3) clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,2);
+				else clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,Crels_unique.size()-1);
 			}
 		}
 	}

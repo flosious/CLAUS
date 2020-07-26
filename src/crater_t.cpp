@@ -82,7 +82,6 @@ quantity_t crater_t::sputter_current()
 
 quantity_t crater_t::sputter_depth(double resolution)
 {
-	/// HERE
 	if (already_calculated_sputter_depth==false && !sputter_depth_p.is_set())
 	{
 		already_calculated_sputter_depth=true;
@@ -91,7 +90,7 @@ quantity_t crater_t::sputter_depth(double resolution)
 			if (it->second.sputter_depth().is_set()) break;
 		}
 	}
-	
+	/*change base data resolution*/
 	if (resolution!=sputter_depth_resolution && resolution > 0) 
 	{
 		sputter_depth_resolution = resolution;

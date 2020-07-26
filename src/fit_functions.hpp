@@ -82,6 +82,8 @@ public:
 		bool fitted();
 		vector<double> fitted_y_data(vector<double> x={});
 	};
+	
+	class cspline;
 };
 
 #endif // FIT_FUCTIONS

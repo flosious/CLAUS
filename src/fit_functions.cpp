@@ -326,4 +326,10 @@ bool fit_functions::polynom_t::fit(map<double, double> data_XY, int grade)
 	return true;
 }
 
+/*
+ * SPLINES
+ */
+
+
+
 

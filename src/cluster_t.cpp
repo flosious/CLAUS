@@ -64,10 +64,10 @@ quantity_t cluster_t::sputter_rate()
 	{
 		measurement->crater.sputter_rate_p=depth_at_maximum_concentration() / (equilibrium().concentration().polyfit().max_at_x(equilibrium().sputter_time() ));
 	}
-// 	else if (measurement->measurement_group->SRs().is_set())
-// 	{
-// 		measurement->crater.sputter_rate_p = measurement->measurement_group->SRs().mean();
-// 	}
+	else if (measurement->measurement_group->SRs(measurement->sample_p->matrix).is_set())
+	{
+		measurement->crater.sputter_rate_p = measurement->measurement_group->SRs(measurement->sample_p->matrix).mean();
+	}
 	
 	if (measurement->crater.sputter_rate_p.is_set())calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + measurement->crater.sputter_rate_p.to_str());
 	measurement->crater.sputter_rate_p.unit="nm/s";
@@ -317,20 +317,21 @@ quantity_t cluster_t::RSF()
 	}
 
 	// look in other measurements within this group for the RSF of this cluster
-	for (auto& M:measurement->measurement_group->measurements)
-	{
-		if (M==measurement) continue;
-		if (M->sample_p->matrix != measurement->sample_p->matrix) continue;
-		for (auto& C:M->clusters)
-		{
-			if (C.second.name()!=name()) continue;
-			if (!C.second.RSF().is_set()) continue;
-			if (RSF_p.is_set()) RSF_p = RSF_p.add_to_data(C.second.RSF());
-			else RSF_p = C.second.RSF();
-			break;
-		}
-	}
-	RSF_p = RSF_p.mean();
+	RSF_p = measurement->measurement_group->RSFs(*this).mean();
+// 	for (auto& M:measurement->measurement_group->measurements)
+// 	{
+// 		if (M==measurement) continue;
+// 		if (M->sample_p->matrix != measurement->sample_p->matrix) continue;
+// 		for (auto& C:M->clusters)
+// 		{
+// 			if (C.second.name()!=name()) continue;
+// 			if (!C.second.RSF().is_set()) continue;
+// 			if (RSF_p.is_set()) RSF_p = RSF_p.add_to_data(C.second.RSF());
+// 			else RSF_p = C.second.RSF();
+// 			break;
+// 		}
+// 	}
+	
 	if (RSF_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + RSF_p.to_str());
 	return RSF_p;
 }

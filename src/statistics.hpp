@@ -9,7 +9,7 @@
 
 #include "tools.hpp"
 
-
+#include <gsl/gsl_bspline.h>
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_randist.h>
 #include <gsl/gsl_matrix.h>
@@ -134,6 +134,7 @@ public:
 	
 	
 	/****************/
+	static vector<double> interpolate_bspline(map<double, double>& data_XY,vector<double> X_new={}, int bspline_degree=3);
 	static vector<double> interpolate_data_XY(map<double,double> *data_XY, vector<double> *X);
 	static double integrate(map<double,double> *data_XY, double lower_limit_X=0, double upper_limit_X=0) ;
 	

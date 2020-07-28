@@ -274,15 +274,15 @@ bool fit_functions::polynom_t::fitted()
 }
 
 
-bool fit_functions::polynom_t::fit(map<double, double> data_XY, int grade)
+bool fit_functions::polynom_t::fit(map<double, double> data_XY, int degree)
 {
-	if (grade<0) return false;
-	if (grade>=data_XY.size()) return false;
+	if (degree<0) return false;
+	if (degree>=data_XY.size()) return false;
 	fitted_p = false;
 	int i, n;
 	gsl_matrix *X, *cov;
 	gsl_vector *y, *w, *c;
-	const int p = grade+1;
+	const int p = degree+1;
 	fit_parameters.resize(p);
     
 	n = data_XY.size();
@@ -326,9 +326,6 @@ bool fit_functions::polynom_t::fit(map<double, double> data_XY, int grade)
 	return true;
 }
 
-/*
- * SPLINES
- */
 
 
 

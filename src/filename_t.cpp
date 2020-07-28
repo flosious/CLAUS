@@ -79,7 +79,8 @@ bool filename_t::parse_filename_parts()
 		// no parser worked
 		not_parseable_filename_parts.push_back(filename_part);
 	}
-	if (lot=="" && not_parseable_filename_parts.size()>0) lot=tools::vec::combine_vec_to_string(not_parseable_filename_parts,"_");
+// 	if (lot=="" && not_parseable_filename_parts.size()>0) lot=tools::vec::combine_vec_to_string(not_parseable_filename_parts,"_");
+	if (lot=="" && not_parseable_filename_parts.size()>0) lot=not_parseable_filename_parts[0];
 	return true;
 }
 
@@ -185,13 +186,13 @@ bool filename_t::parse_wafer(string filename_part)
 bool filename_t::parse_group(string filename_part)
 {
 	smatch match;
-	regex reg ("^([0-9]{1,2})([a-z]*?)$"); 
-	if (regex_search(filename_part,match,reg)) 
-	{
-		group = tools::str::str_to_int(match[1]);
-		repetition = match[2];
-		return true;
-	}
+// 	regex reg ("^([0-9]{1,2})([a-z]*?)$"); 
+// 	if (regex_search(filename_part,match,reg)) 
+// 	{
+// 		group = tools::str::str_to_int(match[1]);
+// 		repetition = match[2];
+// 		return true;
+// 	}
 	regex reg1 ("^g-?*([0-9]+?)([a-z]*?)$"); 
 	regex reg2 ("^group-*([0-9]+?)([a-z]*?)$"); 
 // 	regex reg3 ("^g([0-9]+?)([a-z]*?)$"); 

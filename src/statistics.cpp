@@ -1232,6 +1232,123 @@ vector<double> statistics::interpolate_data_XY_transposed(vector<vector<double>>
 /********* NEW *************/
 
 
+vector<double> statistics::interpolate_bspline(map<double, double>& data_XY,vector<double> X_new, int bspline_degree)
+{
+	const size_t k = bspline_degree +1;
+	const size_t n = data_XY.size();
+// 	const size_t nbreak = data_XY.size();
+	/* nbreak = ncoeffs + 2 - k */
+// 	const size_t ncoeffs = nbreak - 2 + k;
+	const size_t ncoeffs = 20;
+	const size_t nbreak = ncoeffs + 2 - k;
+	size_t i, j;
+	gsl_bspline_workspace *bw;
+	gsl_vector *B;
+	double dy;
+		gsl_rng *r;
+	gsl_vector *c, *w;
+	gsl_vector *x, *y;
+	gsl_matrix *X, *cov;
+	gsl_multifit_linear_workspace *mw;
+	double chisq, Rsq, dof, tss;
+
+	gsl_rng_env_setup();
+	r = gsl_rng_alloc(gsl_rng_default);
+
+	/* allocate a cubic bspline workspace (k = 4) */
+	bw = gsl_bspline_alloc(k, nbreak);
+	B = gsl_vector_alloc(ncoeffs);
+
+	x = gsl_vector_alloc(n);
+	y = gsl_vector_alloc(n);
+	X = gsl_matrix_alloc(n, ncoeffs);
+	c = gsl_vector_alloc(ncoeffs);
+	w = gsl_vector_alloc(n);
+	cov = gsl_matrix_alloc(ncoeffs, ncoeffs);
+	mw = gsl_multifit_linear_alloc(n, ncoeffs);
+
+	/* this is the data to be fitted */  
+	vector<double> Xdata,Ydata;
+	tools::vec::split_map_to_vecs(&data_XY,&Xdata,&Ydata);
+	for (i = 0; i < n; ++i)
+    {
+		gsl_vector_set (y, i, Ydata[i]);
+		gsl_vector_set (x, i, Xdata[i]);
+//       double sigma;
+//       double xi = (15.0 / (N - 1)) * i;
+//       double yi = cos(xi) * exp(-0.1 * xi);
+// 
+//       sigma = 0.1 * yi;
+//       dy = gsl_ran_gaussian(r, sigma);
+//       yi += dy;
+// 
+//       gsl_vector_set(x, i, xi);
+//       gsl_vector_set(y, i, yi);
+//       gsl_vector_set(w, i, 1.0 / (sigma * sigma));
+// 
+//       printf("%f %f\n", xi, yi);
+    }
+
+  /* use uniform breakpoints on the intervall */
+  gsl_bspline_knots_uniform(Xdata.front(), Xdata.back(), bw);
+// 	gsl_bspline_knots(x,bw);
+  /* construct the fit matrix X */
+  for (i = 0; i < n; ++i)
+    {
+      double xi = gsl_vector_get(x, i);
+
+      /* compute B_j(xi) for all j */
+      gsl_bspline_eval(xi, B, bw);
+
+      /* fill in row i of X */
+      for (j = 0; j < ncoeffs; ++j)
+        {
+          double Bj = gsl_vector_get(B, j);
+          gsl_matrix_set(X, i, j, Bj);
+        }
+    }
+	
+  /* do the fit */
+  ///ATTENTION hier ist irgend ne matrix nicht quadratisch
+  gsl_multifit_wlinear(X, w, y, c, cov, &chisq, mw);
+
+  dof = n - ncoeffs;
+  tss = gsl_stats_wtss(w->data, 1, y->data, 1, y->size);
+  Rsq = 1.0 - chisq / tss;
+
+  fprintf(stderr, "chisq/dof = %e, Rsq = %f\n", chisq / dof, Rsq);
+
+  printf("\n\n");
+
+	
+  /* output the smoothed curve */
+	if (X_new.size()==0) X_new = Xdata;
+	vector<double> Y_new(X_new.size());
+    vector<double> Y_err(X_new.size());
+	
+	for (int i = 0; i<X_new.size(); i++)
+	{
+		gsl_bspline_eval(X_new[i], B, bw);
+		gsl_multifit_linear_est(B, c, cov, &Y_new[i], &Y_err[i]);
+	}
+
+
+	gsl_rng_free(r);
+	gsl_bspline_free(bw);
+	gsl_vector_free(B);
+	gsl_vector_free(x);
+	gsl_vector_free(y);
+	gsl_matrix_free(X);
+	gsl_vector_free(c);
+	gsl_vector_free(w);
+	gsl_matrix_free(cov);
+	gsl_multifit_linear_free(mw);
+
+	return Y_new;
+}
+
+
+
 vector<double> statistics::interpolate_data_XY(map<double,double> *data_XY, vector<double> *X) 
 {
 

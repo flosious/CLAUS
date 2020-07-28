@@ -29,7 +29,7 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_sort_double.h>
 #include <gsl/gsl_filter.h>
-
+#include <gsl/gsl_bspline.h>
 
 using namespace std;
 
@@ -39,10 +39,11 @@ public:
 	/// like origin -> peak functions -> asym2sig
 	class asym2sig_t
 	{
+	private:
 		double chisq_p=-1;
 		bool fitted_p=false;
 		static void callback(const size_t iter, void *params, const gsl_multifit_nlinear_workspace *w);
-		static int function_1st_derivative(const gsl_vector * x, void *data, gsl_matrix * J);
+// 		static int function_1st_derivative(const gsl_vector * x, void *data, gsl_matrix * J);
 		static int function(const gsl_vector * x, void *data, gsl_vector * f);
 	public:
 		//fitparameters
@@ -78,12 +79,11 @@ public:
 	public:
 		double chisq();
 		vector<double> fit_parameters;
-		bool fit(map<double,double> data_XY, int grade);
+		bool fit(map<double,double> data_XY, int degree);
 		bool fitted();
 		vector<double> fitted_y_data(vector<double> x={});
 	};
-	
-	class cspline;
+
 };
 
 #endif // FIT_FUCTIONS

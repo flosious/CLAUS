@@ -109,7 +109,8 @@ public:
 	static void export_to_files(measurement_group_t* MG);
 	static void export_to_files(list<measurement_group_t>& MGs);
 	plot_t(measurement_t* measurement);
-	static void fast_plot(quantity_t X, quantity_t Y, string outputfile);
+	static void fast_plot(quantity_t X, quantity_t Y, string outputfile="");
+	static void fast_plot(vector<quantity_t> X, vector<quantity_t> Y, string outputfile="");
 	~plot_t();
 	
 	void XY(vector<double> X, vector<double> Y,string outputfile);

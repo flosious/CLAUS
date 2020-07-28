@@ -1,7 +1,7 @@
 /*
 	Copyright (C) 2020 Florian Bärwolf
 	floribaer@gmx.de
-
+	
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -15,34 +15,17 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef CALC_MODELS_HPP
-#define CALC_MODELS_HPP
+#ifndef CALC_MODELS_SINGLE_ELEMENT_MATRIX_HPP
+#define CALC_MODELS_SINGLE_ELEMENT_MATRIX_HPP
 
-#include "quantity.hpp"
-#include "measurement.hpp"
-#include "cluster_t.hpp"
-#include "fit_functions.hpp"
-#include "measurement_group_t.hpp"
+#include "calc_models_t.hpp"
+#include "globalvars.hpp"
 
-/*
- * classes for advanced physical-mathematical models for more complex calculation
- */
 
-using namespace std;
-
-// class measurement_group_t;
-
-class calc_models_t
+class calc_models_t::single_element_matrix_t
 {
+private:
 public:
-	class single_element_matrix_t;
-	/// jiangs protocol 
-	class jiang_t;
-	/// jiangs protocol for 2 matrix elements for all possible mixtures
-	class jiang_full_t;
-	/// fully relative model
-	class fully_relative_t;
 };
 
-
-#endif // CALC_MODELS_HPP
+#endif // CALC_MODELS_SINGLE_ELEMENT_MATRIX_HPP 

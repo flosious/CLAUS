@@ -92,7 +92,7 @@ processor::processor(vector<string> arg_list)
 			export2_t::export_contents_to_file(MG.to_str(),MG.name()+"_calculation_results.txt",MG,conf.calc_location);
 		}
 		export2_t::export_contents_to_file(calc_history,MG.name()+"_detailed_calculation_history.txt",MG,conf.calc_location);
-		origin_t::export_settings_mass_calibration_to_file(MG);
+// 		origin_t::export_settings_mass_calibration_to_file(MG);
 		cout << "}" << endl;
 	}
 	
@@ -103,12 +103,15 @@ processor::processor(vector<string> arg_list)
 		else print("\tno errors");
 	}
 	
-	//tests
-	
 	
 	#ifdef __unix__
 // 	plot_t::export_to_files(measurement_groups);
-// 	plot_t::fast_plot(measurements.begin()->crater.sputter_time(),measurements.begin()->clusters.begin()->second.intensity(),"/tmp/test");
+//tests
+// 	map<double,double> tmap;
+// 	tools::vec::combine_vecs_to_map(measurements.begin()->crater.sputter_time().data,measurements.begin()->clusters["11B"].intensity().data,&tmap);
+// 	quantity_t Y;
+// 	Y.data = statistics::interpolate_bspline(tmap);
+// 	plot_t::fast_plot({measurements.begin()->crater.sputter_time(),measurements.begin()->crater.sputter_time()},{measurements.begin()->clusters["11B"].intensity(),Y},"/tmp/test");
     #else
 	system("pause");
 	#endif

@@ -67,7 +67,9 @@ public:
 	/// true if each measurement has exactly same cluster_names
 	bool check_cluster_names();
 	bool check_cluster_names(measurement_group_t* measurement_group);
+	/// all clusternames of references included in all measurements within this group
 	set<string> reference_matrix_cluster_names();
+	/// all isotopes of references included in all measurements within this group
 	set<isotope_t> reference_matrix_isotopes();
 	/// cluster_name to the belonging isotope or element
 	/// ATTENTION! "28Si 11B" and "30Si 11B" can not be distinguished! this function is bijective: isotope <=> cluster

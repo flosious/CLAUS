@@ -68,7 +68,20 @@ quantity_t cluster_t::sputter_rate()
 	{
 		measurement->crater.sputter_rate_p = measurement->measurement_group->SRs(measurement->sample_p->matrix).mean();
 	}
-	
+	/*just single element matrices in MG? --> SRs should be the same*/
+	else if (measurement->measurement_group->reference_matrix_isotopes().size()==1)
+	{
+		quantity_t SR;
+		for (auto& M:measurement->measurement_group->measurements)
+		{
+			if (M->crater.sputter_rate().is_set())
+			{
+				if (SR.is_set()) SR = SR.add_to_data(M->crater.sputter_rate());
+				else SR = M->crater.sputter_rate();
+			}
+		}
+		measurement->crater.sputter_rate_p = SR.mean();
+	}
 	if (measurement->crater.sputter_rate_p.is_set())calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + measurement->crater.sputter_rate_p.to_str());
 	measurement->crater.sputter_rate_p.unit="nm/s";
 	measurement->crater.sputter_rate_p.name="sputter_rate";
@@ -221,7 +234,6 @@ quantity_t cluster_t::concentration()
 // 	else if (measurement->load_from_database() && is_reference() && reference_matrix_isotope().is_set() && intensity().is_set())
 	else if (measurement->load_from_database() && is_reference() && intensity().is_set())
 	{
-		
 		if (reference_matrix_isotope().is_set())
 			concentration_p = measurement->sample_p->matrix.relative_concentration(reference_matrix_isotope())*intensity()/(intensity().trimmed_mean());
 		else 
@@ -315,22 +327,26 @@ quantity_t cluster_t::RSF()
 		if (RSF_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + RSF_p.to_str());
 		return RSF_p;
 	}
-
-	// look in other measurements within this group for the RSF of this cluster
-	RSF_p = measurement->measurement_group->RSFs(*this).mean();
-// 	for (auto& M:measurement->measurement_group->measurements)
-// 	{
-// 		if (M==measurement) continue;
-// 		if (M->sample_p->matrix != measurement->sample_p->matrix) continue;
-// 		for (auto& C:M->clusters)
-// 		{
-// 			if (C.second.name()!=name()) continue;
-// 			if (!C.second.RSF().is_set()) continue;
-// 			if (RSF_p.is_set()) RSF_p = RSF_p.add_to_data(C.second.RSF());
-// 			else RSF_p = C.second.RSF();
-// 			break;
-// 		}
-// 	}
+	
+	// look in other measurements within this group for the RSF of this cluster (and matrix)
+	else if (measurement->measurement_group->RSFs(*this).is_set())
+		RSF_p = measurement->measurement_group->RSFs(*this).mean();
+	
+	/*just single element matrices in MG? --> RSFs should be the same*/
+	else if (measurement->measurement_group->reference_matrix_isotopes().size()==1)
+	{
+		quantity_t RSFs;
+		for (auto& M:measurement->measurement_group->measurements)
+		{
+			if (M->clusters.find(name())==M->clusters.end()) continue;
+			if (M->clusters[name()].RSF().is_set())
+			{
+				if (RSFs.is_set()) RSFs = RSFs.add_to_data(M->clusters[name()].RSF());
+				else RSFs = M->clusters[name()].RSF();
+			}
+		}
+		RSF_p = RSFs.mean();
+	}
 	
 	if (RSF_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + RSF_p.to_str());
 	return RSF_p;

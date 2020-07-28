@@ -147,19 +147,44 @@ quantity_t crater_t::sputter_rate()
 		/*will automatically populate sputter_rate_p on success*/
 		if (it->second.sputter_rate().is_set()) return sputter_rate_p;
 	}
-	/*look in other measurements/samples within this measurement_group with exactly the same matrix*/
+// 	/*look in other measurements/samples within this measurement_group with exactly the same matrix*/
 	if (clusters->size()==0) return quantity_t();
-	for (auto& M:clusters->begin()->second.measurement->measurement_group->measurements)
+// 	for (auto& M:clusters->begin()->second.measurement->measurement_group->measurements)
+// 	{
+// 		if (M == clusters->begin()->second.measurement) continue;
+// 		M->load_from_database();
+// 		if (M->sample_p->matrix == clusters->begin()->second.measurement->sample_p->matrix && M->crater.sputter_rate().is_set())
+// 		{
+// 			if (!sputter_rate_p.is_set()) sputter_rate_p = M->crater.sputter_rate();
+// 			else sputter_rate_p = sputter_rate_p.add_to_data(M->crater.sputter_rate());
+// 		}
+// 	}
+	
+	/*if the sample matrix is known, check if there is another measurement in this group with a known SR for this matrix*/
+	if (clusters->begin()->second.measurement->measurement_group->SRs(clusters->begin()->second.measurement->sample_p->matrix).is_set())
 	{
-		if (M == clusters->begin()->second.measurement) continue;
-		M->load_from_database();
-		if (M->sample_p->matrix == clusters->begin()->second.measurement->sample_p->matrix && M->crater.sputter_rate().is_set())
-		{
-			if (!sputter_rate_p.is_set()) sputter_rate_p = M->crater.sputter_rate();
-			else sputter_rate_p = sputter_rate_p.add_to_data(M->crater.sputter_rate());
-		}
+		calc_history.push_back(clusters->begin()->second.measurement->filename_p->filename_with_path()+"\t"+"crater"+"\t" + "measurement->measurement_group->SRs(measurement->sample_p->matrix).is_set()");
+		clusters->begin()->second.measurement->crater.sputter_rate_p = clusters->begin()->second.measurement->measurement_group->SRs(clusters->begin()->second.measurement->sample_p->matrix).mean();
 	}
-	sputter_rate_p = sputter_rate_p.mean();
+	
+	/*just single element matrices in MG? --> SRs should be the same*/
+	else if (clusters->begin()->second.measurement->measurement_group->reference_matrix_isotopes().size()==1)
+	{
+		quantity_t SR;
+		for (auto& M:clusters->begin()->second.measurement->measurement_group->measurements)
+		{
+			if (M==clusters->begin()->second.measurement) continue;
+// 			cout << "IN3\n";
+			if (M->crater.sputter_rate().is_set())
+			{
+// 				cout << "IN4\n";
+				if (SR.is_set()) SR = SR.add_to_data(M->crater.sputter_rate());
+				else SR = M->crater.sputter_rate();
+			}
+		}
+		calc_history.push_back(clusters->begin()->second.measurement->filename_p->filename_with_path()+"\t"+"crater"+"\t" + "sputter_rate: clusters->begin()->second.measurement->measurement_group->reference_matrix_isotopes().size()==1");
+		clusters->begin()->second.measurement->crater.sputter_rate_p = SR.mean();
+	}
 	return sputter_rate_p;
 }
 

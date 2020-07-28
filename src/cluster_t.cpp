@@ -54,35 +54,43 @@ quantity_t cluster_t::sputter_rate()
 	
 	if (total_sputter_time().is_set() && total_sputter_depth().is_set())
 	{
+		calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + "total_sputter_time().is_set() && total_sputter_depth().is_set()");
 		measurement->crater.sputter_rate_p = total_sputter_depth() / (total_sputter_time());
 	}
 	else if (depth_at_maximum_concentration().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_time().is_set())
 	{
+		cout << measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + "depth_at_maximum_concentration().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_time().is_set()" << endl;
+		calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + "depth_at_maximum_concentration().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_time().is_set()");
 		measurement->crater.sputter_rate_p=depth_at_maximum_concentration() / (equilibrium().intensity().polyfit().max_at_x(equilibrium().sputter_time() ));
 	}
 	else if (depth_at_maximum_concentration().is_set() && equilibrium().concentration().is_set() && equilibrium().sputter_time().is_set())
 	{
+		calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + "depth_at_maximum_concentration().is_set() && equilibrium().concentration().is_set() && equilibrium().sputter_time().is_set()");
 		measurement->crater.sputter_rate_p=depth_at_maximum_concentration() / (equilibrium().concentration().polyfit().max_at_x(equilibrium().sputter_time() ));
 	}
-	else if (measurement->measurement_group->SRs(measurement->sample_p->matrix).is_set())
-	{
-		measurement->crater.sputter_rate_p = measurement->measurement_group->SRs(measurement->sample_p->matrix).mean();
-	}
-	/*just single element matrices in MG? --> SRs should be the same*/
-	else if (measurement->measurement_group->reference_matrix_isotopes().size()==1)
-	{
-		quantity_t SR;
-		for (auto& M:measurement->measurement_group->measurements)
-		{
-			if (M->crater.sputter_rate().is_set())
-			{
-				if (SR.is_set()) SR = SR.add_to_data(M->crater.sputter_rate());
-				else SR = M->crater.sputter_rate();
-			}
-		}
-		measurement->crater.sputter_rate_p = SR.mean();
-	}
-	if (measurement->crater.sputter_rate_p.is_set())calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + measurement->crater.sputter_rate_p.to_str());
+// 	else if (measurement->measurement_group->SRs(measurement->sample_p->matrix).is_set())
+// 	{
+// 		calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + "measurement->measurement_group->SRs(measurement->sample_p->matrix).is_set()");
+// 		measurement->crater.sputter_rate_p = measurement->measurement_group->SRs(measurement->sample_p->matrix).mean();
+// 	}
+// 	/*just single element matrices in MG? --> SRs should be the same*/
+// 	else if (measurement->measurement_group->reference_matrix_isotopes().size()==1)
+// 	{
+// 		quantity_t SR;
+// 		for (auto& M:measurement->measurement_group->measurements)
+// 		{
+// 			if (M==measurement) continue;
+// 			cout << "IN3\n";
+// 			if (M->crater.sputter_rate().is_set())
+// 			{
+// 				cout << "IN4\n";
+// 				if (SR.is_set()) SR = SR.add_to_data(M->crater.sputter_rate());
+// 				else SR = M->crater.sputter_rate();
+// 			}
+// 		}
+// 		measurement->crater.sputter_rate_p = SR.mean();
+// 	}
+	if (measurement->crater.sputter_rate_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + measurement->crater.sputter_rate_p.to_str());
 	measurement->crater.sputter_rate_p.unit="nm/s";
 	measurement->crater.sputter_rate_p.name="sputter_rate";
 	return measurement->crater.sputter_rate_p;

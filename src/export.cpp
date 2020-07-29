@@ -151,7 +151,7 @@ std::__cxx11::string export2_t::lot_split()
 std::__cxx11::string export2_t::wafer()
 {
 	if (measurement->filename_p->wafer>9) return "w"+to_string(measurement->filename_p->wafer);
-	if (measurement->filename_p->wafer>-1) return "w0"+to_string(measurement->filename_p->wafer);
+	if (measurement->filename_p->wafer>0) return "w0"+to_string(measurement->filename_p->wafer);
 	return WAFER_DEFAULT;
 }
 

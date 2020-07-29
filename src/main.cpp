@@ -1,6 +1,6 @@
 /* 
  * 	CLever AUtomated Scientist
- * 	Version 2020-06-21_7	ALPHA
+ * 	Version 2020-07-29_8	BETA
  * 	Florian Bärwolf 2017,2018,2019,2020
  *	
  * 

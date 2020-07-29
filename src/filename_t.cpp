@@ -174,7 +174,8 @@ bool filename_t::parse_lot(string filename_part)
 bool filename_t::parse_wafer(string filename_part)
 {
 	smatch match;
-	regex reg ("^[wW]?([0-9]{1,2})$"); 
+// 	regex reg ("^[wW]?([0-9]{1,2})$"); 
+	regex reg ("^[wW]([0-9]{1,2})$"); 
 	if (regex_search(filename_part,match,reg)) 
 	{
 		wafer = tools::str::str_to_int(match[1]);

@@ -286,7 +286,6 @@ bool measurement_t::operator==(const measurement_t& measurement)
 	/*return id.is_same_measurement(measurement->id)*/;
 	
 // 	if (filename_p->filename_without_crater_depths()==measurement.filename_p->filename_without_crater_depths()) return true;
-	
 	if (conf.measurement_definition_lot && filename_p->lot!=measurement.filename_p->lot) return false;
 	if (conf.measurement_definition_olcdbid && filename_p->olcdb!=measurement.filename_p->olcdb) return false;
 	if (conf.measurement_definition_lot_split && filename_p->lot_split!=measurement.filename_p->lot_split) return false;
@@ -296,21 +295,16 @@ bool measurement_t::operator==(const measurement_t& measurement)
 	if (conf.measurement_definition_chip && filename_p->chip_y!=measurement.filename_p->chip_y) return false;
 	if (conf.measurement_definition_groupid && filename_p->group!=measurement.filename_p->group) return false;
 	if (conf.measurement_definition_repetition && filename_p->repetition!=measurement.filename_p->repetition) return false;
-	
 	if (conf.measurement_definition_sputter_element && filename_p->sputter_element != measurement.filename_p->sputter_element) return false;
 	if (conf.measurement_definition_sputter_energy && filename_p->sputter_energy != measurement.filename_p->sputter_energy) return false;
 	if (conf.measurement_definition_polarity && filename_p->polarity != measurement.filename_p->polarity) return false;
-	
-	if ((filename_p->lot=="" && measurement.filename_p->lot=="") || (filename_p->wafer==-1 && measurement.filename_p->wafer==-1) )
-	{
-// 		int dist = tools::str::levenshtein_distance(filename_p->filename_without_crater_depths(), measurement.filename_p->filename_without_crater_depths());
-// 		if (dist>1) return false;
-// 		if (filename_p->filename_without_crater_depths() == measurement.filename_p->filename_without_crater_depths()) return true;
-		if ((filename_p->not_parseable_filename_parts).size() != (measurement.filename_p->not_parseable_filename_parts).size()) return false;
-		for (int i=0;i<filename_p->not_parseable_filename_parts.size();i++)
-			if (filename_p->not_parseable_filename_parts[i] != measurement.filename_p->not_parseable_filename_parts[i]) return false;
-			
-	}
+// 	if ((filename_p->lot=="" && measurement.filename_p->lot=="") || (filename_p->wafer==-1 && measurement.filename_p->wafer==-1) )
+// 	{
+// 		if ((filename_p->not_parseable_filename_parts).size() != (measurement.filename_p->not_parseable_filename_parts).size()) return false;
+// 		for (int i=0;i<filename_p->not_parseable_filename_parts.size();i++)
+// 			if (filename_p->not_parseable_filename_parts[i] != measurement.filename_p->not_parseable_filename_parts[i]) return false;
+// 			
+// 	}
 	
 	return true;
 }

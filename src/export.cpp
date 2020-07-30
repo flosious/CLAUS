@@ -479,8 +479,8 @@ string origin_t::suffix()
 		if (measurement->filename_p->not_parseable_filename_parts.size()==0) suffix = "_"+measurement->filename_p->filename_without_crater_depths();
 		else suffix = "_"+tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
 	}
-	else if (measurement->filename_p->not_parseable_filename_parts.size()!=0 && (lot()==LOT_DEFAULT || wafer()==WAFER_DEFAULT)) 
-		suffix += "_"+tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
+// 	else if (measurement->filename_p->not_parseable_filename_parts.size()!=0 && (lot()==LOT_DEFAULT || wafer()==WAFER_DEFAULT)) 
+// 		suffix += "_"+tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
 	if (repetition()!=repetition_DEFAULT) suffix += "_" + repetition();
 	
 // 	if ((lot()==LOT_DEFAULT && wafer()==WAFER_DEFAULT)) 

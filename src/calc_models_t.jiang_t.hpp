@@ -33,7 +33,7 @@ class calc_models_t::jiang_t
 // 		friend class origin_t;
 private:
 	
-	measurement_group_t measurement_group_priv;
+	measurement_group_t* measurement_group_priv;
 	
 	bool error_p=true;
 	

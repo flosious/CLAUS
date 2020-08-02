@@ -116,7 +116,9 @@ std::__cxx11::string measurement_t::to_str(std::__cxx11::string prefix)
 	if (clusters.begin()->second.reference_intensity().is_set())
 		ss  <<std::scientific  << prefix <<"\t" << clusters.begin()->second.reference_intensity().to_str() << endl;
 	for (auto& C:clusters)
+	{
 		ss << C.second.to_str(prefix+"\t");
+	}
 	ss << prefix << "}" << endl;
 	return ss.str();
 }

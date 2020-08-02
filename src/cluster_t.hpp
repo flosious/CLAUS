@@ -49,6 +49,9 @@ class cluster_t
 	friend class calc_models_t;
 // 	friend class calc_models_t::jiang_t;
 // 	friend class measurement_t;
+	
+	/*just testing*/
+	friend class origin_t;
 private:
 	
 	bool quantities_reduced_by_equilibrium_starting_pos=false;

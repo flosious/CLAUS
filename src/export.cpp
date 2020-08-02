@@ -727,7 +727,6 @@ vector<origin_t::column_t> origin_t::format_measurement_cluster_columns_from_con
 			for (auto& cluster : measurement->clusters)
 // 				if (cluster.second.equilibrium(false).dose().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.equilibrium(false).dose(),"_"+suffix()));
 				if (cluster.second.dose().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.dose(),"_"+suffix()));
-		
 	}
 	return columns;
 }
@@ -779,7 +778,7 @@ vector<origin_t::column_t> origin_t::format_settings_mass_calibration(measuremen
 
 
 
-void origin_t::export_settings_mass_calibration_to_file(measurement_group_t MG_p)
+void origin_t::export_settings_mass_calibration_to_file(measurement_group_t& MG_p)
 {
 	vector<column_t> columns = format_settings_mass_calibration(MG_p);
 	if (columns.size()==0) return;
@@ -794,11 +793,13 @@ void origin_t::export_settings_mass_calibration_to_file(measurement_group_t MG_p
 }
 
 
-void origin_t::export_to_files(measurement_group_t MG_p)
+void origin_t::export_to_files(measurement_group_t& MG_p)
 {
 // 	set<string> root_directories;
 	for (auto& measurement: MG_p.measurements)
 	{
+// 		for (auto& M:MG.measurements)
+		
 		cout << "\ttrying to export: " << measurement->filename_p->filename_without_crater_depths() << " ...";
 		origin_t origin (measurement);
 		if (origin.write_to_file(origin.format_measurement_cluster_columns(),origin.root_directory(conf.export_location),origin.filename(conf.export_filename)))

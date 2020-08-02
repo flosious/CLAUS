@@ -36,8 +36,9 @@ processor::processor(vector<string> arg_list)
 			"This is free software, and you are welcome to redistribute it\n" \
 			"under certain conditions; See GPLv3\n\n";
 	#endif
-	cout << intro;
-	
+	cout << intro << endl;
+	cout << "Version 2020-08-02_9	BETA" << endl;
+	cout << "see https://github.com/flosious" << endl;
 	cout << "use the same clusters in each measurement in one common measurement group" << endl;
 	cout << "cluster names must be unique for each isotope ((e.g. just \"11B 28Si\") for \"11B\") (bijective transformation)" << endl;
 	
@@ -76,11 +77,12 @@ processor::processor(vector<string> arg_list)
 		if (conf.use_jiang && jiang.calc())
 		{
 			cout << "SUCCESS!" <<endl;
-// 			cout << jiang.measurement_group().to_str() << endl;
 			
-			origin_t::export_to_files(jiang.measurement_group());
+// 			origin_t::export_to_files(jiang.measurement_group());
+			origin_t::export_to_files(MG);
 			origin_t::export_jiang_parameters_to_file(jiang);
-			export2_t::export_contents_to_file(jiang.measurement_group().to_str(),MG.name()+"_calculation_results.txt",jiang.measurement_group(),conf.calc_location);
+// 			export2_t::export_contents_to_file(jiang.measurement_group().to_str(),MG.name()+"_calculation_results.txt",jiang.measurement_group(),conf.calc_location);
+			export2_t::export_contents_to_file(MG.to_str(),MG.name()+"_calculation_results.txt",MG,conf.calc_location);
 		}
 		else
 		{

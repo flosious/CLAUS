@@ -29,12 +29,12 @@ processor::processor(vector<string> arg_list)
 	intro = "\n\nCLAUS Copyright (C) 2020  Florian Bärwolf\n" \
 			"This program comes with ABSOLUTELY NO WARRANTY;\n" \
 			"This is free software, and you are welcome to redistribute it\n" \
-			"under certain conditions; See GPLv3\n\n";
+			"under certain conditions; See GPLv3\n";
 	#else
 	intro = "\n\nCLAUS Copyright (C) 2020  Florian Baerwolf\n" \
 			"This program comes with ABSOLUTELY NO WARRANTY;\n" \
 			"This is free software, and you are welcome to redistribute it\n" \
-			"under certain conditions; See GPLv3\n\n";
+			"under certain conditions; See GPLv3\n";
 	#endif
 	cout << intro << endl;
 	cout << "Version 2020-08-02_9	BETA" << endl;
@@ -64,8 +64,6 @@ processor::processor(vector<string> arg_list)
 	}
 	/// measurement_groups
 	measurement_groups = measurement_group_t::measurement_groups(&measurements);
-	/// managing calculation
-// 	calc_manager_t calc_manager(measurement_groups);
 
 	/* shake it baby! */
 	for (auto& MG:measurement_groups)
@@ -78,23 +76,33 @@ processor::processor(vector<string> arg_list)
 		{
 			cout << "SUCCESS!" <<endl;
 			
-// 			origin_t::export_to_files(jiang.measurement_group());
-			origin_t::export_to_files(MG);
+			cout << "\ttrying to export: jiang parameters" << endl;
 			origin_t::export_jiang_parameters_to_file(jiang);
-// 			export2_t::export_contents_to_file(jiang.measurement_group().to_str(),MG.name()+"_calculation_results.txt",jiang.measurement_group(),conf.calc_location);
-			export2_t::export_contents_to_file(MG.to_str(),MG.name()+"_calculation_results.txt",MG,conf.calc_location);
 		}
 		else
 		{
 			if (conf.use_jiang)  cout << "failed" << endl;
-// 			cout << MG.to_str() << endl;
 			
-			origin_t::export_to_files(MG);
-			origin_t::export_MG_parameters_to_file_V2(MG);
+			if (conf.export_MG_parameters)
+			{
+				cout << "\ttrying to export: MG parameters" << endl;
+				origin_t::export_MG_parameters_to_file_V2(MG);
+			}
+		}
+		
+		origin_t::export_to_files(MG);
+		
+		if (conf.export_calc_results)
+		{
+			cout << "\ttrying to export: calculation_results (this could take a while -> calculating everything)" << endl;
 			export2_t::export_contents_to_file(MG.to_str(),MG.name()+"_calculation_results.txt",MG,conf.calc_location);
 		}
-		export2_t::export_contents_to_file(calc_history,MG.name()+"_detailed_calculation_history.txt",MG,conf.calc_location);
-// 		origin_t::export_settings_mass_calibration_to_file(MG);
+		
+		if (conf.export_calc_history)
+		{
+			cout << "\ttrying to export: detailed_calculation_history" << endl;
+			export2_t::export_contents_to_file(calc_history,MG.name()+"_detailed_calculation_history.txt",MG,conf.calc_location);
+		}
 		cout << "}" << endl;
 	}
 	

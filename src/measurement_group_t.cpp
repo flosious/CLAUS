@@ -337,7 +337,7 @@ std::__cxx11::string measurement_group_t::name()
 		if (settings_p.sputter_energy().is_set()) name_p << to_string(settings_p.sputter_energy().data[0])+settings_p.sputter_energy().unit;
 		if (settings_p.sputter_element()!="") name_p << settings_p.sputter_element();
 		if (settings_p.polarity()!="") name_p << settings_p.polarity();
-		name_p << "_";
+		if (settings_p.sputter_energy().is_set() || settings_p.sputter_element()!="" || settings_p.polarity()!="") name_p << "_";
 	}
 	if (conf.measurement_group_definition_tool)  name_p  << tool_name_p << "_";
 	string result = name_p.str();

@@ -132,11 +132,12 @@ public:
 	/*OPERATORS*/
 	quantity_t operator + (const quantity_t& quantity);
 	quantity_t operator + (const double summand);
-	quantity_t operator - (quantity_t& quantity);
+	quantity_t operator - (const quantity_t& quantity);
+	
 	quantity_t operator * (const quantity_t& quantity_p);
-	quantity_t operator/(const quantity_t& quantity_p);
 	quantity_t operator * (const double factor);
 	quantity_t operator/(const double divisor);
+	quantity_t operator/(const quantity_t& quantity_p);
 	
 	
 	bool operator == (const quantity_t& quantity);

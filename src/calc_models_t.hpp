@@ -35,12 +35,13 @@ using namespace std;
 class calc_models_t
 {
 public:
-	class single_element_matrix_t;
-	/// jiangs protocol 
+	/*is already within cluster_t*/
+// 	class single_element_matrix_t;
+	/// jiangs protocol 0 - 30at% 
 	class jiang_t;
-	/// jiangs protocol for 2 matrix elements for all possible mixtures
+	/// jiangs protocol for 2 matrix elements for all possible mixtures 0 - 100 at%
 	class jiang_full_t;
-	/// fully relative model
+	/// fully relative model 0 - 100 at%
 	class fully_relative_t;
 };
 

@@ -55,7 +55,7 @@ public:
     vector<string> files;
     vector<string> files_loaded;
 	vector<string> pse_file_locations;
-	bool print_errors = false;
+	bool print_errors = 								false;
 	vector<string> export_column_names;
 	
     /*FUNCTIONS*/   
@@ -108,15 +108,15 @@ public:
     ///number of processor threads
     int threads_max=4;
 //     string measurement_tool;
-	bool input_files_are_one_measurement_group=false;
+	bool input_files_are_one_measurement_group=			false;
     // scan all filenames for wildcards and apply them (useful when using windows, that means shell not available)
-	bool use_wildcards_in_filenames = false;
+	bool use_wildcards_in_filenames = 					false;
     /// scan all files in the directory of each measurement files
-    bool use_directory_files_list = false;
+    bool use_directory_files_list = 					false;
 	/// if true, programm will try to parse the file regardless of file ending, e.g. ".txt"
-    bool ignore_file_type_endings = false;
+    bool ignore_file_type_endings = 					false;
 	/// filenames (or parts of it) to ignore
-	bool use_jiang=true;
+	bool use_jiang=										true;
     vector<string> ignore_filename_substrings;
 	
     /*formatting*/
@@ -149,35 +149,38 @@ public:
     string export_location="";
 	
 	/*definitions*/
-    bool measurement_group_definition_olcdbid=true;
-	bool measurement_group_definition_groupid=true;
-	bool measurement_group_definition_settings=true;
-	bool measurement_group_definition_tool=true;
+    bool measurement_group_definition_olcdbid=			true;
+	bool measurement_group_definition_groupid=			true;
+	bool measurement_group_definition_settings=			true;
+	bool measurement_group_definition_tool=				true;
 	
-	bool measurement_group_definition_sputter_energy=true;
-	bool measurement_group_definition_sputter_element=true;
-	bool measurement_group_definition_polarity=true;
+	bool measurement_group_definition_sputter_energy=	true;
+	bool measurement_group_definition_sputter_element=	true;
+	bool measurement_group_definition_polarity=			true;
 	
-	bool measurement_definition_olcdbid=true;
-	bool measurement_definition_lot=true;
-	bool measurement_definition_lot_split=false;
-	bool measurement_definition_wafer=true;
-	bool measurement_definition_monitor=true;
-	bool measurement_definition_chip=true;
-	bool measurement_definition_groupid=true;
-	bool measurement_definition_repetition=true;
+	bool measurement_definition_olcdbid=				true;
+	bool measurement_definition_lot=					true;
+	bool measurement_definition_lot_split=				false;
+	bool measurement_definition_wafer=					true;
+	bool measurement_definition_monitor=				true;
+	bool measurement_definition_chip=					true;
+	bool measurement_definition_groupid=				true;
+	bool measurement_definition_repetition=				true;
 	
-	bool measurement_definition_sputter_energy=true;
-	bool measurement_definition_sputter_element=true;
-	bool measurement_definition_polarity=true;
+	bool measurement_definition_sputter_energy=			true;
+	bool measurement_definition_sputter_element=		true;
+	bool measurement_definition_polarity=				true;
 	
 	// könnte man als schnittstelle für eine Skriptsprache in der config nehmen: "median(concentration) + 
-	bool export_type_sputter_time	=false;
-	bool export_type_sputter_rate	=false;
-	bool export_type_sputter_depth	=true;
-	bool export_type_intensity		=false;
-	bool export_type_RSF			=false;
-	bool export_type_concentration	=true;
+	bool export_type_sputter_time	=					false;
+	bool export_type_sputter_rate	=					false;
+	bool export_type_sputter_depth	=					true;
+	bool export_type_intensity		=					false;
+	bool export_type_RSF			=					false;
+	bool export_type_concentration	=					true;
+	bool export_calc_history = 							true;
+	bool export_calc_results = 							true;
+	bool export_MG_parameters = 						true;
     
     /*calculation*/
     ///not used at the moment; these isotopes/cluster (or any combination of them) describe the matrix

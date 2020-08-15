@@ -42,9 +42,23 @@ quantity_t crater_t::total_sputter_depths()
 	if (total_sputter_depths_from_linescans().is_set()) return total_sputter_depths_from_linescans();
 	if (sputter_rate().is_set() && total_sputter_time().is_set())
 	{
-		quantity_t tsd =  total_sputter_time()*sputter_rate();
-		tsd.data[0] = tsd.data.back();
-		tsd.data.resize(1);
+		quantity_t tsd;
+		if (sputter_rate().data.size()==1)
+		{
+			tsd =  total_sputter_time()*sputter_rate();
+			calc_history.push_back(clusters->begin()->second.measurement->filename_p->filename_with_path()+"\t"+"crater"+"\t" + "total_sputter_depths from sputter_rate skalar");
+		}
+//ATTENTION this has not been tested yet!!!
+		else if (sputter_depth().is_set()) 
+		{
+			tsd = sputter_depth();
+			tsd.data.resize(1);
+			tsd.data[0]=sputter_depth().data.back();
+			if (sputter_time().is_set() && sputter_time().data.back()<total_sputter_time().data.back())
+				tsd=tsd+(total_sputter_time().data.back()-(sputter_time().data.back()))*sputter_rate().data.back();
+// 				total_sputter_time() - sputter_time();
+			calc_history.push_back(clusters->begin()->second.measurement->filename_p->filename_with_path()+"\t"+"crater"+"\t" + "total_sputter_depths from sputter_rate vector");
+		}
 		tsd.name = "total_sputter_depth";
 		return tsd;
 	}
@@ -110,6 +124,12 @@ quantity_t crater_t::sputter_depth(double resolution)
 				data_XY.clear();
 				tools::vec::combine_vecs_to_map(sputter_depth_old,sputter_time_p.data,&data_XY);
 				sputter_time_p.data = statistics::interpolate_data_XY(&data_XY,&sputter_depth_p.data);
+			}
+			if (sputter_current_p.is_set())
+			{
+				data_XY.clear();
+				tools::vec::combine_vecs_to_map(sputter_depth_old,sputter_current_p.data,&data_XY);
+				sputter_current_p.data = statistics::interpolate_data_XY(&data_XY,&sputter_depth_p.data);
 			}
 			for (map<string,cluster_t>::iterator it=clusters->begin();it!=clusters->end();++it)
 			{

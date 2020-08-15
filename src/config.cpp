@@ -82,7 +82,10 @@ int config_t::parse(vector<string> config_lines) {
 		else if (key=="input_files_are_one_measurement_group") { if (value.find("1")!=string::npos) input_files_are_one_measurement_group=true; } // 
 		else if (key=="ignore_file_type_endings") { if (value.find("1")!=string::npos) ignore_file_type_endings=true; }
 		else if (key=="print_errors") { if (value.find("1")!=string::npos) print_errors=true; }
-		else if (key=="use_jiang") { if (value.find("0")!=string::npos) use_jiang=false; }
+		else if (key=="use_jiang" || key=="jaing") { if (value.find("0")!=string::npos) use_jiang=false; }
+		else if (key=="export_calculation_history" || key=="export_calc_history") { if (value.find("0")!=string::npos) export_calc_history=false; }
+		else if (key=="export_calculation_results" || key=="export_calc_results") { if (value.find("0")!=string::npos) export_calc_results=false; }
+		else if (key=="export_MG_parameters") { if (value.find("0")!=string::npos) export_MG_parameters=false; }
         else if (key=="ignore_filename_substrings") save_ignore_filename_substrings(value);
 		else if (key=="ignore_filename") save_ignore_filename_substrings(value);
 		else if (key=="threads") save_threads(value);

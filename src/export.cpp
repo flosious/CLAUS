@@ -18,6 +18,14 @@
 
 #include "export.hpp"
 
+#if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
+    #define PATH_DELIMITER '\\'
+    #define LINE_DELIMITER string("\r\n")
+#elif defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
+    #define PATH_DELIMITER '/'
+    #define LINE_DELIMITER string("\n")
+#endif
+
 
 #define LOT_DEFAULT "lot-unkown"
 #define WAFER_DEFAULT ""
@@ -198,8 +206,14 @@ std::__cxx11::string export2_t::root_directory(string directory)
 		check_placeholders(directory);
 	}
 	else directory = measurement->filename_p->directory();
+	
+	if (directory.back() == PATH_DELIMITER)
+		directory.erase(directory.end()-1);
+	while (directory.back() == '_')
+		directory.erase(directory.end()-1);
+		
 	directory = tools::file::check_directory_string(directory);
-// 	tools::file::mkpath(directory,0750);
+	
 	return directory;
 }
 
@@ -220,9 +234,13 @@ std::__cxx11::string export2_t::filename(string filename, string file_ending)
 		if (lot()==LOT_DEFAULT||wafer()==WAFER_DEFAULT||group()==GROUP_DEFAULT) filename = measurement->filename_p->filename_without_crater_depths();
 		if (measurement->tool_name()!=TOOL_NAME_DEFAULT && measurement->tool_name()!="NULL") filename+="."+measurement->tool_name();
 		filename+=file_ending;
-	}
-	for (int i=0;i<4;i++)
+	}	
+	while (filename.find("__")!=string::npos)
 		tools::str::replace_chars(&filename,"__","_");
+	
+	while (filename.back() == '_')
+		filename.erase(filename.end()-1);
+	
 	return filename;
 }
 

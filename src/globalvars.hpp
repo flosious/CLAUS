@@ -18,6 +18,14 @@
 #ifndef GLOBALVARS_HPP
 #define GLOBALVARS_HPP
 
+// #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
+//     #define PATH_DELIMITER '\\'
+//     #define LINE_DELIMITER string("\r\n")
+// #elif defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
+//     #define PATH_DELIMITER '/'
+//     #define LINE_DELIMITER string("\n")
+// #endif
+
 #include <vector>
 #include "config.hpp"
 #include "database_t.hpp"

@@ -580,9 +580,41 @@ quantity_t quantity_t::operator+(const double summand)
 	return sum;
 }
 
-quantity_t quantity_t::operator-(quantity_t& quantity)
+quantity_t quantity_t::operator-(const quantity_t& quantity)
 {
-	return quantity*(-1)+*this;
+	quantity_t difference;
+	if (!is_set()) return difference;
+	if (dimension != quantity.dimension) return difference;
+	if (unit != quantity.unit) return difference;
+	if (data.size()==0 || quantity.data.size()==0 ) return difference;
+	difference.dimension=dimension;
+	difference.unit = unit;
+	difference.name = name;
+	if (data.size() == quantity.data.size())
+	{
+		difference.data.resize(data.size());
+		for (int i=0; i< data.size()&&i<quantity.data.size();i++)
+		{
+			difference.data[i] = data[i] - quantity.data[i];
+		}
+	} 
+	else if (data.size()==1)
+	{
+		difference.data.resize(quantity.data.size());
+		for (int i=0; i< difference.data.size();i++)
+		{
+			difference.data[i] = data[0] - quantity.data[i];
+		}
+	}
+	else if (quantity.data.size()==1)
+	{
+		difference.data.resize(data.size());
+		for (int i=0; i< difference.data.size();i++)
+		{
+			difference.data[i] = quantity.data[0] - data[i];
+		}
+	}
+	return difference;
 }
 
 

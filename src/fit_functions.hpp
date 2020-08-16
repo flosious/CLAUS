@@ -41,6 +41,7 @@ public:
 	{
 	private:
 		double chisq_p=-1;
+		double chisq0_p=-1;
 		bool fitted_p=false;
 		static void callback(const size_t iter, void *params, const gsl_multifit_nlinear_workspace *w);
 // 		static int function_1st_derivative(const gsl_vector * x, void *data, gsl_matrix * J);
@@ -61,10 +62,11 @@ public:
 		/// y(x) values
 		vector<double> fitted_y_data(vector<double> x={});
 		/// calculation of fit parameters
-		bool fit(map<double,double> data_XY);
+		bool fit(map<double, double> data_XY, double y0_s=NAN, double xc_s=NAN, double m_s=NAN, double A_s=NAN, double w1_s=NAN, double w2_s=NAN, double w3_s=NAN);
 		bool fitted();
 		void print_parameters();
 		double chisq();
+		double chisq0();
 	};
 	
 	class polynom_t

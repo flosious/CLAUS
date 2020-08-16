@@ -54,8 +54,12 @@ quantity_t crater_t::total_sputter_depths()
 			tsd = sputter_depth();
 			tsd.data.resize(1);
 			tsd.data[0]=sputter_depth().data.back();
+			// adding skipped points at the end and beginning of sputter_time/depth
 			if (sputter_time().is_set() && sputter_time().data.back()<total_sputter_time().data.back())
-				tsd=tsd+(total_sputter_time().data.back()-(sputter_time().data.back()))*sputter_rate().data.back();
+			{
+				tsd = tsd + (total_sputter_time().data.back()-(sputter_time().data.back()))*sputter_rate().data.back();
+				tsd = tsd + (sputter_time().data.front()*sputter_rate().data.front());
+			}
 // 				total_sputter_time() - sputter_time();
 			calc_history.push_back(clusters->begin()->second.measurement->filename_p->filename_with_path()+"\t"+"crater"+"\t" + "total_sputter_depths from sputter_rate vector");
 		}
@@ -244,8 +248,20 @@ quantity_t linescan_t::fit()
 	tools::vec::combine_vecs_to_map(&xy.data,z.filter_impulse(0,2).data,&data_XY);
 	if (!fitted) 
 	{
-		fitted=asym2sig.fit(data_XY);
-// 		cout << "FITTED\n";
+		double chisq_rel = 1;
+		for (int j=1;j<4;j++)
+		{
+			fit_functions::asym2sig_t asym2sig_p;
+			asym2sig_p.fit(data_XY,NAN,NAN,NAN,NAN,j/4 * (data_XY.end()->first));
+			if (asym2sig_p.chisq()<asym2sig.chisq() || asym2sig.chisq()==-1) asym2sig=asym2sig_p;
+			
+// 			cout << "asym2sig.chisq()\t" << asym2sig.chisq() << endl;
+// 			cout << "asym2sig.chisq0()\t" << asym2sig.chisq0() << endl;
+// 			cout << "asym2sig.chisq()/asym2sig.chisq0()\t" << asym2sig.chisq()/asym2sig.chisq0() << endl;
+			
+			if (asym2sig.fitted() && asym2sig.chisq()/asym2sig.chisq0()<0.05) break;
+		}
+		fitted=asym2sig.fitted();
 	}
 	if (!fitted) return fitted_z_profile;
 	fitted_z_profile.data=asym2sig.fitted_y_data(xy.data);

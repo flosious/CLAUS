@@ -588,14 +588,9 @@ cluster_t cluster_t::equilibrium()
 	/*already in equilibrium*/
 	if (quantities_reduced_by_equilibrium_starting_pos) return *this;
 	cluster_t result=*this;
-// 	print(name());
-// 	intensity_p.to_screen();
-// 	intensity().to_screen();
-// 	return *this;
 	
 	if (equilibrium_starting_pos==-1)
 	{
-// 		int offset = 0;
 		equilibrium_starting_pos=0;
 		vector<double> Y;
 		
@@ -605,27 +600,13 @@ cluster_t cluster_t::equilibrium()
 			Y = concentration().filter_gaussian(5,4).data; 
 		else return result;
 		
-// 		double treshold = statistics::get_quantile_from_Y(Y,0.01);
 		double treshold = statistics::get_mad_from_Y(Y)/2;
 		double median = statistics::get_median_from_Y(Y);
 		set<int> extrema_idx;
-// 		extrema_idx.insert(0);
 		vector<int> maxIdx, minIdx;
-		
-// 		for (int i=0; i<Y.size();i++ )
-// 		{
-// 			if (Y[i]==0)
-// 			{
-// 				Y[i]=1;
-// 				offset = i;
-// 			} 
-// 			else break;
-// 		}
 			
 		if (!statistics::get_extrema_indices(maxIdx,minIdx,Y,treshold))
 		{
-// 			cout << endl << "!statistics::get_extrema_indices(maxIdx,minIdx,Y,statistics::get_mad_from_Y(Y)*2)" << endl;
-// 			cout << name() << " type C1" << endl;
 			if (is_reference()) equilibrium_starting_pos = statistics::get_index_for_next_value_within_treshold(Y,median-treshold/2,median+treshold/2,1);
 // 			else equilibrium_starting_pos = measurement->equilibrium_starting_pos();
 			else equilibrium_starting_pos = 0;
@@ -687,7 +668,7 @@ cluster_t cluster_t::equilibrium()
 					sum+=Y[i];
 				for (int i=equilibrium_starting_pos;i<Y.size();i++)
 					sum_equilibrium+=Y[i];
-				if (sum_equilibrium/sum<0.7)
+				if ((sum_equilibrium-(Y.size()-equilibrium_starting_pos)*Y.back())/(sum-Y.size()*Y.back())<0.7)
 					equilibrium_starting_pos=0;
 // 				cout << name() << " type A or B or F" << endl;
 			}

@@ -37,34 +37,35 @@ void crater_t::to_screen(string prefix)
 
 quantity_t crater_t::total_sputter_depths()
 {
+	if (total_sputter_depths_p.is_set()) return total_sputter_depths_p;
 	/// this prefers manual input over automatically calculated 
 	if (total_sputter_depths_from_filename().is_set()) return total_sputter_depths_from_filename(); // manually
 	if (total_sputter_depths_from_linescans().is_set()) return total_sputter_depths_from_linescans();
 	if (sputter_rate().is_set() && total_sputter_time().is_set())
 	{
-		quantity_t tsd;
+// 		quantity_t tsd;
 		if (sputter_rate().data.size()==1)
 		{
-			tsd =  total_sputter_time()*sputter_rate();
+			total_sputter_depths_p =  total_sputter_time()*sputter_rate();
 			calc_history.push_back(clusters->begin()->second.measurement->filename_p->filename_with_path()+"\t"+"crater"+"\t" + "total_sputter_depths from sputter_rate skalar");
 		}
 //ATTENTION this has not been tested yet!!!
 		else if (sputter_depth().is_set()) 
 		{
-			tsd = sputter_depth();
-			tsd.data.resize(1);
-			tsd.data[0]=sputter_depth().data.back();
+			total_sputter_depths_p = sputter_depth();
+			total_sputter_depths_p.data.resize(1);
+			total_sputter_depths_p.data[0]=sputter_depth().data.back();
 			// adding skipped points at the end and beginning of sputter_time/depth
 			if (sputter_time().is_set() && sputter_time().data.back()<total_sputter_time().data.back())
 			{
-				tsd = tsd + (total_sputter_time().data.back()-(sputter_time().data.back()))*sputter_rate().data.back();
-				tsd = tsd + (sputter_time().data.front()*sputter_rate().data.front());
+				total_sputter_depths_p = total_sputter_depths_p + (total_sputter_time().data.back()-(sputter_time().data.back()))*sputter_rate().data.back();
+				total_sputter_depths_p = total_sputter_depths_p + (sputter_time().data.front()*sputter_rate().data.front());
 			}
 // 				total_sputter_time() - sputter_time();
 			calc_history.push_back(clusters->begin()->second.measurement->filename_p->filename_with_path()+"\t"+"crater"+"\t" + "total_sputter_depths from sputter_rate vector");
 		}
-		tsd.name = "total_sputter_depth";
-		return tsd;
+		total_sputter_depths_p.name = "total_sputter_depth";
+		return total_sputter_depths_p;
 	}
 	return quantity_t();
 }

@@ -117,6 +117,8 @@ public:
     bool ignore_file_type_endings = 					false;
 	/// filenames (or parts of it) to ignore
 	bool use_jiang=										true;
+	
+	bool use_impulse_filter_on_data = true;
     vector<string> ignore_filename_substrings;
 	
     /*formatting*/

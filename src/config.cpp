@@ -108,6 +108,7 @@ int config_t::parse(vector<string> config_lines) {
         else if (key=="file_name_delimiter") file_name_delimiter=value;
         else if (key=="use_directory_files_list") { if (value.find("1")!=string::npos) use_directory_files_list=true; }
         else if (key=="use_wildcards_in_filenames") { if (value.find("1")!=string::npos) use_wildcards_in_filenames=true; }
+        else if (key=="use_impulse_filter_on_data") { if (value.find("0")!=string::npos) use_impulse_filter_on_data=false; }
         else parsed_lines--;
         
     }

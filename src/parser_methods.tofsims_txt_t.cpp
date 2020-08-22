@@ -162,21 +162,21 @@ bool tofsims_txt_t::parse_cluster()
 		cluster.isotopes=parse_isotopes(cluster_name);
 		if (dimension_names[i].find("Intensity")!=string::npos)
 		{
+			cluster.intensity_p.data=data_mat[i];
+			if (conf.use_impulse_filter_on_data)
+				cluster.intensity_p = cluster.intensity_p.filter_impulse(5,4);
 			cluster.intensity_p.name="intensity";
 			cluster.intensity_p.unit="cnt/s";
 			cluster.intensity_p.dimension="amount/time";
-			cluster.intensity_p.data=data_mat[i];
-// 			if (measurement_p.crater.sputter_depth_p.is_set()) cluster_depth_p=&measurement_p.crater.sputter_depth_p;
-// 			if (measurement_p.crater.sputter_time_p.is_set()) cluster.sputter_time_p=&measurement_p.crater.sputter_depth_p;
 		}
 		else
 		{
+			cluster.concentration_p.data=data_mat[i];
+			if (conf.use_impulse_filter_on_data)
+				cluster.concentration_p = cluster.concentration_p.filter_impulse(5,4);
 			cluster.concentration_p.name="concentration";
 			cluster.concentration_p.unit="at/cm^3";
 			cluster.concentration_p.dimension="amount*(length)^(-3)";
-			cluster.concentration_p.data=data_mat[i];
-// 			if (measurement_p.crater.sputter_depth_p.is_set()) cluster.sputter_depth_p=&measurement_p.crater.sputter_depth_p;
-// 			if (measurement_p.crater.sputter_time_p.is_set()) cluster.sputter_time_p=&measurement_p.crater.sputter_time_p;
 		}
 		measurement_p.clusters[cluster.name()]=cluster;
 	}

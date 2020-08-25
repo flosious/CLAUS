@@ -5,9 +5,9 @@
 ////////////   PLOT   ///////////////////
 /////////////////////////////////////////
 
-void plot_t::fast_plot(quantity_t X, quantity_t Y, string outputfile) 
+void plot_t::fast_plot(quantity_t X, quantity_t Y, string outputfile, bool logscale) 
 {
-	bool logscale = false;
+// 	bool logscale = false;
 	Gnuplot g1;
 	if (outputfile!="") g1.savetops(outputfile.c_str());
 	g1.set_style("points");
@@ -18,9 +18,9 @@ void plot_t::fast_plot(quantity_t X, quantity_t Y, string outputfile)
 	g1.plot_xy(X.data ,Y.data, Y.name);
 }
 
-void plot_t::fast_plot(vector<quantity_t> X, vector<quantity_t> Y, string outputfile) 
+void plot_t::fast_plot(vector<quantity_t> X, vector<quantity_t> Y, string outputfile, bool logscale) 
 {
-	bool logscale = true;
+// 	bool logscale = true;
 	Gnuplot g1;
 	if (outputfile!="") g1.savetops(outputfile.c_str());
 	g1.set_style("lines");

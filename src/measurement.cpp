@@ -46,6 +46,33 @@
 // 	return equilibrium_starting_pos_p;
 // }
 
+quantity_t measurement_t::reference_intensity()
+{
+	if (reference_intensity_p.is_set()) return reference_intensity_p;
+	if (reference_clusters().size()==0) return {};
+	
+	reference_intensity_p = reference_clusters()[0]->intensity();
+	for (int i=1;i<reference_clusters().size();i++)
+		reference_intensity_p=reference_intensity_p + reference_clusters()[i]->intensity();
+
+// 	if (equilibrium_starting_pos>0) reference_intensity_p = reduce_quantity_by_equlibrium_starting_pos(reference_intensity_p);
+
+	if (reference_intensity_p.is_set()) 
+	{
+		stringstream refs;
+		for (int i=0;i<reference_clusters().size();i++)
+		{
+			refs << reference_clusters()[i]->name();
+			if (i!=reference_clusters().size()-1)
+				refs << "+";
+		}
+		calc_history.push_back(filename_p->filename_with_path()+"\t"+refs.str()+"\treference_intensity\t" + reference_intensity_p.to_str());
+	}
+
+	reference_intensity_p.name = "reference_intensity";
+	
+	return reference_intensity_p;
+}
 
 int measurement_t::chip_x()
 {
@@ -113,8 +140,8 @@ std::__cxx11::string measurement_t::to_str(std::__cxx11::string prefix)
 		return ss.str();
 	}
 	
-	if (clusters.begin()->second.reference_intensity().is_set())
-		ss  <<std::scientific  << prefix <<"\t" << clusters.begin()->second.reference_intensity().to_str() << endl;
+	if (reference_intensity().is_set())
+		ss  <<std::scientific  << prefix <<"\t" << reference_intensity().to_str() << endl;
 	for (auto& C:clusters)
 	{
 		ss << C.second.to_str(prefix+"\t");

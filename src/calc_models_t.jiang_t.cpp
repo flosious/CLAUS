@@ -74,11 +74,13 @@ bool calc_models_t::jiang_t::calc()
 	if (!CRel_to_Irel_polyfit.fitted()) 
 	{
 		error_messages_p.push_back("calc_models_t::jiang_t::calc( measurement_group_t& measurement_group_p ) : !CRel_to_Irel_polyfit.fitted()");
+		calc_history.push_back("jiang_t\t" + measurement_group_priv->name() +"\tstop IRel vs CRel - failed");
 		return false;
 	}
 	if (!SR_to_Crel_polyfit.fitted()) 
 	{
 		error_messages_p.push_back("calc_models_t::jiang_t::calc( measurement_group_t& measurement_group_p ) : !SR_to_Crel_polyfit.fitted()");
+		calc_history.push_back("jiang_t\t" + measurement_group_priv->name() +"\tstop SR vs CRel - failed");
 		return false;
 	}
 	

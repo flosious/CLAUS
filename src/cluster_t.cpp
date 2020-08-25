@@ -18,7 +18,7 @@
 #include "cluster_t.hpp"
 #include "measurement.hpp"
 #include "measurement_group_t.hpp"
-
+#include "export.hpp"
 
 // vector<string> calc_history;
 
@@ -315,10 +315,11 @@ quantity_t cluster_t::SF()
 
 quantity_t cluster_t::RSF()
 {
+	if (is_reference()) return {};
 	if (RSF_p.is_set()) return RSF_p;
 // 	if (measurement->reference_clusters().size()==1 && measurement->measurement_group->RSFs(name()).is_set()) return measurement->measurement_group->RSFs(name()).mean();
 	if (already_checked_RSF) return {};
-
+	
 	already_checked_RSF=true;
 // 	cout << measurement->filename_p->filename_with_path() << "\t" << name() << endl;
 	
@@ -376,20 +377,30 @@ bool cluster_t::is_reference()
 quantity_t cluster_t::reference_intensity()
 {
 	if (reference_intensity_p.is_set()) return reference_intensity_p;
-// 	reference_intensity_p.data.clear();
-	if (measurement->reference_clusters().size()==0) return {};
+	return measurement->reference_intensity();
+// 	if (measurement->reference_clusters().size()==0) return {};
+// 	
+// 	reference_intensity_p = measurement->reference_clusters()[0]->intensity();
+// 	for (int i=1;i<measurement->reference_clusters().size();i++)
+// 		reference_intensity_p=reference_intensity_p + measurement->reference_clusters()[i]->intensity();
+// 
+// 	if (quantities_reduced_by_equilibrium_starting_pos) reference_intensity_p = reduce_quantity_by_equlibrium_starting_pos(reference_intensity_p);
+// 
+// 	if (reference_intensity_p.is_set()) 
+// 	{
+// 		stringstream refs;
+// 		for (int i=0;i<measurement->reference_clusters().size();i++)
+// 		{
+// 			refs << measurement->reference_clusters()[i]->name();
+// 			if (i!=measurement->reference_clusters().size()-1)
+// 				refs << "+";
+// 		}
+// 		calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+refs.str()+"\treference_intensity\t" + reference_intensity_p.to_str());
+// 	}
+// 
+// 	reference_intensity_p.name = "reference_intensity";
 	
-	reference_intensity_p = measurement->reference_clusters()[0]->intensity();
-	for (int i=1;i<measurement->reference_clusters().size();i++)
-		reference_intensity_p=reference_intensity_p + measurement->reference_clusters()[i]->intensity();
-// 	cout << "reference_intensity_p.data.size()A=" << reference_intensity_p.data.size() << endl;
-	if (quantities_reduced_by_equilibrium_starting_pos) reference_intensity_p = reduce_quantity_by_equlibrium_starting_pos(reference_intensity_p);
-// 	cout << "reference_intensity_p.data.size()B=" << reference_intensity_p.data.size() << endl;
-	if (reference_intensity_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + reference_intensity_p.to_str());
-// 	cout << "reference_intensity_p.data.size()=" << reference_intensity_p.data.size() << endl;
-// 	cout << "equilibrium_starting_pos = " << equilibrium_starting_pos << "\tname=" << name() << endl;
-	reference_intensity_p.name = "reference_intensity";
-	return reference_intensity_p;
+// 	return reference_intensity_p;
 }
 
 
@@ -553,7 +564,7 @@ quantity_t cluster_t::reduce_quantity_by_equlibrium_starting_pos(quantity_t& qua
 
 void cluster_t::reduce_quantities_by_equlibrium_starting_pos(cluster_t& reduces_this)
 {
-	
+	reference_intensity_p = reference_intensity();
 	reduces_this.concentration_p=reduces_this.reduce_quantity_by_equlibrium_starting_pos(concentration_p);
 	reduces_this.intensity_p=reduces_this.reduce_quantity_by_equlibrium_starting_pos(intensity_p);
 	reduces_this.reference_intensity_p=reduces_this.reduce_quantity_by_equlibrium_starting_pos(reference_intensity_p);
@@ -599,7 +610,7 @@ cluster_t cluster_t::equilibrium()
 		else if (concentration().is_set())
 			Y = concentration().filter_gaussian(5,4).data; 
 		else return result;
-		
+				
 		double treshold = statistics::get_mad_from_Y(Y)/2;
 		double median = statistics::get_median_from_Y(Y);
 		set<int> extrema_idx;
@@ -737,6 +748,8 @@ std::__cxx11::string cluster_t::to_str(std::__cxx11::string prefix)
 		if (sputter_depth().is_set())
 			ss <<std::scientific  << prefix << "\tdepth_at_max_intensity: " << equilibrium().intensity().polyfit(17).max_at_x(equilibrium().sputter_depth()).to_str() << endl;
 	}
+	if (equilibrium().reference_intensity().is_set())
+		ss  <<std::scientific  << prefix <<"\t" << equilibrium().reference_intensity().to_str() << endl;
 	ss << prefix << "}" << endl;
 	return ss.str();
 }

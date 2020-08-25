@@ -50,10 +50,9 @@ private:
 	map<string, quantity_t> reference_clusters_concentrations_p;
 	map<string, quantity_t> reference_clusters_intensities_p;
 	vector<string> error_messages_p;
-// 	int equilibrium_starting_pos_p=-1;
-	
-// 	set<isotope_t> isotopes_from_clusters_p;
+	quantity_t reference_intensity_p;
 public:
+	quantity_t reference_intensity();
 // 	vector<string> calc_history();
 	/// all isotopes within this measurement
 	set<isotope_t> isotopes();
@@ -116,7 +115,8 @@ public:
 	string to_str(string prefix="");
 	void to_screen(string prefix="");
 	static void to_screen(vector<measurement_t>* measurements);
-
+	
+	
 };
 
 #endif // MEASUREMENT_T_HPP

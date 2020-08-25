@@ -204,6 +204,7 @@ std::__cxx11::string export2_t::root_directory(string directory)
 	if (directory!="") 
 	{
 		check_placeholders(directory);
+// 		cout << "directory=" << directory << endl;
 	}
 	else directory = measurement->filename_p->directory();
 	

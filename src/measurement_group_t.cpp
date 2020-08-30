@@ -18,6 +18,12 @@
 #include "measurement_group_t.hpp"
 #include "measurement.hpp"
 
+
+bool measurement_group_t::defined_olcdbid=true;
+bool measurement_group_t::defined_groupid=true;
+bool measurement_group_t::defined_settings=true;
+bool measurement_group_t::defined_tool=true;
+
 measurement_group_t::measurement_group_t()
 {
 	
@@ -226,6 +232,13 @@ vector<std::__cxx11::string> measurement_group_t::error_messages()
 	return error_messages_p;
 }
 
+vector<isotope_t> measurement_group_t::reference_matrix_isotopes_vec()
+{
+	set<isotope_t> isotopes_set = reference_matrix_isotopes();
+	vector<isotope_t> isotopes(isotopes_set.begin(),isotopes_set.end());
+	return isotopes;
+}
+
 set<isotope_t> measurement_group_t::reference_matrix_isotopes()
 {
 	if (reference_matrix_isotopes_p.size()>0) return reference_matrix_isotopes_p;
@@ -330,16 +343,16 @@ std::__cxx11::string measurement_group_t::cluster_name_from_isotope(isotope_t is
 std::__cxx11::string measurement_group_t::name()
 {
 	stringstream name_p;
-	if (conf.measurement_group_definition_olcdbid) name_p << olcdb_p << "_";
-	if (conf.measurement_group_definition_groupid) name_p << "g" << group_p << "_";
-	if (conf.measurement_group_definition_settings) 
+	if (defined_olcdbid) name_p << olcdb_p << "_";
+	if (defined_groupid) name_p << "g" << group_p << "_";
+	if (defined_settings) 
 	{
 		if (settings_p.sputter_energy().is_set()) name_p << to_string((int)settings_p.sputter_energy().data[0])+settings_p.sputter_energy().unit;
 		if (settings_p.sputter_element()!="") name_p << settings_p.sputter_element();
 		if (settings_p.polarity()!="") name_p << settings_p.polarity();
 		if (settings_p.sputter_energy().is_set() || settings_p.sputter_element()!="" || settings_p.polarity()!="") name_p << "_";
 	}
-	if (conf.measurement_group_definition_tool)  name_p  << tool_name_p << "_";
+	if (defined_tool)  name_p  << tool_name_p << "_";
 	string result = name_p.str();
 	result.erase(result.begin()+result.size()-1);
 	return result;
@@ -497,10 +510,10 @@ bool measurement_group_t::operator==(measurement_group_t& measurement_group)
 {
 	// only add measurements with exactly same cluster_names into one common group
 // 	if (!check_cluster_names(&measurement_group)) return false;
-	if (conf.measurement_group_definition_tool && tool_name_p!=measurement_group.tool_name_p) return false;
-	if (conf.measurement_group_definition_groupid && group_p != measurement_group.group_p) return false;
-	if (conf.measurement_group_definition_olcdbid && olcdb_p != measurement_group.olcdb_p) return false;
-	if (conf.measurement_group_definition_settings && settings_p != measurement_group.settings_p) return false;
+	if (defined_tool && tool_name_p!=measurement_group.tool_name_p) return false;
+	if (defined_groupid && group_p != measurement_group.group_p) return false;
+	if (defined_olcdbid && olcdb_p != measurement_group.olcdb_p) return false;
+	if (defined_settings && settings_p != measurement_group.settings_p) return false;
 	return true;
 }
 

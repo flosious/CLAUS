@@ -26,25 +26,17 @@
 #define TABLENAME_measurement_statistics "measurement_statistics"
 #define TABLENAME_reference_measurement_isotopes "reference_measurement_isotopes"
 
-// int measurement_t::equilibrium_starting_pos()
-// {
-// 	if (equilibrium_starting_pos_p>-1) return equilibrium_starting_pos_p;
-// 	set<int> esp;
-// 	for (auto& ref_cluster:reference_clusters())
-// 	{
-// 		esp.insert(ref_cluster->equilibrium().equilibrium_starting_pos);
-// 	}
-// 	/*trivials*/
-// 	esp.erase(0);
-// 	esp.erase(1);
-// 	if (esp.size()==0)
-// 	{
-// 		equilibrium_starting_pos_p = 1;
-// 	}
-// 	else 
-// 		equilibrium_starting_pos_p = *esp.begin();
-// 	return equilibrium_starting_pos_p;
-// }
+bool measurement_t::defined_olcdbid				=true;
+bool measurement_t::defined_lot					=true;
+bool measurement_t::defined_lot_split			=false;
+bool measurement_t::defined_wafer				=true;
+bool measurement_t::defined_monitor				=true;
+bool measurement_t::defined_chip				=true;
+bool measurement_t::defined_groupid				=true;
+bool measurement_t::defined_repetition			=true;
+bool measurement_t::defined_polarity			=true;
+bool measurement_t::defined_sputter_element		=true;
+bool measurement_t::defined_sputter_energy		=true;
 
 quantity_t measurement_t::reference_intensity()
 {
@@ -314,26 +306,18 @@ bool measurement_t::operator==(const measurement_t& measurement)
 {
 	/*return id.is_same_measurement(measurement->id)*/;
 	
-// 	if (filename_p->filename_without_crater_depths()==measurement.filename_p->filename_without_crater_depths()) return true;
-	if (conf.measurement_definition_lot && filename_p->lot!=measurement.filename_p->lot) return false;
-	if (conf.measurement_definition_olcdbid && filename_p->olcdb!=measurement.filename_p->olcdb) return false;
-	if (conf.measurement_definition_lot_split && filename_p->lot_split!=measurement.filename_p->lot_split) return false;
-	if (conf.measurement_definition_wafer && filename_p->wafer!=measurement.filename_p->wafer) return false;
-	if (conf.measurement_definition_monitor && filename_p->monitor!=measurement.filename_p->monitor) return false;
-	if (conf.measurement_definition_chip && filename_p->chip_x!=measurement.filename_p->chip_x) return false;
-	if (conf.measurement_definition_chip && filename_p->chip_y!=measurement.filename_p->chip_y) return false;
-	if (conf.measurement_definition_groupid && filename_p->group!=measurement.filename_p->group) return false;
-	if (conf.measurement_definition_repetition && filename_p->repetition!=measurement.filename_p->repetition) return false;
-	if (conf.measurement_definition_sputter_element && filename_p->sputter_element != measurement.filename_p->sputter_element) return false;
-	if (conf.measurement_definition_sputter_energy && filename_p->sputter_energy != measurement.filename_p->sputter_energy) return false;
-	if (conf.measurement_definition_polarity && filename_p->polarity != measurement.filename_p->polarity) return false;
-// 	if ((filename_p->lot=="" && measurement.filename_p->lot=="") || (filename_p->wafer==-1 && measurement.filename_p->wafer==-1) )
-// 	{
-// 		if ((filename_p->not_parseable_filename_parts).size() != (measurement.filename_p->not_parseable_filename_parts).size()) return false;
-// 		for (int i=0;i<filename_p->not_parseable_filename_parts.size();i++)
-// 			if (filename_p->not_parseable_filename_parts[i] != measurement.filename_p->not_parseable_filename_parts[i]) return false;
-// 			
-// 	}
+	if (defined_lot && filename_p->lot!=measurement.filename_p->lot) return false;
+	if (defined_olcdbid && filename_p->olcdb!=measurement.filename_p->olcdb) return false;
+	if (defined_lot_split && filename_p->lot_split!=measurement.filename_p->lot_split) return false;
+	if (defined_wafer && filename_p->wafer!=measurement.filename_p->wafer) return false;
+	if (defined_monitor && filename_p->monitor!=measurement.filename_p->monitor) return false;
+	if (defined_chip && filename_p->chip_x!=measurement.filename_p->chip_x) return false;
+	if (defined_chip && filename_p->chip_y!=measurement.filename_p->chip_y) return false;
+	if (defined_groupid && filename_p->group!=measurement.filename_p->group) return false;
+	if (defined_repetition && filename_p->repetition!=measurement.filename_p->repetition) return false;
+	if (defined_sputter_element && filename_p->sputter_element != measurement.filename_p->sputter_element) return false;
+	if (defined_sputter_energy && filename_p->sputter_energy != measurement.filename_p->sputter_energy) return false;
+	if (defined_polarity && filename_p->polarity != measurement.filename_p->polarity) return false;
 	
 	return true;
 }

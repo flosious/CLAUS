@@ -19,30 +19,27 @@
 #ifndef CONFIG_HPP
 #define CONFIG_HPP
 
+
 #include <vector>
 #include <string>
 #include <iostream>
 #include "tools.hpp"
 #include "print.hpp"
-// #include "globalvars.hpp"
+#include "export.hpp"
+#include "pse.hpp"
+#include "measurement_tools_t.hpp"
+#include "processor.hpp"
+#include "database_t.hpp"
+#include "files_t.hpp"
 
 using namespace std;
 
-class config_t {
-private:
-		/*FRIENDS*/
-//     friend int main( int    argc, char **argv );
-//     friend class processor;
-//     friend class threadp;
-//     friend class measurement_t;
-//     friend class files_t;
-//     friend class fprint;
-// 	friend class pse_t;
-public:
+class config_t 
+{
 
+public:	
 	/*CALCULATION METHOD STUFF*/
-	string standard_reference_intensity_calculation_method = "pbp"; // "median"
-    
+	
     /*DEFAULTS*/
     ///default config file location
     string default_file = "config.conf";
@@ -54,15 +51,10 @@ public:
     ///config file list
     vector<string> files;
     vector<string> files_loaded;
-	vector<string> pse_file_locations;
-	bool print_errors = 								false;
-	vector<string> export_column_names;
 	
     /*FUNCTIONS*/   
     ///parse the lines to config
     int parse(vector<string> config_lines);
-	/// saves locations of possible PSE files
-	void save_pse_file_locations(string value);
     ///loads the actual file to RAM
     int load_file(std::string filename_with_path);
     /*save_functions*/
@@ -71,30 +63,14 @@ public:
 	void save_export_column_names(string value);
     ///sets value to test
     void save_test(string value);
-    ///sets value to threads
-    void save_threads(string value);
-    ///sets value to filename_format
-    void save_filename_format(string value);
-    ///sets value to references_location
-    void save_references_location(string value);
-    ///sets value to plots_location
-    void save_plots_location(string value);
-    ///sets value to results_location
-    void save_results_location(string value);
-    ///sets value to calc_location
-    void save_calc_location(string value);
-    ///sets value to export_location
-    void save_export_location(string value);
-    ///sets value to matrix_isotopes
-    void save_matrix_isotopes(string value);
+
+    
     ///adds entry to replacements
     void save_replacements(vector<string> values);
     ///set types to measurement_file_types
     void save_measurement_file_types(string value);
     ///set the measurement tool (dsims, tofsims, xps,...)
 //     void save_measurement_tool(string value);
-	/// set ignore_filename_substrings
-	void save_ignore_filename_substrings(string value);
 	/// defines a measurement_group (groupid + olcdbid + settings + tool)
 	void save_measurement_group_definition(string value);
 	/// defines a measurement 
@@ -102,24 +78,6 @@ public:
 	/// what should be exported? intensity, concentration, sputter_depth ....
 	void save_export_types(string value);
     /*************/
-    
-    /*PARAMETERs*/
-    /*processor stuff*/
-    ///number of processor threads
-    int threads_max=4;
-//     string measurement_tool;
-	bool input_files_are_one_measurement_group=			false;
-    // scan all filenames for wildcards and apply them (useful when using windows, that means shell not available)
-	bool use_wildcards_in_filenames = 					false;
-    /// scan all files in the directory of each measurement files
-    bool use_directory_files_list = 					false;
-	/// if true, programm will try to parse the file regardless of file ending, e.g. ".txt"
-    bool ignore_file_type_endings = 					false;
-	/// filenames (or parts of it) to ignore
-	bool use_jiang=										true;
-	
-	bool use_impulse_filter_on_data = true;
-    vector<string> ignore_filename_substrings;
 	
     /*formatting*/
     ///filename
@@ -131,66 +89,14 @@ public:
     vector<string> measurement_file_types {".asc",".txt",".asc_rpc"};
     ///data column delimiter
     string data_column_delimiter="\t";
-    ///file name delimiter
-    string file_name_delimiter="_";
+
     ///what to put in output files
 //     vector<string> output_format {"time","depth","intensity","concentration"};
 	
     /*directories*/
-    ///path and name of the database
-    string db_location="database.sqlite3";
-    ///path of reference measurements
-    string references_location="references";
-    ///directory name of plots; no output when empty
-    string plots_location="figures";
-    ///directory name of results; no output when empty
-    string results_location="results";
-    ///directory name of calculation; no output when empty
-    string calc_location="";
+    
     ///directory name of exports; output to measurement directory, when empty
     string export_location="";
-	
-	/*definitions*/
-    bool measurement_group_definition_olcdbid=			true;
-	bool measurement_group_definition_groupid=			true;
-	bool measurement_group_definition_settings=			true;
-	bool measurement_group_definition_tool=				true;
-	
-	bool measurement_group_definition_sputter_energy=	true;
-	bool measurement_group_definition_sputter_element=	true;
-	bool measurement_group_definition_polarity=			true;
-	
-	bool measurement_definition_olcdbid=				true;
-	bool measurement_definition_lot=					true;
-	bool measurement_definition_lot_split=				false;
-	bool measurement_definition_wafer=					true;
-	bool measurement_definition_monitor=				true;
-	bool measurement_definition_chip=					true;
-	bool measurement_definition_groupid=				true;
-	bool measurement_definition_repetition=				true;
-	
-	bool measurement_definition_sputter_energy=			true;
-	bool measurement_definition_sputter_element=		true;
-	bool measurement_definition_polarity=				true;
-	
-	// könnte man als schnittstelle für eine Skriptsprache in der config nehmen: "median(concentration) + 
-	bool export_type_sputter_time	=					false;
-	bool export_type_sputter_rate	=					false;
-	bool export_type_sputter_depth	=					true;
-	bool export_type_intensity		=					false;
-	bool export_type_RSF			=					false;
-	bool export_type_concentration	=					true;
-	bool export_calc_history = 							true;
-	bool export_calc_results = 							true;
-	bool export_MG_parameters = 						true;
-    
-    /*calculation*/
-    ///not used at the moment; these isotopes/cluster (or any combination of them) describe the matrix
-//     vector<string> matrix_isotopes {"70Ge","72Ge","73Ge","74Ge","28Si","29Si","30Si"};
-    
-    double sputter_time_resolution=0;
-	double depth_resolution=0;
-    
 
     ///constructor
     config_t();
@@ -210,5 +116,5 @@ public:
 };
 
 // singleton
-extern config_t conf;
+// extern config_t conf;
 #endif // CONFIG.HPP

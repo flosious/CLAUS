@@ -31,6 +31,7 @@
 /// global variable
 database_t db;
 
+string database_t::file_location="database.sqlite3";
 
 database_t::database_t() 
 { 
@@ -40,7 +41,7 @@ database_t::database_t()
 bool database_t::open() {
     int exit = 0; 
 
-    exit = sqlite3_open(conf.db_location.c_str(), &this->DB);
+    exit = sqlite3_open(file_location.c_str(), &this->DB);
   
     if (exit)      return false;  
 	

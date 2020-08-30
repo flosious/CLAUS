@@ -40,7 +40,7 @@
 #include <iostream>
 #include <map>
 
-#include "config.hpp"
+
 #include "tools.hpp"
 // #include "measurement.hpp"
 #include "files_t.hpp"
@@ -57,15 +57,23 @@
 #include "calc_manager_t.hpp"
 #include "calc_models_t.jiang_t.hpp"
 #include "globalvars.hpp"
+#include "mass_interference_filter_t.hpp"
 //tests//
 
 //
 
 using namespace std;
 
-class processor {
+class processor 
+{
+	friend class config_t;
 private: 
-    
+    static bool print_errors;
+	static bool use_jiang;
+	
+	static bool use_mass_interference_filter;
+	static bool force_RSF_to_foreign_matrix;
+
     ///arguments for executable "./dsims arg1 arg2 ..."
     vector<string> args;
     /// prefilter the filenames and get names of all measurement files;

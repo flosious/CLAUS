@@ -16,14 +16,21 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 #include "processor.hpp"
-
+#include "config.hpp"
 
 // pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER;
 vector<string> calc_history;
 
 
+bool processor::use_jiang=true;
+bool processor::print_errors=false;
+bool processor::use_mass_interference_filter=false;
+bool processor::force_RSF_to_foreign_matrix=false;
+
+
 processor::processor(vector<string> arg_list) 
 {
+	config_t conf;
 	string intro;
 	#ifdef __unix__
 	intro = "\n\nCLAUS Copyright (C) 2020  Florian Bärwolf\n" \
@@ -44,8 +51,8 @@ processor::processor(vector<string> arg_list)
 	
     // save args
     args = arg_list;
-	cout << "input files:" << endl;
-	print(args);
+// 	cout << "input files:" << endl;
+// 	print(args);
     // load configs
     if (conf.load(args)==0) cout << "processor::processor conf.load(args)==0" << endl;
 	// PSE periodic table of elements (isotopes, masses and natural abundance)
@@ -59,7 +66,17 @@ processor::processor(vector<string> arg_list)
 	measurements = measurement_tools.measurements(&filenames,&samples);
 	if (measurements.size()==0) 
 	{
-		cout << "no measurement could be parsed" << endl;
+		cout << "!!!\tno measurement could be parsed\t!!!" << endl;
+		if (print_errors)
+		{
+			print("tools.get_error_messages():");
+			if (measurement_tools.get_error_messages().size()!=0) print(measurement_tools.get_error_messages());
+			else print("\tno errors");
+		}
+		#ifdef __unix__
+		#else
+		system("pause");
+		#endif
 		return;
 	}
 	/// measurement_groups
@@ -71,42 +88,69 @@ processor::processor(vector<string> arg_list)
 		calc_models_t::jiang_t jiang(MG);
 		cout <<  "measurement_group: " << MG.name() << endl;
 		cout << "{" << endl;
-		if (conf.use_jiang) cout << "\ttrying to apply Jiangs protocol...";
-		if (conf.use_jiang && jiang.calc())
+		
+		if (use_jiang)
 		{
-			cout << "SUCCESS!" <<endl;
-			
-			cout << "\ttrying to export: jiang parameters" << endl;
-			origin_t::export_jiang_parameters_to_file(jiang);
+			cout << "\ttrying to apply Jiangs protocol...";
+			if (jiang.calc())
+				cout << "SUCCESS!" <<endl;
+			else
+				cout << "failed" << endl;
 		}
-		else
+		
+		if (force_RSF_to_foreign_matrix)
 		{
-			if (conf.use_jiang)  cout << "failed" << endl;
-			
-			if (conf.export_MG_parameters)
+			cout << endl;
+			cout << "!!!\t*************!ATTENTION!**************" << endl;
+			cout << "!!!\t**enforcing RSFs to foreign matrices**" << endl;
+			cout << "!!!\t**************************************" << endl;
+			cout << endl;
+			for (auto& M:MG.measurements)
 			{
-				cout << "\ttrying to export: MG parameters" << endl;
-				origin_t::export_MG_parameters_to_file_V2(MG);
+				for (auto& C:M->clusters)
+				{
+					if (C.second.is_reference()) continue;
+					if (C.second.RSF().is_set())
+					{
+						for (auto& M2:MG.measurements)
+						{
+							if (M==M2) continue;
+							for (auto& C2:M2->clusters)
+							{
+								if (C.second.name()==C2.second.name() && !C2.second.RSF().is_set())
+								{
+									C2.second.RSF_p = C.second.RSF();
+									C2.second.already_checked_concentration=false;
+									break;
+								}
+							}
+						}
+					}
+				}
 			}
+		}
+		
+		if (use_mass_interference_filter)
+		{
+			cout << "\ttrying to apply: mass interference filters" << endl;
+			for (auto& M:MG.measurements)
+				for (auto& C:M->clusters)
+					mass_interference_filter_t::substract_Ge_from_As(&C.second);
 		}
 		
 		origin_t::export_to_files(MG);
 		
-		if (conf.export_calc_results)
+		if (!jiang.is_error())
 		{
-			cout << "\ttrying to export: calculation_results (this could take a while -> calculating everything)" << endl;
-			export2_t::export_contents_to_file(MG.to_str(),MG.name()+"_calculation_results.txt",MG,conf.calc_location);
+			cout << "\ttrying to export: jiang parameters ...";
+			origin_t::export_jiang_parameters_to_file(jiang);
+			cout << "SUCCESS!" << endl;
 		}
 		
-		if (conf.export_calc_history)
-		{
-			cout << "\ttrying to export: detailed_calculation_history" << endl;
-			export2_t::export_contents_to_file(calc_history,MG.name()+"_detailed_calculation_history.txt",MG,conf.calc_location);
-		}
 		cout << "}" << endl;
 	}
 	
-	if (conf.print_errors)
+	if (print_errors)
 	{
 		print("tools.get_error_messages():");
 		if (measurement_tools.get_error_messages().size()!=0) print(measurement_tools.get_error_messages());
@@ -115,13 +159,6 @@ processor::processor(vector<string> arg_list)
 	
 	
 	#ifdef __unix__
-// 	plot_t::export_to_files(measurement_groups);
-//tests
-// 	map<double,double> tmap;
-// 	tools::vec::combine_vecs_to_map(measurements.begin()->crater.sputter_time().data,measurements.begin()->clusters["11B"].intensity().data,&tmap);
-// 	quantity_t Y;
-// 	Y.data = statistics::interpolate_bspline(tmap);
-// 	plot_t::fast_plot({measurements.begin()->crater.sputter_time(),measurements.begin()->crater.sputter_time()},{measurements.begin()->clusters["11B"].intensity(),Y},"/tmp/test");
     #else
 	system("pause");
 	#endif

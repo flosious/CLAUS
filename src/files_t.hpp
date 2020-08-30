@@ -6,7 +6,6 @@
 #include <map>
 
 #include "tools.hpp"
-#include "config.hpp"
 #include "print.hpp"
 #include <vector>
 #include "globalvars.hpp"
@@ -35,7 +34,12 @@ using namespace std;
 
 class files_t 
 {
+	friend class config_t;
 private:
+	static vector<string> ignore_filename_substrings;
+	static bool use_directory_files_list;
+	static bool use_wildcards_in_filenames;
+	
 	/// from the input args
     vector<string> files_list;
 	/// files that are ignored, defined in config_t

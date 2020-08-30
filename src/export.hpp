@@ -23,7 +23,7 @@
 
 #include "calc_models_t.hpp"
 #include "quantity.hpp"
-#include "config.hpp"
+// #include "config.hpp"
 #include "measurement.hpp"
 #include "measurement_group_t.hpp"
 #include "statistics.hpp"
@@ -35,13 +35,25 @@
 class export2_t
 {
 private:
-	
+	friend class config_t;
 protected:
+	static string data_column_delimiter;
+	static string filename_config;
+	static string directory_config;
+	static vector<string> export_column_names;
+	static map<string, string> replacements;
+	static double depth_resolution;
+	static int smoothing_moving_window_mean_size;
+	static string calc_location;
+	static bool export_calc_history;
+	static bool export_calc_results;
+	static bool export_MG_parameters;
+	
 	measurement_t *measurement;
 	void check_placeholders(string& check_this);
 	static void check_replacements(string& check_this);
-	string filename(string filename=conf.export_filename, string file_ending="_CLAUS.txt");
-	string root_directory(string directory=conf.export_location);
+	string filename(string file_ending="_CLAUS.txt");
+	string root_directory();
 	string olcdb();
 	string lot();
 	string wafer();
@@ -52,6 +64,8 @@ protected:
 	string monitor();
 	string tool_name();
 	string energy();
+	/// prints out not parseable parts as string delimited by "_"
+	string others();
 public:
 	export2_t(measurement_t* measurement_p);
 	static void export_contents_to_file(vector<string> contents, string filename_p, measurement_group_t MG, string sub_directory="");
@@ -61,10 +75,17 @@ public:
 class origin_t : export2_t
 {
 private:
+	friend class config_t;
 	class column_t
 	{
 	public:
-		string measurement_name="";
+		static string lname_prefix;
+		static string lname_suffix;
+		static string unit_prefix;
+		static string unit_suffix;
+		static string comment_prefix;
+		static string comment_suffix;
+		
 		bool populated=false;
 		string longname="";
 		string unit="";
@@ -88,7 +109,7 @@ private:
 	static vector<column_t> format_settings_mass_calibration(measurement_group_t& MG_p);
 	string suffix();
 	static vector<vector<string>> cols_to_matrix(vector<column_t>& columns);
-	static bool write_to_file(vector<column_t> columns, string directory_p, string filename_p);
+	static bool write_to_file(vector<column_t> columns, string directory_s, string filename_p);
 public:
 	origin_t(measurement_t* measurement);
 	static set<string> root_directories(measurement_group_t& MG);
@@ -104,8 +125,10 @@ public:
 class plot_t : export2_t
 {
 private:
+	friend class config_t;
 	vector<string> files_to_delete;
 public:
+	static string plots_location;
 	static void export_to_files(list<measurement_t>* measurements);
 	static void export_to_files(measurement_group_t* MG);
 	static void export_to_files(list<measurement_group_t>& MGs);

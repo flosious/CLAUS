@@ -22,7 +22,6 @@
 #include "quantity.hpp"
 #include "isotope.hpp"
 #include "statistics.hpp"
-#include "config.hpp"
 #include "crater_t.hpp"
 #include "filename_t.hpp"
 #include "database_t.hpp"
@@ -36,8 +35,21 @@ class measurement_group_t;
 class measurement_t
 {
 	friend class parser_methods;
+	friend class config_t;
 private:
-// 	vector<string> calc_history_p;
+	
+	static bool defined_olcdbid;
+	static bool defined_lot;
+	static bool defined_lot_split;
+	static bool defined_wafer;
+	static bool defined_monitor;
+	static bool defined_chip;
+	static bool defined_groupid;
+	static bool defined_repetition;
+	static bool defined_polarity;
+	static bool defined_sputter_element;
+	static bool defined_sputter_energy;
+	
 	
 	/// reference calculation_methode
 	string reference_calculation_method="";

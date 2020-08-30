@@ -163,7 +163,7 @@ bool tofsims_txt_t::parse_cluster()
 		if (dimension_names[i].find("Intensity")!=string::npos)
 		{
 			cluster.intensity_p.data=data_mat[i];
-			if (conf.use_impulse_filter_on_data)
+			if (use_impulse_filter_on_data)
 				cluster.intensity_p = cluster.intensity_p.filter_impulse(5,4);
 			cluster.intensity_p.name="intensity";
 			cluster.intensity_p.unit="cnt/s";
@@ -172,7 +172,7 @@ bool tofsims_txt_t::parse_cluster()
 		else
 		{
 			cluster.concentration_p.data=data_mat[i];
-			if (conf.use_impulse_filter_on_data)
+			if (use_impulse_filter_on_data)
 				cluster.concentration_p = cluster.concentration_p.filter_impulse(5,4);
 			cluster.concentration_p.name="concentration";
 			cluster.concentration_p.unit="at/cm^3";

@@ -40,7 +40,13 @@ using namespace std;
 
 class measurement_group_t
 {
+	friend class config_t;
 private:
+	static bool defined_olcdbid;
+	static bool defined_groupid;
+	static bool defined_settings;
+	static bool defined_tool;
+
 	/// advanced calculation models
 // 	calc_models_t calc_models(&(measurements.front()->measurement_group));
 
@@ -71,6 +77,7 @@ public:
 	set<string> reference_matrix_cluster_names();
 	/// all isotopes of references included in all measurements within this group
 	set<isotope_t> reference_matrix_isotopes();
+	vector<isotope_t> reference_matrix_isotopes_vec();
 	/// cluster_name to the belonging isotope or element
 	/// ATTENTION! "28Si 11B" and "30Si 11B" can not be distinguished! this function is bijective: isotope <=> cluster
 	string cluster_name_from_isotope (isotope_t isotope);

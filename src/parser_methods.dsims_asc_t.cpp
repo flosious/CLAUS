@@ -186,7 +186,7 @@ bool dsims_asc_t::parse_cluster()
 			{
 				measurement_p.crater.sputter_current_p.unit = cols[c].unit;
 				measurement_p.crater.sputter_current_p.data= statistics::interpolate_data_XY(&data_XY,&common_X_dimension);
-				if (conf.use_impulse_filter_on_data)
+				if (use_impulse_filter_on_data)
 					measurement_p.crater.sputter_current_p = measurement_p.crater.sputter_current_p.filter_impulse(5,4);
 				measurement_p.crater.sputter_current_p.dimension = "e_current";
 				measurement_p.crater.sputter_current_p.name="sputter_current";
@@ -195,7 +195,7 @@ bool dsims_asc_t::parse_cluster()
 			{
 				cluster_t cluster;
 				cluster.intensity_p.data = statistics::interpolate_data_XY(&data_XY,&common_X_dimension);
-				if (conf.use_impulse_filter_on_data)
+				if (use_impulse_filter_on_data)
 					cluster.intensity_p = cluster.intensity_p.filter_impulse(5,4);
 				cluster.intensity_p.unit = "cnt/s";
 				cluster.intensity_p.dimension = "amount/time";
@@ -209,7 +209,7 @@ bool dsims_asc_t::parse_cluster()
 		{
 			cluster_t cluster;
 			cluster.concentration_p.data = statistics::interpolate_data_XY(&data_XY,&common_X_dimension);
-			if (conf.use_impulse_filter_on_data)
+			if (use_impulse_filter_on_data)
 				cluster.concentration_p = cluster.concentration_p.filter_impulse(5,4);
 			cluster.concentration_p.unit = "at/cm^3";
 			cluster.concentration_p.dimension = "amount*(length)^(-3)";

@@ -24,7 +24,6 @@
 #include "quantity.hpp"
 #include "tools.hpp"
 #include <regex>
-#include "config.hpp"
 #include "isotope.hpp"
 
 using namespace std;
@@ -34,7 +33,9 @@ using namespace std;
 
 class pse_t 
 {
+	friend class config_t;
 private:
+	static vector<string> file_locations;
 	string url="https://physics.nist.gov/cgi-bin/Compositions/stand_alone.pl";
 	
 	string default_filename="pse.csv";

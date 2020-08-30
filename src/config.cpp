@@ -8,8 +8,9 @@
 
 #include "config.hpp"
 
+
 /// global variable
-config_t conf;
+// config_t conf;
 
 config_t::config_t() {
     return;
@@ -22,7 +23,6 @@ vector<string> config_t::filter_files(vector<string> * file_list) {
 int config_t::load_file(std::string filename_with_path) {
     vector<string> config_lines = tools::file::load_file_to_vector_string(filename_with_path);
     if (config_lines.size()==0) return 0;
-	cout << "config_lines.size(): " << config_lines.size() << endl;
     if (parse(config_lines)>0) return 1;
     return 0;
 }
@@ -74,117 +74,65 @@ int config_t::parse(vector<string> config_lines) {
 		}
         else if (key.compare("test")==0) save_test(value);
 // 		standard_reference_intensity_calculation_method
-		else if (key=="standard_reference_intensity_calculation_method") standard_reference_intensity_calculation_method = value;
-		else if (key=="sputter_time_resolution") sputter_time_resolution=tools::str::str_to_double(value);
-		else if (key=="depth_resolution") depth_resolution=tools::str::str_to_double(value);
-		else if (key=="pse") save_pse_file_locations(value);
-		else if (key=="sql_db" || key=="db_location") db_location = value;
-		else if (key=="input_files_are_one_measurement_group") { if (value.find("1")!=string::npos) input_files_are_one_measurement_group=true; } // 
-		else if (key=="ignore_file_type_endings") { if (value.find("1")!=string::npos) ignore_file_type_endings=true; }
-		else if (key=="print_errors") { if (value.find("1")!=string::npos) print_errors=true; }
-		else if (key=="use_jiang" || key=="jaing") { if (value.find("0")!=string::npos) use_jiang=false; }
-		else if (key=="export_calculation_history" || key=="export_calc_history") { if (value.find("0")!=string::npos) export_calc_history=false; }
-		else if (key=="export_calculation_results" || key=="export_calc_results") { if (value.find("0")!=string::npos) export_calc_results=false; }
-		else if (key=="export_MG_parameters") { if (value.find("0")!=string::npos) export_MG_parameters=false; }
-        else if (key=="ignore_filename_substrings") save_ignore_filename_substrings(value);
-		else if (key=="ignore_filename") save_ignore_filename_substrings(value);
-		else if (key=="threads") save_threads(value);
-//         else if (key=="filename_format") save_filename_format(value);
-        else if (key=="references_location") save_references_location(value);
-        else if (key=="plots_location") save_plots_location(value);
-        else if (key=="results_location") save_results_location(value);
-        else if (key=="calc_location") save_calc_location(value);
-        else if (key=="export_location" || key=="export_directory") save_export_location(value);
-		else if (key=="export_filename") export_filename=value;
-//         else if (key=="matrix_isotopes") save_matrix_isotopes(value);
-//         else if (key=="output_format") save_output_format(string_parts);
-        else if (key=="replace" || key=="replacements") save_replacements(string_parts);
-//         else if (key=="measurement_file_types") save_measurement_file_types(value);
-//         else if (key=="measurement_tool") save_measurement_tool(value);
-		else if (key=="measurement_group_definition") save_measurement_group_definition(value);
-		else if (key=="measurement_definition") save_measurement_definition(value);
-		else if (key=="export_columns" || key=="export_column_names") save_export_column_names(value);
-        else if (key=="data_column_delimiter") data_column_delimiter=value;
-        else if (key=="file_name_delimiter") file_name_delimiter=value;
-        else if (key=="use_directory_files_list") { if (value.find("1")!=string::npos) use_directory_files_list=true; }
-        else if (key=="use_wildcards_in_filenames") { if (value.find("1")!=string::npos) use_wildcards_in_filenames=true; }
-        else if (key=="use_impulse_filter_on_data") { if (value.find("0")!=string::npos) use_impulse_filter_on_data=false; }
-        else parsed_lines--;
+		
+		else if (key=="origin_lname_praefix") 														origin_t::column_t::lname_prefix=value;
+		else if (key=="standard_reference_intensity_calculation_method") 							cluster_t::standard_reference_intensity_calculation_method = value;
+
+		else if (key=="pse") 																		pse_t::file_locations.push_back(value);
+		else if (key=="sql_db" || key=="db_location") 												database_t::file_location = value;
+		else if (key=="ignore_file_type_endings") { if (value.find("1")!=string::npos) 				measurement_tools_t::ignore_file_type_endings=true; }
+		
+		else if (key=="print_errors") { if (value.find("1")!=string::npos) 													processor::print_errors=true; }
+		else if (key=="use_jiang" || key=="jaing")  { if (value.find("0")!=string::npos) 									processor::use_jiang=false;}
+		else if (key=="use_mass_interference_filter" || key=="mass_interference_filter") { if (value.find("1")!=string::npos) processor::use_mass_interference_filter=true;}
+		else if (key=="force_RSF_to_foreign_matrix" || key=="force_RSF") { if (value.find("1")!=string::npos) 				processor::force_RSF_to_foreign_matrix=true;}
+		
+		else if (key=="use_directory_files_list") { if (value.find("1")!=string::npos) 				files_t::use_directory_files_list=true;}
+        else if (key=="use_wildcards_in_filenames") { if (value.find("1")!=string::npos) 				files_t::use_wildcards_in_filenames=true; }
+        else if (key=="ignore_filename_substrings" || key=="ignore_filename") 						files_t::ignore_filename_substrings.push_back(value);
+        else if (key=="plots_location") 															plot_t::plots_location=value;
+		
+		else if (key=="export_MG_parameters") { if (value.find("0")!=string::npos) 											export2_t::export_MG_parameters=false;}
+		else if (key=="export_calculation_history" || key=="export_calc_history") { if (value.find("0")!=string::npos) 		export2_t::export_calc_history=false;}
+		else if (key=="export_calculation_results" || key=="export_calc_results") { if (value.find("0")!=string::npos) 		export2_t::export_calc_results=false;}
+        else if (key=="calc_location") 																export2_t::calc_location = value;
+        else if (key=="export_location" || key=="export_directory") 								export2_t::directory_config=value;
+		else if (key=="export_filename")															export2_t::filename_config=value;
+		else if (key=="smoothing_moving_window_mean_size") 											export2_t::smoothing_moving_window_mean_size = tools::str::str_to_int(value);
+		else if (key=="depth_resolution") 															export2_t::depth_resolution=tools::str::str_to_double(value);
+        else if (key=="replace" || key=="replacements") 											export2_t::replacements [ string_parts[1] ] = string_parts[2];
+		else if (key=="data_column_delimiter") 														export2_t::data_column_delimiter=value;
+		
+		else if (key=="measurement_group_definition") 												save_measurement_group_definition(value);
+		else if (key=="measurement_definition") 													save_measurement_definition(value);
+		else if (key=="export_columns" || key=="export_column_names")								save_export_column_names(value);
+
+        else if (key=="use_impulse_filter_on_data") { if (value.find("0")!=string::npos) 				parser_methods::use_impulse_filter_on_data=false;}
+        else 
+		{
+			cout << "config_t::\tCould not parse: " << config_lines[i] << endl;
+			parsed_lines--;
+		}
+// 		cout << "KEY=" << key << "\tvalue=" << value << endl;
         
     }
+    
     return parsed_lines;
+	
 }
 
-/*save_functions*/
-void config_t::save_ignore_filename_substrings(string value)
-{
-	ignore_filename_substrings.push_back(value);
-}
 
-// void config_t::save_output_format(vector<string> values) 
-// {
-//     output_format={};
-//     for (int i=1;i<values.size();i++) 
-//         output_format.push_back(values[i]);
-// }
 void config_t::save_test(string value) 
 {
     cout << "save_test(): '" << value << "'" << endl;
 }
-void config_t::save_pse_file_locations(string value) 
-{
-    pse_file_locations.push_back(value);
-}
-void config_t::save_threads(string value) 
-{
-    threads_max=tools::str::str_to_int(value);
-}
-void config_t::save_references_location(string value) 
-{
-    references_location = value;
-}
-void config_t::save_plots_location(string value) 
-{
-    plots_location = value;
-}
-void config_t::save_results_location(string value) 
-{
-    results_location = value;
-}
-void config_t::save_calc_location(string value) 
-{
-    calc_location = value;
-}
-void config_t::save_export_location(string value) 
-{
-    export_location = value;
-}
-// void config_t::save_matrix_isotopes(string value) 
-// {
-//     matrix_isotopes = tools::str::get_strings_between_delimiter(value,",");
-// }
-void config_t::save_replacements(vector<string> values) 
-{
-    // replace [ "THIS" ] = "WITH";
-    replacements [ values[1] ] = values[2];
-}
-// void config_t::save_measurement_file_types(string value) 
-// {
-//     tools::str::remove_spaces(&value);
-//     measurement_file_types = tools::str::get_strings_between_delimiter(value,",");
-// }
-// void config_t::save_measurement_tool(string value) 
-// {
-//     measurement_tool = value;
-// }
+
 
 void config_t::save_export_column_names(std::__cxx11::string value)
 {
 	tools::str::remove_spaces(&value);
-// 	export_column_names.clear();
-	export_column_names = tools::str::get_strings_between_delimiter(value,"+");
-	tools::str::remove_spaces(&export_column_names);
-// 	print(export_column_names);
+	export2_t::export_column_names = tools::str::get_strings_between_delimiter(value,"+");
+	tools::str::remove_spaces(&export2_t::export_column_names);
 }
 
 void config_t::save_measurement_group_definition(std::__cxx11::string value)
@@ -193,17 +141,17 @@ void config_t::save_measurement_group_definition(std::__cxx11::string value)
 	vector<string> definitions = tools::str::get_strings_between_delimiter(value,"+");
 	tools::str::remove_spaces(&definitions);
 	
-	measurement_group_definition_olcdbid=false;
-	measurement_group_definition_groupid=false;
-	measurement_group_definition_settings=false;
-	measurement_group_definition_tool=false;
+	measurement_group_t::defined_olcdbid=false;
+	measurement_group_t::defined_groupid=false;
+	measurement_group_t::defined_settings=false;
+	measurement_group_t::defined_tool=false;
 	
 	for (auto& definition:definitions)
 	{
-		if (definition=="olcdbid"  || definition=="olcdb" ) measurement_group_definition_olcdbid=true;
-		else if (definition=="groupid" || definition=="group") measurement_group_definition_groupid=true;
-		else if (definition=="settings") measurement_group_definition_settings=true;
-		else if (definition=="tool") measurement_group_definition_tool=true;
+		if (definition=="olcdbid"  || definition=="olcdb" ) measurement_group_t::defined_olcdbid=true;
+		else if (definition=="groupid" || definition=="group") measurement_group_t::defined_groupid=true;
+		else if (definition=="settings") measurement_group_t::defined_settings=true;
+		else if (definition=="tool") measurement_group_t::defined_tool=true;
 	}
 }
 
@@ -213,31 +161,30 @@ void config_t::save_measurement_definition(string value)
 	vector<string> definitions = tools::str::get_strings_between_delimiter(value,"+");
 	tools::str::remove_spaces(&definitions);
 	
-	measurement_definition_olcdbid=false;
-	measurement_definition_lot=false;
-	measurement_definition_lot_split=false;
-	measurement_definition_wafer=false;
-	measurement_definition_monitor=false;
-	measurement_definition_chip=false;
-	measurement_definition_groupid=false;
-	measurement_definition_repetition=false;
-	
-	measurement_definition_polarity=false;
-	measurement_definition_sputter_element=false;
-	measurement_definition_sputter_energy=false;
+	measurement_t::defined_olcdbid				=false;
+	measurement_t::defined_lot					=false;
+	measurement_t::defined_lot_split			=false;
+	measurement_t::defined_wafer				=false;
+	measurement_t::defined_monitor				=false;
+	measurement_t::defined_chip					=false;
+	measurement_t::defined_groupid				=false;
+	measurement_t::defined_repetition			=false;
+	measurement_t::defined_polarity				=false;
+	measurement_t::defined_sputter_element		=false;
+	measurement_t::defined_sputter_energy		=false;
 	
 	for (auto& definition:definitions)
 	{
-		if (definition=="olcdbid" || definition=="olcdb") measurement_definition_olcdbid=true;
-		else if (definition=="lot") measurement_definition_lot=true;
-		else if (definition=="lot_split") measurement_definition_lot_split=true;
-		else if (definition=="wafer") measurement_definition_wafer=true;
-		else if (definition=="monitor") measurement_definition_monitor=true;
-		else if (definition=="chip") measurement_definition_chip=true;
-		else if (definition=="groupid" || definition=="group") measurement_definition_groupid=true;
-		else if (definition=="repetition") measurement_definition_repetition=true;
-		else if (definition=="sputter_energy") measurement_definition_sputter_energy=true;
-		else if (definition=="polarity") measurement_definition_polarity=true;
-		else if (definition=="sputter_element") measurement_definition_sputter_element=true;
+		if (definition=="olcdbid" || definition=="olcdb") measurement_t::defined_olcdbid=true;
+		else if (definition=="lot") measurement_t::defined_lot=true;
+		else if (definition=="lot_split") measurement_t::defined_lot_split=true;
+		else if (definition=="wafer") measurement_t::defined_wafer=true;
+		else if (definition=="monitor") measurement_t::defined_monitor=true;
+		else if (definition=="chip") measurement_t::defined_chip=true;
+		else if (definition=="groupid" || definition=="group") measurement_t::defined_groupid=true;
+		else if (definition=="repetition") measurement_t::defined_repetition=true;
+		else if (definition=="sputter_energy") measurement_t::defined_sputter_energy=true;
+		else if (definition=="polarity") measurement_t::defined_polarity=true;
+		else if (definition=="sputter_element") measurement_t::defined_sputter_element=true;
 	}
 }

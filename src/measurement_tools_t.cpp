@@ -19,6 +19,8 @@
 #include "measurement.hpp"
 #include "sample_t.hpp"
 
+bool measurement_tools_t::ignore_file_type_endings=false;
+
 measurement_tools_t::measurement_tools_t()
 {
 	get_file_types_endings_list();
@@ -54,7 +56,7 @@ measurement_t measurement_tools_t::measurement(filename_t* filename_p)
 	string file_contents="";
 	//load file//
 
-	if (!conf.ignore_file_type_endings && !is_correct_file_type(filename_p)) return measurement_p; // aboart if file_type_ending is not listed
+	if (!ignore_file_type_endings && !is_correct_file_type(filename_p)) return measurement_p; // aboart if file_type_ending is not listed
 	file_contents = tools::file::load_file_to_string(filename_p->filename_with_path());
 	file_contents=tools::str::to_ascii(file_contents);
 	tools::str::remove_substring_from_mainstring(&file_contents,"\r");
@@ -67,7 +69,7 @@ measurement_t measurement_tools_t::measurement(filename_t* filename_p)
 	// dsims_asc
 	dsims_asc_t dsims_asc;
 	cout << "... dsims_asc ... ";
-	if ((conf.ignore_file_type_endings || is_correct_file_type(filename_p,dsims_asc.get_file_type_endings())) && dsims_asc.parse(filename_p,&file_contents)) 
+	if ((ignore_file_type_endings || is_correct_file_type(filename_p,dsims_asc.get_file_type_endings())) && dsims_asc.parse(filename_p,&file_contents)) 
 	{
 		parsed_measurements_counter++;
 		tools::vec::add(&error_messages,dsims_asc.get_error_messages());
@@ -80,7 +82,7 @@ measurement_t measurement_tools_t::measurement(filename_t* filename_p)
 	// tofsims_txt
 	tofsims_txt_t tofsims_txt;
 	cout << "... tofsims_txt ... ";
-	if ((conf.ignore_file_type_endings || is_correct_file_type(filename_p,tofsims_txt.get_file_type_endings())) && tofsims_txt.parse(filename_p,&file_contents)) 
+	if ((ignore_file_type_endings || is_correct_file_type(filename_p,tofsims_txt.get_file_type_endings())) && tofsims_txt.parse(filename_p,&file_contents)) 
 	{
 		parsed_measurements_counter++;
 		tools::vec::add(&error_messages,tofsims_txt.get_error_messages());
@@ -93,7 +95,7 @@ measurement_t measurement_tools_t::measurement(filename_t* filename_p)
 	// images
 	images_t images;
 	cout << "... images ... " ;
-	if ((conf.ignore_file_type_endings || is_correct_file_type(filename_p,images.get_file_type_endings())) && images.parse(filename_p,&file_contents))  
+	if ((ignore_file_type_endings || is_correct_file_type(filename_p,images.get_file_type_endings())) && images.parse(filename_p,&file_contents))  
 	{
 		parsed_measurements_counter++;
 		tools::vec::add(&error_messages,images.get_error_messages());
@@ -105,7 +107,7 @@ measurement_t measurement_tools_t::measurement(filename_t* filename_p)
 	// dektak32_txt_t
 	dektak32_txt_t dektak32_txt;
 	cout << "... dektak32_txt ... " ;
-	if ((conf.ignore_file_type_endings || is_correct_file_type(filename_p,dektak32_txt.get_file_type_endings())) && dektak32_txt.parse(filename_p,&file_contents)) 
+	if ((ignore_file_type_endings || is_correct_file_type(filename_p,dektak32_txt.get_file_type_endings())) && dektak32_txt.parse(filename_p,&file_contents)) 
 	{
 		parsed_measurements_counter++;
 		tools::vec::add(&error_messages,dektak32_txt.get_error_messages());
@@ -117,7 +119,7 @@ measurement_t measurement_tools_t::measurement(filename_t* filename_p)
 	// xps_csv_t
 	xps_csv_t xps_csv;
 	cout << "... xps_csv ... " ;
-	if ((conf.ignore_file_type_endings || is_correct_file_type(filename_p,xps_csv.get_file_type_endings())) && xps_csv.parse(filename_p,&file_contents)) 
+	if ((ignore_file_type_endings || is_correct_file_type(filename_p,xps_csv.get_file_type_endings())) && xps_csv.parse(filename_p,&file_contents)) 
 	{
 		parsed_measurements_counter++;
 		tools::vec::add(&error_messages,xps_csv.get_error_messages());

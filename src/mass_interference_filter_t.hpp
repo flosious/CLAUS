@@ -1,7 +1,7 @@
 /*
 	Copyright (C) 2020 Florian Bärwolf
 	floribaer@gmx.de
-
+	
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
     the Free Software Foundation, either version 3 of the License, or
@@ -15,37 +15,18 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
-#ifndef CALC_MODELS_HPP
-#define CALC_MODELS_HPP
+#ifndef MASS_INTERFERENCE_FILTER_HPP
+#define MASS_INTERFERENCE_FILTER_HPP
 
-#include "quantity.hpp"
 #include "measurement.hpp"
 #include "cluster_t.hpp"
-#include "fit_functions.hpp"
-#include "measurement_group_t.hpp"
+#include "globalvars.hpp"
 
-/*
- * classes for advanced physical-mathematical models for more complex calculation
- */
-
-using namespace std;
-
-// class measurement_group_t;
-
-class calc_models_t
+///
+class mass_interference_filter_t
 {
+private:
 public:
-	/*is already within cluster_t*/
-// 	class single_element_matrix_t;
-	/// jiangs protocol 0 - 30at% 
-	class jiang_t;
-	/// jiangs protocol for 2 matrix elements for all possible mixtures 0 - 100 at%
-	class jiang_full_t;
-	/// fully relative model 0 - 100 at%
-	class fully_relative_t;
-	/// tries to substract/filter intensities from mass interferences
-	class interference_filter_t;
+	static void substract_Ge_from_As(cluster_t* As_cluster);
 };
-
-
-#endif // CALC_MODELS_HPP
+#endif // MASS_INTERFERENCE_FILTER_HPP

@@ -40,7 +40,9 @@ using namespace std;
 
 class measurement_tools_t
 {
+	friend class config_t;
 private:
+	static bool ignore_file_type_endings;
 	bool load_file();
 
 	vector<string> error_messages;

@@ -18,11 +18,13 @@
 #include "cluster_t.hpp"
 #include "measurement.hpp"
 #include "measurement_group_t.hpp"
-#include "export.hpp"
+// #include "export.hpp"
 
 // vector<string> calc_history;
 
 /************** cluster_t ********************/
+
+string cluster_t::standard_reference_intensity_calculation_method="pbp";
 
 quantity_t cluster_t::total_sputter_depth()
 {
@@ -271,13 +273,13 @@ quantity_t cluster_t::SF()
 	/*RSF from other measurements*/
 	else if (reference_intensity().is_set() && RSF().is_set())
 	{
-		if(conf.standard_reference_intensity_calculation_method=="pbp") SF_p = RSF() / reference_intensity();
-		else if(conf.standard_reference_intensity_calculation_method=="median") SF_p = RSF() / reference_intensity().median();
-		else if(conf.standard_reference_intensity_calculation_method=="mean") SF_p = RSF() / reference_intensity().mean();
-		else if(conf.standard_reference_intensity_calculation_method=="trimmed_mean") SF_p = RSF() / reference_intensity().trimmed_mean();
-		else if(conf.standard_reference_intensity_calculation_method=="gastwirth") SF_p = RSF() / reference_intensity().gastwirth();
-		else if(conf.standard_reference_intensity_calculation_method=="quantile50") SF_p = RSF() / reference_intensity().quantile(0.5);
-		else if(conf.standard_reference_intensity_calculation_method=="quantile75") SF_p = RSF() / reference_intensity().quantile(0.75);
+		if(standard_reference_intensity_calculation_method=="pbp") SF_p = RSF() / reference_intensity();
+		else if(standard_reference_intensity_calculation_method=="median") SF_p = RSF() / reference_intensity().median();
+		else if(standard_reference_intensity_calculation_method=="mean") SF_p = RSF() / reference_intensity().mean();
+		else if(standard_reference_intensity_calculation_method=="trimmed_mean") SF_p = RSF() / reference_intensity().trimmed_mean();
+		else if(standard_reference_intensity_calculation_method=="gastwirth") SF_p = RSF() / reference_intensity().gastwirth();
+		else if(standard_reference_intensity_calculation_method=="quantile50") SF_p = RSF() / reference_intensity().quantile(0.5);
+		else if(standard_reference_intensity_calculation_method=="quantile75") SF_p = RSF() / reference_intensity().quantile(0.75);
 		else SF_p = RSF() / reference_intensity().trimmed_mean();
 		if (SF_p.is_set()) 
 			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tSF from RSF+reference_intensity\t" + SF_p.to_str());
@@ -315,6 +317,7 @@ quantity_t cluster_t::SF()
 
 quantity_t cluster_t::RSF()
 {
+	// do not calculate (or use) RSF for matrix clusters
 	if (is_reference()) return {};
 	if (RSF_p.is_set()) return RSF_p;
 // 	if (measurement->reference_clusters().size()==1 && measurement->measurement_group->RSFs(name()).is_set()) return measurement->measurement_group->RSFs(name()).mean();
@@ -378,29 +381,6 @@ quantity_t cluster_t::reference_intensity()
 {
 	if (reference_intensity_p.is_set()) return reference_intensity_p;
 	return measurement->reference_intensity();
-// 	if (measurement->reference_clusters().size()==0) return {};
-// 	
-// 	reference_intensity_p = measurement->reference_clusters()[0]->intensity();
-// 	for (int i=1;i<measurement->reference_clusters().size();i++)
-// 		reference_intensity_p=reference_intensity_p + measurement->reference_clusters()[i]->intensity();
-// 
-// 	if (quantities_reduced_by_equilibrium_starting_pos) reference_intensity_p = reduce_quantity_by_equlibrium_starting_pos(reference_intensity_p);
-// 
-// 	if (reference_intensity_p.is_set()) 
-// 	{
-// 		stringstream refs;
-// 		for (int i=0;i<measurement->reference_clusters().size();i++)
-// 		{
-// 			refs << measurement->reference_clusters()[i]->name();
-// 			if (i!=measurement->reference_clusters().size()-1)
-// 				refs << "+";
-// 		}
-// 		calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+refs.str()+"\treference_intensity\t" + reference_intensity_p.to_str());
-// 	}
-// 
-// 	reference_intensity_p.name = "reference_intensity";
-	
-// 	return reference_intensity_p;
 }
 
 
@@ -434,12 +414,32 @@ string cluster_t::name()
 {
 	if (name_p!="") return name_p;
 	if (isotopes.size()==0) return "NO NAME";
-	/// sort isotopes for lowest mass 1st
-	std::sort(isotopes.begin(),isotopes.end(),isotope_t::sort_lower_mass);
-	for (int i=0;i<isotopes.size();i++)
-		name_p+=isotopes[i].name()+" ";
-	name_p.erase(name_p.end()-1,name_p.end()); // remove the last space
+// 	/// sort isotopes for lowest mass 1st
+// 	std::sort(isotopes.begin(),isotopes.end(),isotope_t::sort_lower_mass);
+// 	for (int i=0;i<isotopes.size();i++)
+// 		name_p+=isotopes[i].name()+" ";
+// 	name_p.erase(name_p.end()-1,name_p.end()); // remove the last space
+	name_p = name_from_isotopes(isotopes);
 	return name_p;
+}
+
+string cluster_t::name_from_isotopes(vector<isotope_t> &isotopes_p)
+{
+	string named;
+	/// sort isotopes for lowest mass 1st
+	std::sort(isotopes_p.begin(),isotopes_p.end(),isotope_t::sort_lower_mass);
+	for (int i=0;i<isotopes_p.size();i++)
+		named+=isotopes_p[i].name()+" ";
+	named.erase(named.end()-1,named.end()); // remove the last space
+	return named;
+}
+
+string cluster_t::name_wo_matrix_cluster()
+{
+	set<isotope_t> s = measurement->measurement_group->reference_matrix_isotopes();
+	vector<isotope_t> v(s.begin(),s.end());
+	v = leftover_elements(v);
+	return name_from_isotopes(v);
 }
 
 

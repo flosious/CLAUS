@@ -41,7 +41,6 @@ class crater_t
 	friend class cluster_t;
 	friend class calc_models_t;
 private:
-// 	measurement_t* measurement;
 	double sputter_depth_resolution=0;
 	double sputter_time_resolution=0;
 	vector<double> sputter_depth_old;
@@ -50,8 +49,6 @@ private:
 	bool already_calculated_sputter_rate=false;
 	
 	map<string,cluster_t>* clusters;
-// 	map<string, cluster_t>* clusters;
-// 	measurement_t* measurement;
 	filename_t* filename;
 	/// additional values
 	quantity_t total_sputter_depths_p;

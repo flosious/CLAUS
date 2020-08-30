@@ -19,13 +19,13 @@
 #define SAMPLE_T_HPP
 
 #include <vector>
-#include "filename_t.hpp"
+
 #include "quantity.hpp"
-#include "isotope.hpp"
 #include <list>
 #include "database_t.hpp"
 #include <map>
 #include "isotope.hpp"
+#include "filename_t.hpp"
 
 // #include "measurement_group_t.hpp"
 // #include "measurement.hpp"

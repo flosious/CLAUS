@@ -17,13 +17,17 @@
 */
 #include "files_t.hpp"
 
+vector<string> files_t::ignore_filename_substrings;
+bool files_t::use_wildcards_in_filenames = false;
+bool files_t::use_directory_files_list = false;
+
 
 vector<string> files_t::vec()
 {
 // 	print(all_files_in_directories);
 	vector<string> files;
-	if (conf.use_wildcards_in_filenames) wildcards(); 
-	if (conf.use_directory_files_list) files = all_files_in_directories;
+	if (use_wildcards_in_filenames) wildcards(); 
+	if (use_directory_files_list) files = all_files_in_directories;
 	else files = files_list;
 	
 	filter_ignored_files(&files);
@@ -92,7 +96,7 @@ bool files_t::wildcards()
 
 void files_t::filter_ignored_files(vector<string>* files)
 {
-	for (auto const& ignore_sub : conf.ignore_filename_substrings)
+	for (auto const& ignore_sub : ignore_filename_substrings)
 	{
 		if (ignore_sub.length()>1)	tools::vec::add(&ignored_files,tools::str::find_all_substrings(files,ignore_sub));
 	}
@@ -105,7 +109,7 @@ void files_t::filter_ignored_files(vector<string>* files)
 
 bool files_t::get(vector<string> files_list_p) {
     files_list = files_list_p;
-	if (conf.use_directory_files_list || conf.use_wildcards_in_filenames)
+	if (use_directory_files_list || use_wildcards_in_filenames)
 	{
 		get_directory_list();
 		get_all_files_in_directories();
@@ -117,7 +121,7 @@ vector<string> files_t::get_locations_from_filename(string filename)
 {
 	vector<string> locations;
 
-	if (conf.use_directory_files_list) locations = tools::str::find_all_substrings(&all_files_in_directories,filename);
+	if (use_directory_files_list) locations = tools::str::find_all_substrings(&all_files_in_directories,filename);
 	else locations = tools::str::find_all_substrings(&files_list,filename);
 	return locations;
 }
@@ -126,7 +130,7 @@ vector<string> files_t::get_filenames_with_maximum_common_chars()
 {
 	vector<string> files_list_wo_type;
 
-	if (conf.use_directory_files_list) files_list_wo_type = all_files_in_directories;
+	if (use_directory_files_list) files_list_wo_type = all_files_in_directories;
 	else files_list_wo_type = files_list; // just use the input files
 	
 	tools::file::remove_file_type_from_name(&files_list_wo_type);

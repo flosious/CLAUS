@@ -18,6 +18,8 @@
 #include "parser_methods.hpp"
 #include "cluster_t.hpp"
 
+bool parser_methods::use_impulse_filter_on_data=false;
+
 parser_methods::~parser_methods()
 {
 	/// geht so nicht, wird zu spät gecalled

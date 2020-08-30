@@ -23,7 +23,6 @@
 #include "quantity.hpp"
 #include <vector>
 #include <regex>
-#include "config.hpp"
 #include <map>
 #include <list>
 

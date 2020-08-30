@@ -5,6 +5,8 @@
 ////////////   PLOT   ///////////////////
 /////////////////////////////////////////
 
+string plot_t::plots_location="";
+
 void plot_t::fast_plot(quantity_t X, quantity_t Y, string outputfile, bool logscale) 
 {
 // 	bool logscale = false;
@@ -60,13 +62,13 @@ void plot_t::export_to_files(list<measurement_group_t>& MGs)
 
 plot_t::plot_t(measurement_t* measurement) : export2_t (measurement)
 {
-	if (conf.plots_location=="") return;
+	if (plots_location=="") return;
 	bool logscale = true;
 	bool save=true;
 	
 	string title, outputfile;
-    tools::file::mkpath(root_directory(conf.plots_location),0750);
-    outputfile = root_directory(conf.plots_location)+measurement->filename_p->filename()+"_PLOT";
+    tools::file::mkpath(root_directory(),0750);
+    outputfile = root_directory()+measurement->filename_p->filename()+"_PLOT";
 	cout << "outputfile=" << outputfile<< endl;
 	tools::str::replace_chars(&outputfile,"_",""); // \\\\U+005F
 	outputfile = "/tmp/plots/test";

@@ -23,7 +23,6 @@
 #include <vector>
 #include "measurement.hpp"
 #include <regex>
-#include "config.hpp"
 #include "isotope.hpp"
 #include <map>
 #include "filename_t.hpp"
@@ -40,9 +39,11 @@ using namespace std;
 /*handles ONE parser on one file*/
 class parser_methods
 {
+	friend class config_t;
 // 	friend class filename_t;
 // 	friend class dsims_asc_t;
 protected:
+	static bool use_impulse_filter_on_data;
 	/// INPUT
 	filename_t* filename;
 	/// INPUT

@@ -25,13 +25,7 @@
 #include "tools.hpp"
 #include <sqlite3.h> 
 #include <regex>
-#include "config.hpp"
 #include <vector>
-// #include "measurement.hpp"
-// #include "sample_t.hpp"
-// #include "measurement_group_t.hpp"
-
-
 
 
 // Check out this link. The easiest way is to do the locking yourself, 
@@ -54,7 +48,9 @@
 using namespace std;
 
 class database_t {
-private:    
+	friend class config_t;
+private:
+	static string file_location;
     sqlite3* DB;
     bool close();
     

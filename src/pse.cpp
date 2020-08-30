@@ -21,6 +21,8 @@
 /// global variable
 pse_t PSE;
 
+vector<string> pse_t::file_locations;
+
 quantity_t pse_t::get_abundance_from_isotope(string isotope)
 {
 	quantity_t result;
@@ -95,8 +97,8 @@ vector<string> pse_t::get_all_isotopes_with_highest_abundance()
 int pse_t::load()
 {
 	int loaded=0;
-	if (conf.pse_file_locations.size()==0) return load_file(default_filename);
-	for (auto const& file: conf.pse_file_locations) 
+	if (file_locations.size()==0) return load_file(default_filename);
+	for (auto const& file: file_locations) 
 	{
 		loaded=loaded+load_file(file);
 	}

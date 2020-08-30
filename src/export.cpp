@@ -46,6 +46,30 @@
  *
  */
 
+/* VARIABLES */
+
+string export2_t::data_column_delimiter="\t";
+string export2_t::filename_config="";
+string export2_t::directory_config="";
+string export2_t::calc_location="";
+int export2_t::smoothing_moving_window_mean_size;
+double export2_t::depth_resolution;
+vector<string> export2_t::export_column_names;
+map<string,string> export2_t::replacements;
+
+string origin_t::column_t::lname_prefix="";
+string origin_t::column_t::lname_suffix="";
+string origin_t::column_t::unit_prefix="";
+string origin_t::column_t::unit_suffix="";
+string origin_t::column_t::comment_prefix="";
+string origin_t::column_t::comment_suffix="";
+
+bool export2_t::export_MG_parameters=true;
+bool export2_t::export_calc_history=true;
+bool export2_t::export_calc_results=true;
+
+/*************/
+
 void export2_t::export_contents_to_file(string contents, string filename_p, measurement_group_t MG, string sub_directory)
 {
 	if (contents.length()==0) return;
@@ -72,24 +96,6 @@ void export2_t::export_contents_to_file(string contents, string filename_p, meas
 void export2_t::export_contents_to_file(vector<std::__cxx11::string> contents, string filename_p, measurement_group_t MG, string sub_directory)
 {
 	export_contents_to_file(tools::vec::combine_vec_to_string(contents,"\n"),filename_p,MG,sub_directory);
-// 	if (contents.size()==0) return;
-// 	if (filename_p.length()==0) return;
-// 	set<string> root_dirs;
-// 	for (auto& measurement:MG.measurements)
-// 	{
-// 		export2_t exp(measurement);
-// 		root_dirs.insert(exp.root_directory());
-// 	}
-// 	
-// 	
-// 	string output = tools::vec::combine_vec_to_string(contents,"\n");
-// 	string dir="";
-// 	for (auto& root_dir:root_dirs)
-// 	{
-// 		dir = tools::file::check_directory_string(root_dir)+sub_directory;
-// 		dir = tools::file::check_directory_string(dir);
-// 		tools::file::write_to_file(dir+filename_p,&output,false);
-// 	}
 	return;
 }
 
@@ -170,9 +176,17 @@ std::__cxx11::string export2_t::energy()
 	return ENERGY_DEFAULT;
 }
 
+std::__cxx11::string export2_t::others()
+{
+	if (measurement->filename_p->not_parseable_filename_parts.size()==0) return "";
+	string others_str = tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
+	return others_str;
+}
+
+
 void export2_t::check_replacements(std::__cxx11::string& check_this)
 {
-	for (auto& replacement:conf.replacements)
+	for (auto& replacement:replacements)
 	{
 		tools::str::replace_chars(&check_this,replacement.first,replacement.second);
 	}
@@ -195,54 +209,54 @@ void export2_t::check_placeholders(std::__cxx11::string& check_this)
 		else if (placeholder=="toolid" || placeholder=="tool" || placeholder=="tool_name") tools::str::replace_chars(&check_this,"{"+placeholder+"}",tool_name());
 		else if (placeholder=="energy") tools::str::replace_chars(&check_this,"{"+placeholder+"}",energy());
 		else if (placeholder=="repetition") tools::str::replace_chars(&check_this,"{"+placeholder+"}",repetition());
+		else if (placeholder=="others"||placeholder=="rest") tools::str::replace_chars(&check_this,"{"+placeholder+"}",others());
 	}
 }
 
-std::__cxx11::string export2_t::root_directory(string directory)
+std::__cxx11::string export2_t::root_directory()
 {
-// 	string directory;
-	if (directory!="") 
+	string directory_p = directory_config;
+	if (directory_p!="") 
 	{
-		check_placeholders(directory);
-// 		cout << "directory=" << directory << endl;
+		check_placeholders(directory_p);
 	}
-	else directory = measurement->filename_p->directory();
+	else directory_p = measurement->filename_p->directory();
 	
-	if (directory.back() == PATH_DELIMITER)
-		directory.erase(directory.end()-1);
-	while (directory.back() == '_')
-		directory.erase(directory.end()-1);
+	if (directory_p.back() == PATH_DELIMITER)
+		directory_p.erase(directory_p.end()-1);
+	while (directory_p.back() == '_')
+		directory_p.erase(directory_p.end()-1);
 		
-	directory = tools::file::check_directory_string(directory);
+	directory_p = tools::file::check_directory_string(directory_p);
 	
-	return directory;
+	return directory_p;
 }
 
-std::__cxx11::string export2_t::filename(string filename, string file_ending)
+std::__cxx11::string export2_t::filename(string file_ending)
 {
-// 	if (filename != "" && lot()!=LOT_DEFAULT && wafer()!=WAFER_DEFAULT) check_placeholders(filename);
-	if (filename != "") check_placeholders(filename);
+	string filename_p = filename_config;
+	if (filename_p != "") check_placeholders(filename_p);
 	else
 	{
-		filename = olcdb();
-		if (lot()!=LOT_DEFAULT) filename += "_" + lot();
-		if (wafer()!=WAFER_DEFAULT) filename += "_" + wafer();
-		if (chip()!=CHIP_DEFAULT) filename += "_" + chip();
-		if (monitor()!=MONITOR_DEFAULT) filename += "_" + monitor();
-		if (group()!=GROUP_DEFAULT) filename += "_" + group();
-		if (group()!=GROUP_DEFAULT &&repetition()!=repetition_DEFAULT) filename += repetition();
+		filename_p = olcdb();
+		if (lot()!=LOT_DEFAULT) filename_p += "_" + lot();
+		if (wafer()!=WAFER_DEFAULT) filename_p += "_" + wafer();
+		if (chip()!=CHIP_DEFAULT) filename_p += "_" + chip();
+		if (monitor()!=MONITOR_DEFAULT) filename_p += "_" + monitor();
+		if (group()!=GROUP_DEFAULT) filename_p += "_" + group();
+		if (group()!=GROUP_DEFAULT &&repetition()!=repetition_DEFAULT) filename_p += repetition();
 	
-		if (lot()==LOT_DEFAULT||wafer()==WAFER_DEFAULT||group()==GROUP_DEFAULT) filename = measurement->filename_p->filename_without_crater_depths();
-		if (measurement->tool_name()!=TOOL_NAME_DEFAULT && measurement->tool_name()!="NULL") filename+="."+measurement->tool_name();
-		filename+=file_ending;
+		if (lot()==LOT_DEFAULT||wafer()==WAFER_DEFAULT||group()==GROUP_DEFAULT) filename_p = measurement->filename_p->filename_without_crater_depths();
+		if (measurement->tool_name()!=TOOL_NAME_DEFAULT && measurement->tool_name()!="NULL") filename_p+="."+measurement->tool_name();
+		filename_p+=file_ending;
 	}	
-	while (filename.find("__")!=string::npos)
-		tools::str::replace_chars(&filename,"__","_");
+	while (filename_p.find("__")!=string::npos)
+		tools::str::replace_chars(&filename_p,"__","_");
 	
-	while (filename.back() == '_')
-		filename.erase(filename.end()-1);
+	while (filename_p.back() == '_')
+		filename_p.erase(filename_p.end()-1);
 	
-	return filename;
+	return filename_p;
 }
 
 
@@ -262,200 +276,6 @@ std::__cxx11::string export2_t::filename(string filename, string file_ending)
 
 
 
-
-
-// /*EXPORT_T*/
-// export_t::export_t(measurement_t *measurement_p)
-// {
-// 	measurement = measurement_p;
-// // 	measurement->clusters["31P"].concentration().to_screen();
-// 	format_id();
-// 	get_directory();
-// 	get_filename();
-// }
-// 
-// // export_t::export_t(measurement_group_t *MG)
-// // {
-// // 	if (MG->measurements.size()==0) return;
-// // 	measurement = MG->measurements.front();
-// // // 	measurement->clusters["31P"].concentration().to_screen();
-// // 	format_id();
-// // 	get_directory();
-// // 	get_filename();
-// // }
-// 
-// 
-// 
-// bool export_t::format_id()
-// {
-// 	if (measurement->filename_p->olcdb>-1) olcdb = to_string(measurement->filename_p->olcdb);
-// 	if (measurement->filename_p->wafer>-1) wafer = "w0"+to_string(measurement->filename_p->wafer);
-// 	if (measurement->filename_p->wafer>9) wafer = "w"+to_string(measurement->filename_p->wafer);
-// 	if (measurement->filename_p->group>-1) group = "g"+to_string(measurement->filename_p->group)+measurement->filename_p->repetition;
-// 	if (measurement->filename_p->lot!="") lot = measurement->filename_p->lot;
-// 	if (measurement->filename_p->lot_split!="") lot_split = measurement->filename_p->lot_split;
-// 	if (measurement->filename_p->chip_x>-1) 
-// 	{
-// 		if (measurement->filename_p->chip_x>9) chip = "X"+to_string(measurement->filename_p->chip_x);
-// 		else chip = "X0"+to_string(measurement->filename_p->chip_x);
-// 		if (measurement->filename_p->chip_y>9) chip += "Y"+to_string(measurement->filename_p->chip_y);
-// 		else chip += "Y0"+to_string(measurement->filename_p->chip_y);
-// 	}
-// 	if (measurement->filename_p->monitor!="") monitor = "m"+measurement->filename_p->monitor;
-// 	if (measurement->tool_name()!="") tool = measurement->tool_name();
-// 	return true;
-// }
-// 
-// bool export_t::check_replacements(string& check_this)
-// {
-// 	vector <string> placeholders = tools::str::get_all_string_between_string_A_and_next_B(&check_this,"{","}");
-// 	string olcdbid="olcdbid-unknown";
-// 	string lotid="lot-unknown";
-// 	string lot_splitid="";
-// 	string waferid="wafer-unknown";
-// 	string groupid="group-unknown";
-// 	string chipid="";
-// 	string monitorid="";
-// 	string toolid="tool-unknown";
-// 	string energy="";
-// 	if (olcdb!="") olcdbid=olcdb;
-// 	if (lot!="") lotid=lot;
-// 	if (lot_split!="") lot_splitid=lot_split;
-// 	if (wafer!="") waferid=wafer;
-// 	if (group!="") groupid=group;
-// 	if (chip!="") chipid=chip;
-// 	if (monitor!="") monitorid=monitor;
-// 	if (tool!="") toolid=tool;
-// 	if (measurement->settings.sputter_energy().is_set()) energy=to_string((int)(measurement->settings.sputter_energy().data[0]))+measurement->settings.sputter_energy().unit+measurement->settings.sputter_element();
-// 	
-// 	for (string placeholder:placeholders)
-// 	{
-// 		string replacethis = "{"+placeholder+"}";
-// 		if (placeholder=="olcdbid" || placeholder=="olcdb") tools::str::replace_chars(&check_this,"{"+placeholder+"}",olcdbid);
-// 		else if (placeholder=="waferid" || placeholder=="wafer") tools::str::replace_chars(&check_this,"{"+placeholder+"}",waferid);
-// 		else if (placeholder=="groupid" || placeholder=="group") tools::str::replace_chars(&check_this,"{"+placeholder+"}",groupid);
-// 		else if (placeholder=="lotid" || placeholder=="lot") tools::str::replace_chars(&check_this,"{"+placeholder+"}",lotid);
-// 		else if (placeholder=="lotsplit" || placeholder=="lot_split") tools::str::replace_chars(&check_this,"{"+placeholder+"}",lot_splitid);
-// 		else if (placeholder=="chipid" || placeholder=="chip") tools::str::replace_chars(&check_this,"{"+placeholder+"}",chipid);
-// 		else if (placeholder=="monitorid" || placeholder=="monitor") tools::str::replace_chars(&check_this,"{"+placeholder+"}",monitorid);
-// 		else if (placeholder=="toolid" || placeholder=="tool" || placeholder=="tool_name") tools::str::replace_chars(&check_this,"{"+placeholder+"}",toolid);
-// 		else if (placeholder=="energy") tools::str::replace_chars(&check_this,"{"+placeholder+"}",energy);
-// 	}
-// 	return true;
-// }
-// 
-// bool export_t::get_directory()
-// {
-// 	if (directory!="") return true;
-// 	directory = get_directory(measurement);
-// 	if (!check_replacements(directory)) return false;
-// 	if (directory=="") return false;
-// 	tools::file::mkpath(directory,0750);
-// 	return true;
-// }
-// 
-// string export_t::get_directory(measurement_t *measurement)
-// {
-// 	string directory;
-// 	if (conf.export_location!="")
-// 	{
-// 		directory=conf.export_location;
-// // 		directory = tools::file::check_directory_string(directory);
-// 	}
-// 	else directory = measurement->filename_p->directory();
-// 	directory = tools::file::check_directory_string(directory);
-// 	return directory;
-// }
-// 
-// bool export_t::get_filename(string file_ending)
-// {
-// 	filename = conf.export_filename;
-// 	if (filename != "" && lot!="" && wafer!="") check_replacements(filename);
-// 	else
-// 	{
-// 		filename = olcdb;
-// 		if (lot!="") filename += "_" + lot;
-// 		if (wafer!="") filename += "_" + wafer;
-// 		if (chip!="") filename += "_" + chip;
-// 		if (monitor!="") filename += "_" + monitor;
-// 		if (group!="") filename += "_" + group;
-// 	
-// 		if (lot==""||wafer==""||group=="") filename = measurement->filename_p->filename_without_crater_depths();
-// 		if (measurement->tool_name()!="" && measurement->tool_name()!="NULL") filename+="."+measurement->tool_name();
-// 		filename+=file_ending;
-// 	}
-// 	tools::str::replace_chars(&filename,"__","_");
-// 	tools::str::replace_chars(&filename,"__","_");
-// 	tools::str::replace_chars(&filename,"__","_");
-// 	return true;
-// }
-// 
-// 
-// bool export_t::write_to_file()
-// {
-// // 	if (!get_directory()) return false;
-// // 	if (!get_filename()) return false;
-// 	if (directory=="") return false;
-// 	if (filename=="") return false;
-// 	tools::file::mkpath(directory,0750);
-// 	if (!tools::file::write_to_file(directory+filename,&output,false)) return false;
-// 	return true;
-// }
-// 
-// bool export_t::samples_overview(list<measurement_t> *measurements)
-// {
-// 	if (measurements->size()==0) return false;
-// 	vector<vector<string>> output_matrix;
-// 	vector<string> header_line={"measurement name"};
-// 	for (measurement_t measurement:*measurements)
-// 		for (map<string,cluster_t>::iterator it=measurement.clusters.begin();it!=measurement.clusters.end();++it)
-// 			header_line.push_back(it->second.name());
-// 	tools::str::remove_duplicates(&header_line);
-// 	for (measurement_t measurement:*measurements)
-// 	{
-// 			vector<string> line;
-// 			
-// 			line.push_back(measurement.filename_p->filename_without_crater_depths());
-// 			for (int i=1;i<header_line.size();i++)
-// 			{
-// 				cluster_t* cluster = &(measurement.clusters[header_line[i]]);
-// 				if (cluster!=nullptr)
-// 				{
-// // 					quantity_t* quantity = &cluster->intensity();
-// // 					TODO
-// // 					if (quantity!=nullptr) line.push_back(statistics::get_median_from_Y());
-// 				}
-// 			}
-// 	}
-// 	return true;
-// }
-// 
-// bool export_t::Ipr_global(list<measurement_t> *measurements)
-// {
-// 	vector<string> global_time={"Ipr","global_sputter_time","s"};
-// 	vector<string> global_Ipr={"Ipr","sputter_current","nA"};
-// 	for (auto measurement : *measurements)
-// 	{
-// 		if (measurement.crater.sputter_current().data.size()==0) continue;
-// 
-// // 		tools::vec::add(&global_Ipr,tools::mat::double_vec_to_str_vec(measurement->cluster_by_name("Ipr")->quantity_by_name("intensity")->data));
-// 		tools::vec::add(&global_time,tools::mat::double_vec_to_str_vec(measurement.crater.global_sputter_time().data));
-// 		tools::vec::add(&global_Ipr,tools::mat::double_vec_to_str_vec(measurement.crater.sputter_current().data));
-// 		
-// 	}
-// 		conf.export_location = tools::file::check_directory_string(conf.export_location);
-// 		if (conf.export_location=="") return false;
-// 		tools::file::mkpath(conf.export_location,0750);
-// 		vector<vector<string>> out_mat = tools::mat::transpose_matrix({global_time,global_Ipr});
-// 		string output = tools::mat::format_matrix_to_string(&out_mat);
-// 		if (!tools::file::write_to_file(conf.export_location+"Ipr_global.txt",&output,false)) return false;
-// 
-// 	return true;
-// }
-
-
-
-
 /////////////////////////////////////////
 ////////////// ORIGIN ///////////////////
 /////////////////////////////////////////
@@ -466,7 +286,7 @@ set<std::__cxx11::string> origin_t::root_directories(measurement_group_t& MG)
 	for (auto& measurement: MG.measurements)
 	{
 		origin_t origin (measurement);
-		root_directories.insert(origin.root_directory(conf.export_location));
+		root_directories.insert(origin.root_directory());
 	}
 	return root_directories;
 }
@@ -496,17 +316,11 @@ string origin_t::suffix()
 	if (lot()==LOT_DEFAULT && wafer()==WAFER_DEFAULT) 
 	{
 		if (measurement->filename_p->not_parseable_filename_parts.size()==0) suffix = "_"+measurement->filename_p->filename_without_crater_depths();
-		else suffix = "_"+tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
+		else suffix = "_"+others();
 	}
-// 	else if (measurement->filename_p->not_parseable_filename_parts.size()!=0 && (lot()==LOT_DEFAULT || wafer()==WAFER_DEFAULT)) 
-// 		suffix += "_"+tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
+	
 	if (repetition()!=repetition_DEFAULT) suffix += "_" + repetition();
 	
-// 	if ((lot()==LOT_DEFAULT && wafer()==WAFER_DEFAULT)) 
-// 	{
-// 		if (measurement->filename_p->not_parseable_filename_parts.size()==0) suffix = "_"+measurement->filename_p->filename_without_crater_depths();
-// 		else suffix = "_"+tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
-// 	}
 	suffix.erase(suffix.begin());
 	return suffix;
 }
@@ -570,21 +384,32 @@ origin_t::column_t::column_t(cluster_t* cluster, quantity_t* quantity, string su
 // 	cout << "cluster.name()A:\t" << cluster->name() << endl;
 	
 	string name=cluster->name();
-	vector<isotope_t>* isotopes = &cluster->isotopes;
-	if (isotopes->size()>0)
+	
+	vector<isotope_t> isotopes;
+	isotopes = cluster->isotopes;
+	if (quantity->name.find("concentration")!=string::npos)
+	{
+		// remove any matrix isotopes from the list of isotopes in this cluster
+		set<isotope_t> s = cluster->measurement->measurement_group->reference_matrix_isotopes();
+		vector<isotope_t> v(s.begin(),s.end());
+		isotopes = cluster->leftover_elements(v);
+	}
+	if (isotopes.size()>0)
 	{
 		name="";
-		for (int ii=0; ii<isotopes->size();ii++)
+		for (int ii=0; ii<isotopes.size();ii++)
 		{
-			isotope_t isotope=isotopes->at(ii);
+			isotope_t isotope=isotopes.at(ii);
 			/*if cluster is matrix isotope/element, check if nucleons in set -> not possible, just have clusters ...*/
 			if (isotope.nucleons>0) name+="\\+("+to_string(isotope.nucleons)+")";
 			name+=isotope.symbol;
 			if (isotope.atoms>1) name+=to_string(isotope.atoms);
-// 			name+= isotope.name();
-			if (ii!=isotopes->size()-1) name+=" ";
+			if (ii!=isotopes.size()-1) name+=" ";
+// 			cout << "isotope.name()="<<isotope.name()<< endl;
+// 			cout << "name=" << name << endl;
 		}
 	}
+
 	if (quantity->unit=="at%") 
 	{
 		isotope_t element = cluster->measurement->measurement_group->isotope_from_cluster_name(cluster->name());
@@ -627,34 +452,40 @@ vector<vector<string>> origin_t::cols_to_matrix(vector<column_t>& columns)
 	return mat;
 }
 
-bool origin_t::write_to_file(vector<column_t> columns, string directory_p, string filename_p)
+bool origin_t::write_to_file(vector<column_t> columns, string directory_s, string filename_p)
 {
 	vector<vector<string>> output_matrix = cols_to_matrix(columns);
-	string output=tools::mat::format_matrix_to_string(&output_matrix,"\n",conf.data_column_delimiter);
+	string output=tools::mat::format_matrix_to_string(&output_matrix,"\n",data_column_delimiter);
 // 	apply_origin_replacements_on_string(output);
 	check_replacements(output);
-	if (directory_p=="") return false;
-	directory_p = tools::file::check_directory_string(directory_p);
+	if (directory_s=="") return false;
+	directory_s = tools::file::check_directory_string(directory_s);
 	if (filename_p=="") return false;
-	tools::file::mkpath(directory_p,0750);
-// 	cout << directory_p << "\t" << filename_p << endl;
-	if (!tools::file::write_to_file(directory_p+filename_p,&output,false)) return false;
+	tools::file::mkpath(directory_s,0750);
+// 	cout << directory_s << "\t" << filename_p << endl;
+	if (!tools::file::write_to_file(directory_s+filename_p,&output,false)) return false;
 	return true;
 }
 
 vector<origin_t::column_t> origin_t::format_measurement_cluster_columns()
 {
-	if (conf.export_column_names.size()>0) return format_measurement_cluster_columns_from_config();
+	if (export_column_names.size()>0) return format_measurement_cluster_columns_from_config();
 	vector<column_t> columns;
-	if (measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(conf.depth_resolution),"crater_"+suffix()));
+	if (measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(depth_resolution),"crater_"+suffix()));
 	else columns.push_back(column_t(measurement->crater.sputter_time(),"crater_"+suffix()));
 // 	columns.push_back(column_t(measurement->crater.global_sputter_time(),"crater_"+suffix()));
 	for (auto& cluster : measurement->clusters)
 	{
 		if (cluster.second.concentration().is_set()) 
-			columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
+		{
+			if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.concentration().moving_window_mean(smoothing_moving_window_mean_size),"_"+suffix()));
+			else columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
+		}
 		else 
-			columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
+		{
+			if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.intensity().moving_window_mean(smoothing_moving_window_mean_size),"_"+suffix()));
+			else columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
+		}
 	}
 // 	columns.push_back(column_t(measurement->crater.sputter_current(),"crater_"+suffix()));
 // 	columns.push_back(column_t(measurement->crater.total_sputter_time(),"crater_"+suffix()));
@@ -680,36 +511,53 @@ origin_t::origin_t(measurement_t* measurement) : export2_t(measurement)
 vector<origin_t::column_t> origin_t::format_measurement_cluster_columns_from_config()
 {
 	vector<column_t> columns;
-	for (auto& col_name : conf.export_column_names)
+	for (auto& col_name : export_column_names)
 	{
 		if (col_name=="sputter_depth")
 		{
-			if (measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(conf.depth_resolution),"crater_"+suffix()));
+			if (measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(depth_resolution),"crater_"+suffix()));
 			else if (col_name!="sputter_time" && measurement->crater.sputter_time().is_set()) columns.push_back(column_t(measurement->crater.sputter_time(),"crater_"+suffix()));
 		}
 		if (col_name=="sputter_time" &&measurement->crater.sputter_time().is_set()) columns.push_back(column_t(measurement->crater.sputter_time(),"crater_"+suffix()));
 		if (col_name=="sputter_rate" &&measurement->crater.sputter_rate().is_set()) columns.push_back(column_t(measurement->crater.sputter_rate(),"crater_"+suffix()));
 		if (col_name=="global_sputter_time" &&measurement->crater.global_sputter_time().is_set()) columns.push_back(column_t(measurement->crater.global_sputter_time(),"crater_"+suffix()));
-		if ((col_name=="Ipr" || col_name=="ipr") &&measurement->crater.sputter_current().is_set()) columns.push_back(column_t(measurement->crater.sputter_current(),"crater_"+suffix()));
+		if ((col_name=="Ipr" || col_name=="ipr") &&measurement->crater.sputter_current().is_set()) 
+		{
+			if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(measurement->crater.sputter_current().moving_window_mean(smoothing_moving_window_mean_size),"crater_"+suffix())); 
+			else columns.push_back(column_t(measurement->crater.sputter_current(),"crater_"+suffix()));
+		}
 	
 		if (col_name.find("concentration")!=string::npos && col_name.find("intensit")!=string::npos)
 			for (auto& cluster : measurement->clusters)
 			{
-				if (cluster.second.concentration().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
-				else columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
+				if (cluster.second.concentration().is_set()) 
+				{
+					if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.concentration().moving_window_mean(smoothing_moving_window_mean_size),"_"+suffix()));
+					else columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
+				}
+				else 
+				{
+					if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.intensity().moving_window_mean(smoothing_moving_window_mean_size),"_"+suffix()));
+					else columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
+				}
 			}
 		
 		if (col_name=="concentrations" || col_name=="concentration")
 			for (auto& cluster : measurement->clusters)
-				if (cluster.second.concentration().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
+			{
+				if (cluster.second.concentration().is_set()) 
+				{
+					if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.concentration().moving_window_mean(smoothing_moving_window_mean_size),"_"+suffix()));
+					else columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
+				}
+			}
 				
 		if (col_name=="intensity" || col_name=="intensities")
 			for (auto& cluster : measurement->clusters)
 				if (cluster.second.intensity().is_set()) 
 				{
-					columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
-// 					filter_gaussian(5,4)
-// 					columns.push_back(column_t(&cluster.second,cluster.second.intensity().filter_gaussian(5,4),"_"+suffix()));
+					if (smoothing_moving_window_mean_size>1)  columns.push_back(column_t(&cluster.second,cluster.second.intensity().moving_window_mean(smoothing_moving_window_mean_size),"_"+suffix()));
+					else columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
 				}
 		
 		if (col_name=="total_sputter_time")
@@ -801,12 +649,7 @@ void origin_t::export_settings_mass_calibration_to_file(measurement_group_t& MG_
 {
 	vector<column_t> columns = format_settings_mass_calibration(MG_p);
 	if (columns.size()==0) return;
-// 	set<string> root_directories;
-// 	for (auto& measurement: MG_p.measurements)
-// 	{
-// 		origin_t origin (measurement);
-// 		root_directories.insert(origin.root_directory(conf.export_location));
-// 	}
+
 	for (auto& dir:root_directories(MG_p))
 		write_to_file(columns,dir,MG_p.name()+"_settings_mass_calibration.txt");
 }
@@ -814,18 +657,36 @@ void origin_t::export_settings_mass_calibration_to_file(measurement_group_t& MG_
 
 void origin_t::export_to_files(measurement_group_t& MG_p)
 {
-// 	set<string> root_directories;
+	
 	for (auto& measurement: MG_p.measurements)
 	{
-// 		for (auto& M:MG.measurements)
-		
 		cout << "\ttrying to export: " << measurement->filename_p->filename_without_crater_depths() << " ...";
 		origin_t origin (measurement);
-		if (origin.write_to_file(origin.format_measurement_cluster_columns(),origin.root_directory(conf.export_location),origin.filename(conf.export_filename)))
-			cout << "SUCCESS!" << endl;
+		if (origin.write_to_file(origin.format_measurement_cluster_columns(),origin.root_directory(),origin.filename()))
+			cout << "SUCCESS!\t" << origin.root_directory() << origin.filename() << endl;
 		else
 			cout << "failed" << endl;
-// 		root_directories.insert(origin.root_directory(conf.export_location));
+	}
+	
+	if (export_MG_parameters)
+	{
+		cout << "\ttrying to export: MG parameters ...";
+		origin_t::export_MG_parameters_to_file_V2(MG_p);
+		cout << "SUCCESS!" << endl;
+	}
+	
+	if (export_calc_results)
+	{
+		cout << "\ttrying to export: calculation_results  ...";
+		export_contents_to_file(MG_p.to_str(),MG_p.name()+"_calculation_results.txt",MG_p,calc_location);
+		cout << "SUCCESS!" << endl;
+	}
+	
+	if (export_calc_history)
+	{
+		cout << "\ttrying to export: detailed_calculation_history ...";
+		export_contents_to_file(calc_history,MG_p.name()+"_detailed_calculation_history.txt",MG_p,calc_location);
+		cout << "SUCCESS!" << endl;
 	}
 }
 
@@ -867,18 +728,11 @@ void origin_t::export_MG_parameters_to_file_V2(measurement_group_t& MG_p)
 	cols.push_back(column_t(MG_p.filenames_with_path(),"filenames","",""));
 		
 	for (auto& dir:root_directories(MG_p))
-		write_to_file(cols,dir+conf.calc_location,MG_p.name()+"_parameters.txt");
+		write_to_file(cols,dir+calc_location,MG_p.name()+"_parameters.txt");
 }
 
 void origin_t::export_MG_parameters_to_file(measurement_group_t& MG_p)
-{
-// 	set<string> root_directories;
-// 	for (auto& measurement: MG_p.measurements)
-// 	{
-// 		origin_t origin (measurement);
-// 		root_directories.insert(origin.root_directory(conf.export_location));
-// 	}
-	
+{	
 	vector<string> filenames;
 	
 	map<string,quantity_t> clustername_to_RSF;
@@ -1032,21 +886,14 @@ void origin_t::export_MG_parameters_to_file(measurement_group_t& MG_p)
 	
 	
 	for (auto& dir:root_directories(MG_p))
-		write_to_file(cols,dir+conf.calc_location,MG_p.name()+"_parameters.txt");
+		write_to_file(cols,dir+calc_location,MG_p.name()+"_parameters.txt");
 }
 
 
 void origin_t::export_jiang_parameters_to_file(calc_models_t::jiang_t& jiang)
 {
 	if (jiang.is_error()) return;
-	if (conf.calc_location=="") return;
-// 	set<string> root_directories;
-// 	for (auto& measurement: jiang.measurement_group().measurements)
-// 	{
-// 		origin_t origin (measurement);
-// // 		origin.write_to_file(origin.format_measurement_cluster_columns(),origin.root_directory(conf.export_location),origin.filename(conf.export_filename));
-// 		root_directories.insert(origin.root_directory());
-// 	}
+	if (calc_location=="") return;
 
 	/*now export jiang parameters*/
 	vector<column_t> cols;
@@ -1084,163 +931,7 @@ void origin_t::export_jiang_parameters_to_file(calc_models_t::jiang_t& jiang)
 	}
 	measurement_group_t MG_p = jiang.measurement_group();
 	for (auto& dir:root_directories(MG_p))
-		write_to_file(cols,dir+conf.calc_location,"jiang.txt");
+		write_to_file(cols,dir+calc_location,"jiang.txt");
 	return;
 }
-
-
-
-
-// bool origin_t::write(vector<column_t>& cols, string directory,string filename)
-// {
-// 	vector<vector<string>> output_matrix;
-// 	for (column_t column:cols)
-// 	{
-// 		if (column.populated) output_matrix.push_back(column.vec());
-// 	}
-// 	if (output_matrix.size()==0) return false;
-// 
-// 	output_matrix = tools::mat::transpose_matrix(output_matrix);
-// 	string output=tools::mat::format_matrix_to_string(&output_matrix,"\n",conf.data_column_delimiter);
-// 	if (directory=="") return false;
-// 	if (filename=="") return false;
-// 
-// 	directory=tools::file::check_directory_string(directory);
-// 	tools::file::mkpath(directory,0750);
-// 
-// 	if (!tools::file::write_to_file(directory+filename,&output,false)) return false;
-// 
-// 	return true;
-// }
-
-// void origin_t::export_to_files(list<measurement_t>* measurements)
-// {
-// 	for (auto& measurement:*measurements)
-// 	{
-// 		cout << "origin_t::origin_t(measurement_t* measurement) : export_t(measurement):\t" <<  measurement.filename_p->filename_with_path() << endl;
-// 		origin_t origin(&measurement);
-// 		if (!origin.error) origin.export_to_file();
-// 	}
-// 	return;
-// }
-// 
-// void origin_t::export_to_files(list<measurement_t*> measurements)
-// {
-// 	for (auto& measurement:measurements)
-// 	{
-// 		cout << "origin_t::origin_t(measurement_t* measurement) : export_t(measurement):\t" <<  measurement->filename_p->filename_with_path() << endl;
-// 		origin_t origin(measurement);
-// 		if (!origin.error) origin.export_to_file();
-// 	}
-// 	return;
-// }
-
-
-
-// void origin_t::export_to_files(calc_models_t::jiang_t& jiang)
-// {
-// 	measurement_group_t MGj = jiang.calc();
-// 	export_to_files(MGj.measurements);
-// 	if (jiang.is_error()) return;
-// // 	export_to_files(MGj.measurements);
-// 	
-// 	if (conf.calc_location=="") return;
-// 	/*now export jiang parameters*/
-// 	vector<column_t> cols;
-// 	quantity_t fit;
-// 	{
-// 		cols.push_back(column_t(jiang.Crel_to_Irel().second));
-// 		cols.push_back(column_t(jiang.Crel_to_Irel().first));
-// 		fit=jiang.Crel_to_Irel().first;
-// 		fit.data = jiang.CRel_to_Irel_polyfit.fitted_y_data(jiang.Crel_to_Irel().second.data);
-// 		cols.push_back(column_t(fit));
-// 	}
-// 	
-// 	{
-// 		cols.push_back(column_t(jiang.SRs_to_Crel().second));
-// 		cols.push_back(column_t(jiang.SRs_to_Crel().first));
-// 		fit=jiang.SRs_to_Crel().first;
-// 		fit.data = jiang.SR_to_Crel_polyfit.fitted_y_data(jiang.SRs_to_Crel().second.data);
-// 		cols.push_back(column_t(fit));
-// 	}
-// 	
-// 	for (auto& RSFs:jiang.clustername_to_RSFs_to_Crel())
-// 	{
-// 		cols.push_back(RSFs.second.second);
-// 		cols.push_back(RSFs.second.first);
-// 		fit=RSFs.second.first;
-// 		fit.data = jiang.clustername_to_RSFs_to_Crel_polyfit[RSFs.first].fitted_y_data(RSFs.second.second.data);
-// 		cols.push_back(column_t(fit));
-// 	}
-// 	
-// 	write(cols,MGj.measurements.front()->filename_p->directory()+conf.calc_location,"calc_jiang.txt");
-// 	return;
-// }
-
-// void origin_t::export_to_files(measurement_group_t MG)
-// {
-// 	export_to_files(MG.measurements);
-// 
-// 	return;
-// }
-// 
-// void origin_t::export_to_files(list<measurement_group_t> MGs)
-// {	
-// 	for (auto& MG:MGs)
-// 		export_to_files(MG);
-// 	return;
-// }
-
-// void origin_t::export_overview_to_files(list<measurement_t>* measurements)
-// {
-// 	if (measurements==nullptr || measurements->size()==0) return;
-// 	vector<vector<string>> cols;
-// 	
-// 	/// maps longname -> orogin_ts
-// 	map<string, vector<origin_t::column_t>> lname_to_column;
-// 	/// measurement_name -> longname ->origin_exports 
-// // 	map<string, map<string, origin_t>> mmap;
-// 	vector<string> measurement_names={"measurement_names"};
-// 	for (list<measurement_t>::iterator it=measurements->begin();it!=measurements->end();++it)
-// 	{
-// 		measurement_t* measurement = &(*it);
-// 		origin_t origin(measurement);
-// 		for (origin_t::column_t col:origin.columns)
-// 		{
-// 			col.measurement_name=measurement->filename_p->filename_without_crater_depths();
-// 			lname_to_column[col.longname].push_back(col);
-// 		}
-// 		measurement_names.push_back(measurement->filename_p->filename_without_crater_depths());
-// 	}
-// 	cols.push_back(measurement_names);
-// 	for (map<string, vector<origin_t::column_t>>::iterator it=lname_to_column.begin();it!=lname_to_column.end();it++)
-// 	{
-// 		string lname = it->first;
-// 		if (lname.find("median")==string::npos) continue;
-// 		vector<string> col;
-// 		col.push_back(lname);
-// 		for (string measurement_name:measurement_names)
-// 		{
-// 			for (origin_t::column_t origin_col:it->second)
-// 			{
-// 				if (measurement_name==origin_col.measurement_name) 
-// 				{
-// 					col.push_back(origin_col.data[0]);
-// 					break;
-// 				}
-// 			}
-// 		}
-// 		cols.push_back(col);
-// 	}
-// // 	print(cols);
-// 	cols = tools::mat::transpose_matrix(cols);
-// 	origin_t origin(&measurements->front());
-// 	origin.get_filename("_OVERVIEW.txt");
-// 	origin.output=tools::mat::format_matrix_to_string(&cols);
-// 	origin.write_to_file();
-// 	
-// // 	output = 
-// 	return;
-// }
-
 

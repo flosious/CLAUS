@@ -23,6 +23,7 @@
 #include "fit_functions.hpp"
 #include <map>
 #include "filename_t.hpp"
+
 // #include "cluster_t.hpp"
 
 
@@ -40,6 +41,7 @@ class crater_t
 	friend class tofsims_txt_t;
 	friend class cluster_t;
 	friend class calc_models_t;
+	friend class reference_t;
 private:
 	double sputter_depth_resolution=0;
 	double sputter_time_resolution=0;
@@ -88,6 +90,7 @@ private:
 	fit_functions::asym2sig_t asym2sig;
 	bool fitted=false;
 public:
+	fit_functions::asym2sig_t fit_params();
 	/// the depth or height (z)
 	quantity_t z;
 	/// the surface (xy)

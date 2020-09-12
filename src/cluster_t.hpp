@@ -50,7 +50,7 @@ class cluster_t
 	friend class calc_models_t;
 	friend class mass_interference_filter_t;
 	friend class processor;
-	
+	friend class reference_t;
 	/*just testing*/
 	friend class origin_t;
 private:

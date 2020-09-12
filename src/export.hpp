@@ -79,12 +79,9 @@ private:
 	class column_t
 	{
 	public:
-		static string lname_prefix;
-		static string lname_suffix;
-		static string unit_prefix;
-		static string unit_suffix;
-		static string comment_prefix;
-		static string comment_suffix;
+		static string suffix_conf;
+		static string prefix_conf;
+
 		
 		bool populated=false;
 		string longname="";
@@ -93,11 +90,11 @@ private:
 		vector<string> data;
 		/// creates the column
 		vector<string> vec();
-		column_t(cluster_t* cluster, quantity_t* quantity, string suffix="");
-		column_t(cluster_t* cluster, quantity_t quantity, string suffix="");
-		column_t(quantity_t* quantity, string suffix="");
-		column_t(quantity_t quantity, string suffix="");
-		column_t(string longname, quantity_t quantity, string suffix="");
+		column_t(cluster_t* cluster, quantity_t* quantity, string suffix="", string prefix="");
+		column_t(cluster_t* cluster, quantity_t quantity, string suffix="", string prefix="");
+		column_t(quantity_t* quantity, string suffix="", string prefix="");
+		column_t(quantity_t quantity, string suffix="", string prefix="");
+		column_t(string longname, quantity_t quantity, string suffix="", string prefix="");
 		column_t(vector<string> data_p, string longname_p, string unit_p, string comment_p);
 	};
 	
@@ -108,6 +105,7 @@ private:
 	vector<column_t> format_jiang_parameters_columns();
 	static vector<column_t> format_settings_mass_calibration(measurement_group_t& MG_p);
 	string suffix();
+	string prefix();
 	static vector<vector<string>> cols_to_matrix(vector<column_t>& columns);
 	static bool write_to_file(vector<column_t> columns, string directory_s, string filename_p);
 public:

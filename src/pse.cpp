@@ -138,7 +138,7 @@ int pse_t::load_file(string filename)
 			isotope_a.name="abundance";
 // 			isotope_a.is_data=true;
 // 			isotope_a.is_skalar_data=true;
-			isotope_a.dimension="";
+			isotope_a.dimension="relative";
 			isotope_a.unit="";
 			if (abundance.length()==0) isotope_a.data.push_back(0);
 			else isotope_a.data.push_back(tools::str::str_to_double(abundance));

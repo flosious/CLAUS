@@ -56,7 +56,8 @@ void mass_interference_filter_t::substract_Ge_from_As(cluster_t* As_cluster)
 // 		cout << "difference.size()="<<difference.data.size()<<endl;
 // 		cout << "As_cluster->concentration_p.data[Ge_max_pos]=" << As_cluster->concentration_p.data[Ge_max_pos] << endl;
 		As_cluster->concentration_p=As_cluster->concentration_p-difference;
-// 		cout << "As_cluster->concentration_p.data[Ge_max_pos]=" << As_cluster->concentration_p.data[Ge_max_pos] << endl;
 		
+		for (auto& d : As_cluster->concentration_p.data)
+			if (d<=0) d=1E-10;		
 	}
 }

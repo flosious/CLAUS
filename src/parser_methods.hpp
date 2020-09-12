@@ -96,44 +96,5 @@ public:
 
 
 
-
-
-
-
-
-
-
-// 
-// /*parses already exported files*/
-// class export_origin_txt_t: public parser_t 
-// {
-// 	friend class processor;
-// private:
-// 	/// tool name remains unknown in general
-// 	string tool_name = "";
-// 	vector<string> file_type_endings = {"txt"};
-// 	
-// 	bool check();
-// 	
-// 	/// parses the isotopes within one cluster
-// 	vector<isotope_t>  parse_isotopes(string isotopes);
-// 	/// parses the raw_header_tensor into vectors of dimensions, isotopes and units
-// 	bool parse_cluster();
-// 	/// set the values of identifiers_t id
-// 	void set_ids();
-// 	/// adds the crater depth from filename or settings to the clusters quantities
-// 	bool add_crater_to_clusters();
-// 	
-// 	vector<vector<string>> header_columns,data_columns;
-// public:
-// 	export_origin_txt_t();
-// 	/// tries to parse the filename: and overwrites parser_t::parse()
-// 	bool parse(string* filename_p, string* contents);
-// };
-// 
-// 
-// 
-
-
 #endif // PARSER_METHODS_T_HPP
 

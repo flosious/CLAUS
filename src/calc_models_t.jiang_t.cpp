@@ -123,9 +123,9 @@ bool calc_models_t::jiang_t::calc()
 		measurement->clusters[counter_cluster_name].already_checked_SF=true;
 		measurement->clusters[counter_cluster_name].already_checked_dose=false;
 		/*this is a fast hack to solve the export issue for relative elemental (no isotope) matrix concentration*/
-		measurement->clusters[counter_cluster_name].isotopes.resize(1);
-		measurement->clusters[counter_cluster_name].isotopes[0] = counter_matrix_isotope();
-		measurement->clusters[counter_cluster_name].isotopes[0].atoms = 1;
+// 		measurement->clusters[counter_cluster_name].isotopes.resize(1);
+// 		measurement->clusters[counter_cluster_name].isotopes[0] = counter_matrix_isotope();
+// 		measurement->clusters[counter_cluster_name].isotopes[0].atoms = 1;
 		
 		
 		measurement->clusters[denominator_cluster_name].concentration_p = measurement->clusters[counter_cluster_name].concentration_p*-1+100;
@@ -138,9 +138,9 @@ bool calc_models_t::jiang_t::calc()
 		measurement->clusters[denominator_cluster_name].already_checked_SF=true;
 		measurement->clusters[denominator_cluster_name].already_checked_dose=false;
 		/*this is a fast hack to solve the export issue for relative elemental (no isotope) matrix concentration*/
-		measurement->clusters[denominator_cluster_name].isotopes.resize(1);
-		measurement->clusters[denominator_cluster_name].isotopes[0] = denominator_matrix_isotope();
-		measurement->clusters[denominator_cluster_name].isotopes[0].atoms=1;
+// 		measurement->clusters[denominator_cluster_name].isotopes.resize(1);
+// 		measurement->clusters[denominator_cluster_name].isotopes[0] = denominator_matrix_isotope();
+// 		measurement->clusters[denominator_cluster_name].isotopes[0].atoms=1;
 		
 		/*sputter_rate*/
 		if (SR_to_Crel_polyfit.fitted())

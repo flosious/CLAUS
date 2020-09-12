@@ -57,12 +57,8 @@ double export2_t::depth_resolution;
 vector<string> export2_t::export_column_names;
 map<string,string> export2_t::replacements;
 
-string origin_t::column_t::lname_prefix="";
-string origin_t::column_t::lname_suffix="";
-string origin_t::column_t::unit_prefix="";
-string origin_t::column_t::unit_suffix="";
-string origin_t::column_t::comment_prefix="";
-string origin_t::column_t::comment_suffix="";
+string origin_t::column_t::prefix_conf="";
+string origin_t::column_t::suffix_conf="";
 
 bool export2_t::export_MG_parameters=true;
 bool export2_t::export_calc_history=true;
@@ -209,8 +205,13 @@ void export2_t::check_placeholders(std::__cxx11::string& check_this)
 		else if (placeholder=="toolid" || placeholder=="tool" || placeholder=="tool_name") tools::str::replace_chars(&check_this,"{"+placeholder+"}",tool_name());
 		else if (placeholder=="energy") tools::str::replace_chars(&check_this,"{"+placeholder+"}",energy());
 		else if (placeholder=="repetition") tools::str::replace_chars(&check_this,"{"+placeholder+"}",repetition());
-		else if (placeholder=="others"||placeholder=="rest") tools::str::replace_chars(&check_this,"{"+placeholder+"}",others());
+		else if (placeholder=="other"||placeholder=="others"||placeholder=="rest") tools::str::replace_chars(&check_this,"{"+placeholder+"}",others());
 	}
+	while (check_this.find("__")!=string::npos)
+		tools::str::replace_chars(&check_this,"__","_");
+	
+	while (check_this.back() == '_')
+		check_this.erase(check_this.end()-1);
 }
 
 std::__cxx11::string export2_t::root_directory()
@@ -304,24 +305,39 @@ void origin_t::apply_origin_replacements_on_string(std::__cxx11::string& replace
 	}
 }
 
+string origin_t::prefix()
+{
+	string prefix = column_t::prefix_conf;
+	check_placeholders(prefix);
+// 	if (prefix!="") prefix = prefix + "_";
+	return prefix;
+}
 
 string origin_t::suffix()
 {
-	string suffix="";
-	if (lot()!=LOT_DEFAULT) suffix += "_" + lot();
-	if (wafer()!=WAFER_DEFAULT) suffix += "_" + wafer();
-	if (chip()!=CHIP_DEFAULT) suffix += "_" + chip();
-	if (monitor()!=MONITOR_DEFAULT) suffix += "_" + monitor();
-	// special sample names (not IHP compliant) have no lot or wafer
-	if (lot()==LOT_DEFAULT && wafer()==WAFER_DEFAULT) 
+	string suffix=column_t::suffix_conf;
+	if (suffix!="")
 	{
-		if (measurement->filename_p->not_parseable_filename_parts.size()==0) suffix = "_"+measurement->filename_p->filename_without_crater_depths();
-		else suffix = "_"+others();
+		check_placeholders(suffix);
+	}
+	else 
+	{
+		if (lot()!=LOT_DEFAULT) suffix += "_" + lot();
+		if (wafer()!=WAFER_DEFAULT) suffix += "_" + wafer();
+		if (chip()!=CHIP_DEFAULT) suffix += "_" + chip();
+		if (monitor()!=MONITOR_DEFAULT) suffix += "_" + monitor();
+		// special sample names (not IHP compliant) have no lot or wafer
+		if (lot()==LOT_DEFAULT && wafer()==WAFER_DEFAULT) 
+		{
+			if (measurement->filename_p->not_parseable_filename_parts.size()==0) suffix = "_"+measurement->filename_p->filename_without_crater_depths();
+			else suffix = "_"+others();
+		}
+	
+		if (repetition()!=repetition_DEFAULT) suffix += "_" + repetition();
+		suffix.erase(suffix.begin());
+		if (suffix!="") suffix = "_"+suffix;
 	}
 	
-	if (repetition()!=repetition_DEFAULT) suffix += "_" + repetition();
-	
-	suffix.erase(suffix.begin());
 	return suffix;
 }
 
@@ -336,64 +352,68 @@ origin_t::column_t::column_t(vector<std::__cxx11::string> data_p, std::__cxx11::
 	return;
 }
 
-origin_t::column_t::column_t(quantity_t quantity, string suffix)
+origin_t::column_t::column_t(quantity_t quantity, string suffix, string prefix)
 {
 	if (!quantity.is_set()) return;
 
 	longname = quantity.name;
 	unit = quantity.unit;
-	comment = suffix;
+	comment = prefix+suffix;
 	data = tools::mat::double_vec_to_str_vec(quantity.data);
 	populated=true;
 	return;
 }
 
-origin_t::column_t::column_t(std::__cxx11::string longname, quantity_t quantity, std::__cxx11::string suffix)
+origin_t::column_t::column_t(std::__cxx11::string longname, quantity_t quantity, std::__cxx11::string suffix, string prefix)
 {
-	column_t col(quantity,suffix);
+	column_t col(quantity,suffix,prefix);
 	col.longname = longname;
 	*this = col;
 }
 
 
-origin_t::column_t::column_t(quantity_t* quantity, string suffix)
+origin_t::column_t::column_t(quantity_t* quantity, string suffix, string prefix)
 {
 	if (quantity==nullptr) return;
 	if (!quantity->is_set()) return;
 
 	longname = quantity->name;
 	unit = quantity->unit;
-	comment = suffix;
+	comment = prefix+suffix;
 	data = tools::mat::double_vec_to_str_vec(quantity->data);
 	populated=true;
 	return;
 }
 
-origin_t::column_t::column_t(cluster_t* cluster, quantity_t quantity, string suffix)
+origin_t::column_t::column_t(cluster_t* cluster, quantity_t quantity, string suffix, string prefix)
 {
 	if (cluster==nullptr) return;
 	if (!quantity.is_set()) return;
 // 	cout << "cluster.name()B:\t" << cluster->name() << endl;
-	*this = column_t(cluster,&quantity,suffix);
+	*this = column_t(cluster,&quantity,suffix,prefix);
 }
 
-origin_t::column_t::column_t(cluster_t* cluster, quantity_t* quantity, string suffix)
+origin_t::column_t::column_t(cluster_t* cluster, quantity_t* quantity, string suffix, string prefix)
 {
 	if (quantity==nullptr) return;
 	if (!quantity->is_set()) return;
-// 	cout << "cluster.name()A:\t" << cluster->name() << endl;
 	
 	string name=cluster->name();
 	
 	vector<isotope_t> isotopes;
 	isotopes = cluster->isotopes;
-	if (quantity->name.find("concentration")!=string::npos)
+	if (quantity->name.find("concentration")!=string::npos && isotopes.size()>1)
 	{
 		// remove any matrix isotopes from the list of isotopes in this cluster
 		set<isotope_t> s = cluster->measurement->measurement_group->reference_matrix_isotopes();
 		vector<isotope_t> v(s.begin(),s.end());
 		isotopes = cluster->leftover_elements(v);
 	}
+	
+// 	cout << "isotopes.size()\t" << isotopes.size()  << endl;
+// 	for (auto& isotope:isotopes)
+// 		isotope.to_screen();
+	
 	if (isotopes.size()>0)
 	{
 		name="";
@@ -410,16 +430,19 @@ origin_t::column_t::column_t(cluster_t* cluster, quantity_t* quantity, string su
 		}
 	}
 
-	if (quantity->unit=="at%") 
+	if (quantity->unit=="at%" && isotopes.size()==1) 
 	{
-		isotope_t element = cluster->measurement->measurement_group->isotope_from_cluster_name(cluster->name());
+// 		isotope_t element = cluster->measurement->measurement_group->isotope_from_cluster_name(cluster->name());
+		isotope_t element = isotopes[0];
+		element.nucleons=-1;
+// 		element.to_screen();
 		longname = element.symbol +" "+quantity->name;
-		comment = element.symbol+suffix;
+		comment = prefix+element.symbol+suffix;
 	}
 	else 
 	{
 		longname = name +" "+quantity->name;
-		comment = name+suffix;
+		comment = prefix+name+suffix;
 	}
 	unit = quantity->unit;
 	
@@ -471,20 +494,19 @@ vector<origin_t::column_t> origin_t::format_measurement_cluster_columns()
 {
 	if (export_column_names.size()>0) return format_measurement_cluster_columns_from_config();
 	vector<column_t> columns;
-	if (measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(depth_resolution),"crater_"+suffix()));
-	else columns.push_back(column_t(measurement->crater.sputter_time(),"crater_"+suffix()));
-// 	columns.push_back(column_t(measurement->crater.global_sputter_time(),"crater_"+suffix()));
+	if (measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(depth_resolution),prefix()+"crater"+suffix()));
+	else columns.push_back(column_t(measurement->crater.sputter_time(),prefix()+"crater"+suffix()));
 	for (auto& cluster : measurement->clusters)
 	{
 		if (cluster.second.concentration().is_set()) 
 		{
-			if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.concentration().moving_window_mean(smoothing_moving_window_mean_size),"_"+suffix()));
-			else columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
+			if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.concentration().moving_window_mean(smoothing_moving_window_mean_size),suffix()));
+			else columns.push_back(column_t(&cluster.second,cluster.second.concentration(),suffix(),prefix()));
 		}
 		else 
 		{
-			if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.intensity().moving_window_mean(smoothing_moving_window_mean_size),"_"+suffix()));
-			else columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
+			if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.intensity().moving_window_mean(smoothing_moving_window_mean_size),suffix()));
+			else columns.push_back(column_t(&cluster.second,cluster.second.intensity(),suffix(),prefix()));
 		}
 	}
 // 	columns.push_back(column_t(measurement->crater.sputter_current(),"crater_"+suffix()));
@@ -492,12 +514,12 @@ vector<origin_t::column_t> origin_t::format_measurement_cluster_columns()
 // 	columns.push_back(column_t(measurement->crater.total_sputter_depths(),"crater_"+suffix()));
 	quantity_t depths = measurement->crater.total_sputter_depths_from_linescans();
 	if (measurement->crater.total_sputter_depths_from_filename().is_set()) depths = depths.add_to_data(measurement->crater.total_sputter_depths_from_filename());
-	columns.push_back(column_t(depths,"crater_"+suffix()));
+	columns.push_back(column_t(depths,prefix()+"crater" +suffix()));
 	for (auto& linescan : measurement->crater.linescans)
 	{
-		columns.push_back(column_t(&linescan.xy,"crater_"+suffix()));
-		columns.push_back(column_t(&linescan.z,"crater_"+suffix()));	
-		columns.push_back(column_t(linescan.fit(),"crater_"+suffix()));
+		columns.push_back(column_t(&linescan.xy,prefix()+"crater"+suffix()));
+		columns.push_back(column_t(&linescan.z,prefix()+"crater"+suffix()));	
+		columns.push_back(column_t(linescan.fit(),prefix()+"crater"+suffix()));
 	}
 	return columns;
 }
@@ -515,16 +537,16 @@ vector<origin_t::column_t> origin_t::format_measurement_cluster_columns_from_con
 	{
 		if (col_name=="sputter_depth")
 		{
-			if (measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(depth_resolution),"crater_"+suffix()));
-			else if (col_name!="sputter_time" && measurement->crater.sputter_time().is_set()) columns.push_back(column_t(measurement->crater.sputter_time(),"crater_"+suffix()));
+			if (measurement->crater.sputter_depth().is_set()) columns.push_back(column_t(measurement->crater.sputter_depth(depth_resolution),prefix()+"crater"+suffix()));
+			else if (col_name!="sputter_time" && measurement->crater.sputter_time().is_set()) columns.push_back(column_t(measurement->crater.sputter_time(),prefix()+"crater"+suffix()));
 		}
-		if (col_name=="sputter_time" &&measurement->crater.sputter_time().is_set()) columns.push_back(column_t(measurement->crater.sputter_time(),"crater_"+suffix()));
-		if (col_name=="sputter_rate" &&measurement->crater.sputter_rate().is_set()) columns.push_back(column_t(measurement->crater.sputter_rate(),"crater_"+suffix()));
-		if (col_name=="global_sputter_time" &&measurement->crater.global_sputter_time().is_set()) columns.push_back(column_t(measurement->crater.global_sputter_time(),"crater_"+suffix()));
+		if (col_name=="sputter_time" &&measurement->crater.sputter_time().is_set()) columns.push_back(column_t(measurement->crater.sputter_time(),prefix()+"crater"+suffix()));
+		if (col_name=="sputter_rate" &&measurement->crater.sputter_rate().is_set()) columns.push_back(column_t(measurement->crater.sputter_rate(),prefix()+"crater"+suffix()));
+		if (col_name=="global_sputter_time" &&measurement->crater.global_sputter_time().is_set()) columns.push_back(column_t(measurement->crater.global_sputter_time(),prefix()+"crater"+suffix()));
 		if ((col_name=="Ipr" || col_name=="ipr") &&measurement->crater.sputter_current().is_set()) 
 		{
-			if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(measurement->crater.sputter_current().moving_window_mean(smoothing_moving_window_mean_size),"crater_"+suffix())); 
-			else columns.push_back(column_t(measurement->crater.sputter_current(),"crater_"+suffix()));
+			if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(measurement->crater.sputter_current().moving_window_mean(smoothing_moving_window_mean_size),prefix()+"crater"+suffix())); 
+			else columns.push_back(column_t(measurement->crater.sputter_current(),prefix()+"crater"+suffix()));
 		}
 	
 		if (col_name.find("concentration")!=string::npos && col_name.find("intensit")!=string::npos)
@@ -532,69 +554,72 @@ vector<origin_t::column_t> origin_t::format_measurement_cluster_columns_from_con
 			{
 				if (cluster.second.concentration().is_set()) 
 				{
-					if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.concentration().moving_window_mean(smoothing_moving_window_mean_size),"_"+suffix()));
-					else columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
+					if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.concentration().moving_window_mean(smoothing_moving_window_mean_size),suffix(),prefix()));
+					else columns.push_back(column_t(&cluster.second,cluster.second.concentration(),suffix(),prefix()));
 				}
 				else 
 				{
-					if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.intensity().moving_window_mean(smoothing_moving_window_mean_size),"_"+suffix()));
-					else columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
+					if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.intensity().moving_window_mean(smoothing_moving_window_mean_size),suffix(),prefix()));
+					else columns.push_back(column_t(&cluster.second,cluster.second.intensity(),suffix(),prefix()));
 				}
 			}
 		
 		if (col_name=="concentrations" || col_name=="concentration")
+		{
 			for (auto& cluster : measurement->clusters)
 			{
 				if (cluster.second.concentration().is_set()) 
 				{
-					if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.concentration().moving_window_mean(smoothing_moving_window_mean_size),"_"+suffix()));
-					else columns.push_back(column_t(&cluster.second,cluster.second.concentration(),"_"+suffix()));
-				}
+					if (smoothing_moving_window_mean_size>1) columns.push_back(column_t(&cluster.second,cluster.second.concentration().moving_window_mean(smoothing_moving_window_mean_size),suffix(),prefix()));
+					else columns.push_back(column_t(&cluster.second,cluster.second.concentration(),suffix(),prefix()));
+				} 
 			}
-				
+		}		
 		if (col_name=="intensity" || col_name=="intensities")
+		{
 			for (auto& cluster : measurement->clusters)
 				if (cluster.second.intensity().is_set()) 
 				{
-					if (smoothing_moving_window_mean_size>1)  columns.push_back(column_t(&cluster.second,cluster.second.intensity().moving_window_mean(smoothing_moving_window_mean_size),"_"+suffix()));
-					else columns.push_back(column_t(&cluster.second,cluster.second.intensity(),"_"+suffix()));
-				}
+					if (smoothing_moving_window_mean_size>1)  columns.push_back(column_t(&cluster.second,cluster.second.intensity().moving_window_mean(smoothing_moving_window_mean_size),suffix(),prefix()));
+					else columns.push_back(column_t(&cluster.second,cluster.second.intensity(),suffix(),prefix()));
+				} 
+		}
 		
 		if (col_name=="total_sputter_time")
 		{
-			if (measurement->crater.total_sputter_time().is_set()) columns.push_back(column_t(measurement->crater.total_sputter_time(),"crater_"+suffix()));
+			if (measurement->crater.total_sputter_time().is_set()) columns.push_back(column_t(measurement->crater.total_sputter_time(),prefix()+"crater"+suffix()));
 		}
 		
 		if (col_name=="total_sputter_depths" || col_name=="total_sputter_depth")
 		{
 			quantity_t depths = measurement->crater.total_sputter_depths_from_linescans();
 			if (measurement->crater.total_sputter_depths_from_filename().is_set()) depths = depths.add_to_data(measurement->crater.total_sputter_depths_from_filename());
-			columns.push_back(column_t(depths,"crater_"+suffix()));
+			columns.push_back(column_t(depths,prefix()+"crater"+suffix()));
 		}
 		
-		if (col_name=="linescans" || col_name=="linescan")
+		if (col_name=="linescans" || col_name=="linescan" || col_name=="lineprofile" || col_name=="lineprofiles")
 		{
 			for (auto& linescan : measurement->crater.linescans)
 			{
-				columns.push_back(column_t(&linescan.xy,"crater_"+suffix()));
-				columns.push_back(column_t(&linescan.z,"crater_"+suffix()));	
-				columns.push_back(column_t(linescan.fit(),"crater_"+suffix()));
+				columns.push_back(column_t(&linescan.xy,prefix()+"crater"+suffix()));
+				columns.push_back(column_t(&linescan.z,prefix()+"crater"+suffix()));
+				columns.push_back(column_t(linescan.fit(),prefix()+"crater"+suffix()));
 			}
 		}
 		
 		if (col_name=="RSF")
 			for (auto& cluster : measurement->clusters)
-				if (cluster.second.RSF().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.RSF(),"_"+suffix()));
+				if (cluster.second.RSF().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.RSF(),suffix(),prefix()));
 				
 		if (col_name=="reference_intensity")
 			for (auto& cluster : measurement->clusters)
-				if (cluster.second.reference_intensity().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.reference_intensity(),"_"+suffix()));
+				if (cluster.second.reference_intensity().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.reference_intensity(),suffix(),prefix()));
 		
 		if (col_name=="dose")
 			for (auto& cluster : measurement->clusters)
-// 				if (cluster.second.equilibrium(false).dose().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.equilibrium(false).dose(),"_"+suffix()));
-				if (cluster.second.dose().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.dose(),"_"+suffix()));
+				if (cluster.second.dose().is_set()) columns.push_back(column_t(&cluster.second,cluster.second.equilibrium().dose(),suffix(),prefix()));
 	}
+	
 	return columns;
 }
 

@@ -413,6 +413,7 @@ quantity_t quantity_t::filter_impulse(int window_size, float factor)
 	filtered.unit = unit;
 	if (window_size==0) window_size=0.05*data.size();
 	if (window_size==0) window_size=3;
+// 	if (factor<0) factor= statistics::get_mad_from_Y(data)*1;
 	filtered.data = statistics::impulse_filter(data,window_size,factor);
 	return filtered;
 }

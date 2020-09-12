@@ -154,7 +154,7 @@ bool fit_functions::asym2sig_t::fit(map<double, double> data_XY, double y0_s, do
 	gsl_blas_ddot(f, f, &chisq0_p);
 
 	/* solve the system with a maximum of 100 iterations */
-	status = gsl_multifit_nlinear_driver(100, xtol, gtol, ftol, NULL, NULL, &info, w);
+	status = gsl_multifit_nlinear_driver(200, xtol, gtol, ftol, NULL, NULL, &info, w);
 
 	/* compute covariance of best fit parameters */
 	J = gsl_multifit_nlinear_jac(w);

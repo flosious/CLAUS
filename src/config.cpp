@@ -75,7 +75,8 @@ int config_t::parse(vector<string> config_lines) {
         else if (key.compare("test")==0) save_test(value);
 // 		standard_reference_intensity_calculation_method
 		
-		else if (key=="origin_lname_praefix") 														origin_t::column_t::lname_prefix=value;
+		else if (key=="origin_suffix") 																origin_t::column_t::suffix_conf=value;
+		else if (key=="origin_prefix") 																origin_t::column_t::prefix_conf=value;
 		else if (key=="standard_reference_intensity_calculation_method") 							cluster_t::standard_reference_intensity_calculation_method = value;
 
 		else if (key=="pse") 																		pse_t::file_locations.push_back(value);
@@ -107,7 +108,7 @@ int config_t::parse(vector<string> config_lines) {
 		else if (key=="measurement_definition") 													save_measurement_definition(value);
 		else if (key=="export_columns" || key=="export_column_names")								save_export_column_names(value);
 
-        else if (key=="use_impulse_filter_on_data") { if (value.find("0")!=string::npos) 				parser_methods::use_impulse_filter_on_data=false;}
+        else if (key=="use_impulse_filter_on_data") { if (value.find("0")!=string::npos) 			parser_methods::use_impulse_filter_on_data=false;}
         else 
 		{
 			cout << "config_t::\tCould not parse: " << config_lines[i] << endl;

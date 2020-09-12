@@ -292,9 +292,10 @@ vector<double> statistics::impulse_filter(vector<double> Y, int window_size, flo
 	/// THIS IS NOT WORKING IN WINDOWS 32BIT FOR SOME INPUT VALUES
 //     gsl_filter_impulse(GSL_FILTER_END_TRUNCATE, GSL_FILTER_SCALE_QN, t, x, y,
 //                      xmedian, xsigma, &noutlier, ioutlier, w);
-	gsl_filter_impulse(GSL_FILTER_END_PADVALUE, GSL_FILTER_SCALE_MAD, t, x, y,
-                     xmedian, xsigma, &noutlier, ioutlier, w);
-    for (int i=0;i<y->size;i++) Y_filtered.push_back(y->data[i]);
+	gsl_filter_impulse(GSL_FILTER_END_PADVALUE, GSL_FILTER_SCALE_MAD, t, x, y, xmedian, xsigma, &noutlier, ioutlier, w);
+// 	gsl_filter_impulse(GSL_FILTER_END_TRUNCATE, GSL_FILTER_SCALE_QN, t, x, y, xmedian, xsigma, &noutlier, ioutlier, w);
+    for (int i=0;i<y->size;i++) 
+		Y_filtered.push_back(y->data[i]);
     gsl_vector_free(x);
     gsl_vector_free(y);
     gsl_vector_free(xmedian);

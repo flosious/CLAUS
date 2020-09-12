@@ -62,13 +62,13 @@ measurement_t measurement_tools_t::measurement(filename_t* filename_p)
 	tools::str::remove_substring_from_mainstring(&file_contents,"\r");
 
 	
-	cout << "[" << parsed_measurements_counter << "]trying to parse: " << filename_p->filename_with_path();
+	cout << "[" << parsed_measurements_counter << "]trying to parse: " << filename_p->filename_with_path() << " ... ";
 	
 	
 	/*parser methods*/
 	// dsims_asc
 	dsims_asc_t dsims_asc;
-	cout << "... dsims_asc ... ";
+	cout << "dsims_asc ... ";
 	if ((ignore_file_type_endings || is_correct_file_type(filename_p,dsims_asc.get_file_type_endings())) && dsims_asc.parse(filename_p,&file_contents)) 
 	{
 		parsed_measurements_counter++;
@@ -81,7 +81,7 @@ measurement_t measurement_tools_t::measurement(filename_t* filename_p)
 	
 	// tofsims_txt
 	tofsims_txt_t tofsims_txt;
-	cout << "... tofsims_txt ... ";
+	cout << "tofsims_txt ... ";
 	if ((ignore_file_type_endings || is_correct_file_type(filename_p,tofsims_txt.get_file_type_endings())) && tofsims_txt.parse(filename_p,&file_contents)) 
 	{
 		parsed_measurements_counter++;
@@ -91,10 +91,9 @@ measurement_t measurement_tools_t::measurement(filename_t* filename_p)
 	} 
 	else tools::vec::add(&error_messages,tofsims_txt.get_error_messages());
 
-
 	// images
 	images_t images;
-	cout << "... images ... " ;
+	cout << "images ... " ;
 	if ((ignore_file_type_endings || is_correct_file_type(filename_p,images.get_file_type_endings())) && images.parse(filename_p,&file_contents))  
 	{
 		parsed_measurements_counter++;
@@ -106,7 +105,7 @@ measurement_t measurement_tools_t::measurement(filename_t* filename_p)
 
 	// dektak32_txt_t
 	dektak32_txt_t dektak32_txt;
-	cout << "... dektak32_txt ... " ;
+	cout << "dektak32_txt ... " ;
 	if ((ignore_file_type_endings || is_correct_file_type(filename_p,dektak32_txt.get_file_type_endings())) && dektak32_txt.parse(filename_p,&file_contents)) 
 	{
 		parsed_measurements_counter++;
@@ -118,7 +117,7 @@ measurement_t measurement_tools_t::measurement(filename_t* filename_p)
 
 	// xps_csv_t
 	xps_csv_t xps_csv;
-	cout << "... xps_csv ... " ;
+	cout << "xps_csv ... " ;
 	if ((ignore_file_type_endings || is_correct_file_type(filename_p,xps_csv.get_file_type_endings())) && xps_csv.parse(filename_p,&file_contents)) 
 	{
 		parsed_measurements_counter++;
@@ -127,10 +126,22 @@ measurement_t measurement_tools_t::measurement(filename_t* filename_p)
 		return xps_csv.measurement();
 	}
 	else tools::vec::add(&error_messages,xps_csv.get_error_messages());
+	
+	// reference_t
+	reference_t reference;
+	cout << "reference ... ";
+	if ((ignore_file_type_endings || is_correct_file_type(filename_p,reference.get_file_type_endings())) && reference.parse(filename_p,&file_contents)) 
+	{
+		parsed_measurements_counter++;
+		tools::vec::add(&error_messages,reference.get_error_messages());
+		cout << "SUCCESS! " << /*filename_p->filename_with_path() << */endl;
+		return reference.measurement();
+	}
+	else tools::vec::add(&error_messages,xps_csv.get_error_messages());
 
 	
 	/****************/
-	cout << "... failed! no matching parser available" << endl;
+	cout << "failed! no matching parser available" << endl;
 	tools::vec::add(&error_messages, {filename_p->filename_with_path() + ": no parser applicable"});
 	
 	return measurement_p;
@@ -155,6 +166,9 @@ bool measurement_tools_t::get_file_types_endings_list()
 	
 	xps_csv_t xps_csv;
 	file_types_endings_list.insert(xps_csv.get_file_type_endings().begin(),xps_csv.get_file_type_endings().end());
+	
+	reference_t reference;
+	file_types_endings_list.insert(reference.get_file_type_endings().begin(),reference.get_file_type_endings().end());
 	
 	if (file_types_endings_list.find("NULL")!=file_types_endings_list.end())
 	{

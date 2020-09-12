@@ -15,12 +15,11 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
+// #define DEBUG
 #include "crater_t.hpp"
 #include "cluster_t.hpp"
-// #include "measurement.hpp"
-// #include "measurement_group_t.hpp"
-
-// vector<string> calc_history; // calc_history.push_back("crater"+"\t" + sputter_depth_p.to_str());
+#include "export.hpp"
 
 void crater_t::to_screen(string prefix)
 {
@@ -237,6 +236,10 @@ quantity_t crater_t::total_sputter_time()
 
 /*LINESCAN_T*/
 
+fit_functions::asym2sig_t linescan_t::fit_params()
+{
+	return asym2sig;
+}
 
 quantity_t linescan_t::fit()
 {
@@ -255,17 +258,20 @@ quantity_t linescan_t::fit()
 			fit_functions::asym2sig_t asym2sig_p;
 			asym2sig_p.fit(data_XY,NAN,NAN,NAN,NAN,j/4 * (data_XY.end()->first));
 			if (asym2sig_p.chisq()<asym2sig.chisq() || asym2sig.chisq()==-1) asym2sig=asym2sig_p;
-			
-// 			cout << "asym2sig.chisq()\t" << asym2sig.chisq() << endl;
-// 			cout << "asym2sig.chisq0()\t" << asym2sig.chisq0() << endl;
+#ifdef DEBUG
+			cout << endl;
+			cout << "j=" << j <<  "\tasym2sig.chisq()\t" << asym2sig.chisq() << endl;
+			cout << "j=" << j <<  "\tasym2sig.chisq0()\t" << asym2sig.chisq0() << endl;
+#endif
 // 			cout << "asym2sig.chisq()/asym2sig.chisq0()\t" << asym2sig.chisq()/asym2sig.chisq0() << endl;
 			
-			if (asym2sig.fitted() && asym2sig.chisq()/asym2sig.chisq0()<0.05) break;
+			if (asym2sig.fitted() && asym2sig.chisq()/asym2sig.chisq0()<0.01 && asym2sig.chisq()/asym2sig.chisq0()>0) break;
 		}
 		fitted=asym2sig.fitted();
 	}
 	if (!fitted) return fitted_z_profile;
 	fitted_z_profile.data=asym2sig.fitted_y_data(xy.data);
+// 	plot_t::fast_plot({xy,xy},{z,fitted_z_profile},"/tmp/linescan"+to_string((int)z.median().data[0]),false);
 	return fitted_z_profile;
 }
 

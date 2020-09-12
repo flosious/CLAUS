@@ -341,9 +341,13 @@ vector<vector <string> > tools::mat::format_string_to_matrix(string *mainstring,
 	string line;
 	vector<string> columns_in_line;
 	vector<vector< string >> matrix;
-	
+// 	cout << mainstring->length() << endl;
+// 	cout << "line_delimiter=" << line_delimiter << endl;
+// 	cout << "OUT\n";
 	vector<string> lines = tools::str::get_strings_between_delimiter(*mainstring,line_delimiter);
+// 	cout << "OUT2\n";
 	for (int i=0;i<lines.size();i++) {
+		if (lines[i].length()==0) continue;
 		line = lines[i];
 		tools::str::replace_chars(&(line),"\r",""); // win
 		if (line.length()>0) {
@@ -351,18 +355,18 @@ vector<vector <string> > tools::mat::format_string_to_matrix(string *mainstring,
 			matrix.push_back(columns_in_line);
 		}
 	}
+// 	cout << "OUT3\n";
 	return matrix;
 }
 
-string tools::mat::format_matrix_to_string(vector<vector<string> > *matrix, string line_delimiter, string column_delimiter) {
-// 	string content;
+string tools::mat::format_matrix_to_string(vector<vector<string> > *matrix, string line_delimiter, string column_delimiter) 
+{
 	stringstream ss;
 	for (int i=0;i<matrix->size();i++) {
 		if (i!=0) ss <<line_delimiter;
 		for (int j=0;j<(matrix->at(i)).size();j++) {
 			if (((*matrix)[i][j]).size()>0) {
 				if (j!=0) ss << column_delimiter;// content=content +column_delimiter;
-// 				content=content+((*matrix)[i][j]);
 				ss << (*matrix)[i][j];
 			} else {
 				if (j!=0) ss<< column_delimiter; // content=content +column_delimiter;

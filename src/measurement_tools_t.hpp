@@ -32,6 +32,7 @@
 #include "parser_methods.images_t.hpp"
 #include "parser_methods.xps_csv_t.hpp"
 #include "parser_methods.dektak32_txt_t.hpp"
+#include "parser_methods.reference_t.hpp"
 
 class measurement_t;
 class sample_t;

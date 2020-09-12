@@ -42,15 +42,8 @@ bool dsims_asc_t::parse(filename_t* filename_p, std::__cxx11::string* contents)
 // 		error_messages.push_back("dsims_asc_t::parse:parse_file_contents(): "+ filename->filename());
 		return false;
 	}
-// 	if (!parse_filename()) 
-// 	{
-// 		error=true;
-// 		error_messages.push_back("dsims_asc_t::parse:parse_filename(): "+ filename->filename());
-// 		return false;
-// 	}
 	add_crater_total_sputter_time();
 	add_global_sputter_time_in_sec_to_crater();
-// 	copy_to_measurement_p();
 	return true;
 }
 
@@ -79,19 +72,7 @@ vector<isotope_t> dsims_asc_t:: parse_isotopes(string cluster_name)
 	vector<string> single_isotopes= tools::str::get_strings_between_delimiter(cluster_name," ");
 	for (string single_isotope:single_isotopes)
 	{
-		smatch match;
-		regex reg ("^([0-9]{0,3})([a-zA-Z]{1,3})([0-9]*)"); 
-		if (regex_search(single_isotope,match,reg)) 
-		{
-			isotope_t isotope;
-			if (match[1]!="") isotope.nucleons = tools::str::str_to_int(match[1]);
-			else return {};
-			if (match[2]!="") isotope.symbol = match[2];
-			else return {};
-			if (match[3]!="") isotope.atoms = tools::str::str_to_int(match[3]);
-			else isotope.atoms=1;
-			isotopes.push_back(isotope);
-		}
+		isotopes.push_back(isotope_t(single_isotope));
 	}
 	return isotopes;
 }
@@ -187,7 +168,7 @@ bool dsims_asc_t::parse_cluster()
 				measurement_p.crater.sputter_current_p.unit = cols[c].unit;
 				measurement_p.crater.sputter_current_p.data= statistics::interpolate_data_XY(&data_XY,&common_X_dimension);
 				if (use_impulse_filter_on_data)
-					measurement_p.crater.sputter_current_p = measurement_p.crater.sputter_current_p.filter_impulse(5,4);
+					measurement_p.crater.sputter_current_p = measurement_p.crater.sputter_current_p.filter_impulse(5);
 				measurement_p.crater.sputter_current_p.dimension = "e_current";
 				measurement_p.crater.sputter_current_p.name="sputter_current";
 			}
@@ -196,7 +177,7 @@ bool dsims_asc_t::parse_cluster()
 				cluster_t cluster;
 				cluster.intensity_p.data = statistics::interpolate_data_XY(&data_XY,&common_X_dimension);
 				if (use_impulse_filter_on_data)
-					cluster.intensity_p = cluster.intensity_p.filter_impulse(5,4);
+					cluster.intensity_p = cluster.intensity_p.filter_impulse(5);
 				cluster.intensity_p.unit = "cnt/s";
 				cluster.intensity_p.dimension = "amount/time";
 				cluster.intensity_p.name = "intensity";
@@ -210,7 +191,7 @@ bool dsims_asc_t::parse_cluster()
 			cluster_t cluster;
 			cluster.concentration_p.data = statistics::interpolate_data_XY(&data_XY,&common_X_dimension);
 			if (use_impulse_filter_on_data)
-				cluster.concentration_p = cluster.concentration_p.filter_impulse(5,4);
+				cluster.concentration_p = cluster.concentration_p.filter_impulse(5);
 			cluster.concentration_p.unit = "at/cm^3";
 			cluster.concentration_p.dimension = "amount*(length)^(-3)";
 			cluster.concentration_p.name="concentration";
@@ -255,24 +236,6 @@ bool dsims_asc_t::add_crater_total_sputter_time()
 	else if (total_sputter_time_p>0)
 		measurement_p.crater.total_sputter_time_p.data.push_back(total_sputter_time_p);
 	else return false;
-// 	else
-// 	{
-// 		quantity_t crater_time;
-// 		double max_sputter_time=0;
-// 		crater_time.unit="s";
-// 		crater_time.dimension="time";
-// 		crater_time.name="total_sputter_time";
-// 		
-// 		if (measurement_p.crater.sputter_time_p.data.size()==0) return false;
-// 		
-// 		int index_max= statistics::get_max_index_from_Y(measurement_p.crater.sputter_time_p.data);
-// 		double val = measurement_p.crater.sputter_time_p.data[index_max];
-// 		if (val > max_sputter_time) max_sputter_time = val;
-// 
-// 		crater_time.data.push_back(max_sputter_time);
-// 		if (max_sputter_time>0) measurement_p.crater.total_sputter_time_p=crater_time;
-// 		else return false;
-// 	}
 	return true;
 }
 
@@ -364,9 +327,7 @@ bool dsims_asc_t::parse_headers(vector<vector<vector<string>>> *headers)
 			units.erase(units.end()-4,units.end()-2);
 		} 
 	}
-// 	print(cluster_names);
-// 	print(units);
-// 	print(dimensions);
+
     return true;
 }
 

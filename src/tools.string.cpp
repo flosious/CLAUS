@@ -92,17 +92,18 @@ vector<string> tools::str::get_strings_between_delimiter(string mainstring, stri
 	int pos_last=0;
 	if (mainstring.find(delimiter,pos_last)==string::npos) {
 		results.push_back(mainstring);
-	} else {
-	int pos_next=mainstring.find(delimiter,pos_last); // 0. Element besonders behandeln, da der mainstring mit einem Delimiter beginnen koennte
-	do {
-		results.push_back(mainstring.substr(pos_last,pos_next-pos_last));
-		pos_last=pos_next+delimiter.length();
-		pos_next=mainstring.find(delimiter,pos_last); // muss mindestens 1 weiter sein
-	} while (pos_next>=pos_last); // Ende erreicht, kein weiterer Delimiter
-	temp = mainstring.substr(pos_last); // letztes Eement nicht vergessen
-	if (temp.size()>0 && pos_last>=pos_next) results.push_back(temp);  // anders als beim 0. element soll das letzte element nur beachtet werden wenn es nicht leer ist
-	else if (empty) results.push_back("");
-	
+	} 
+	else 
+	{
+		int pos_next=mainstring.find(delimiter,pos_last); // 0. Element besonders behandeln, da der mainstring mit einem Delimiter beginnen koennte
+		do {
+			results.push_back(mainstring.substr(pos_last,pos_next-pos_last));
+			pos_last=pos_next+delimiter.length();
+			pos_next=mainstring.find(delimiter,pos_last); // muss mindestens 1 weiter sein
+		} while (pos_next>=pos_last); // Ende erreicht, kein weiterer Delimiter
+		temp = mainstring.substr(pos_last); // letztes Eement nicht vergessen
+		if (temp.size()>0 && pos_last>=pos_next) results.push_back(temp);  // anders als beim 0. element soll das letzte element nur beachtet werden wenn es nicht leer ist
+		else if (empty) results.push_back("");
 // 	cout << "DEBUG: " << results.back() << ";size: " << (results.back()).size() << endl;
 	}
 	return results;

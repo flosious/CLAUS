@@ -18,7 +18,7 @@
 #include "parser_methods.hpp"
 #include "cluster_t.hpp"
 
-bool parser_methods::use_impulse_filter_on_data=false;
+bool parser_methods::use_impulse_filter_on_data=true;
 
 parser_methods::~parser_methods()
 {
@@ -132,12 +132,9 @@ bool parser_methods::parse_data_and_header_tensors(string line_delimiter)
 {
 	raw_data_tensor.clear();
 	raw_header_tensor.clear();
-	
-	
 	vector<vector<string>> raw_mat = tools::mat::format_string_to_matrix(file_contents,"\n",line_delimiter);
 // 	cout << "raw_mat.size()1 = " << raw_mat.size() << endl;
 // 	cout << "raw_mat[1].size()1 = " << raw_mat[1].size() << endl;
-
 	tools::mat::remove_empty_lines_from_matrix(&raw_mat);
 	vector<vector<string> > header_temp, data_temp;
 	bool data_scanned=false;

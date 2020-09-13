@@ -30,6 +30,8 @@
 #include <gsl/gsl_sort_double.h>
 #include <gsl/gsl_filter.h>
 #include <gsl/gsl_bspline.h>
+#include <gsl/gsl_minmax.h>
+
 
 using namespace std;
 
@@ -42,6 +44,7 @@ public:
 	private:
 		double chisq_p=-1;
 		double chisq0_p=-1;
+		double gof_p=-1;
 		bool fitted_p=false;
 		static void callback(const size_t iter, void *params, const gsl_multifit_nlinear_workspace *w);
 // 		static int function_1st_derivative(const gsl_vector * x, void *data, gsl_matrix * J);
@@ -60,13 +63,15 @@ public:
 		double w1;
 		double w2,w3;
 		/// y(x) values
-		vector<double> fitted_y_data(vector<double> x={});
+		vector<double> fitted_y_data(vector<double> x);
 		/// calculation of fit parameters
 		bool fit(map<double, double> data_XY, double y0_s=NAN, double xc_s=NAN, double m_s=NAN, double A_s=NAN, double w1_s=NAN, double w2_s=NAN, double w3_s=NAN);
 		bool fitted();
 		void print_parameters();
 		double chisq();
 		double chisq0();
+		double gof();
+		string to_str(string prefix="");
 	};
 	
 	class polynom_t
@@ -83,6 +88,7 @@ public:
 		vector<double> fit_parameters;
 		bool fit(map<double,double> data_XY, int degree);
 		bool fitted();
+		string to_str(string prefix="");
 		vector<double> fitted_y_data(vector<double> x={});
 	};
 

@@ -21,6 +21,12 @@
  * asym2sig_t*
  *************/
 
+double fit_functions::asym2sig_t::gof()
+{
+	return gof_p;
+}
+
+
 double fit_functions::asym2sig_t::chisq()
 {
 	return chisq_p;
@@ -137,7 +143,6 @@ bool fit_functions::asym2sig_t::fit(map<double, double> data_XY, double y0_s, do
 	fdf.p = p;
 // 	fdf.params = &d;
 	fdf.params = &data_XY;
-
 	
 	/* this is the data to be fitted */
 	for (i = 0; i < n; i++)
@@ -175,6 +180,15 @@ bool fit_functions::asym2sig_t::fit(map<double, double> data_XY, double y0_s, do
 	w2 = FIT(5);
 	w3 = FIT(6);
 	fitted_p = true;
+	
+	/*calc gof_p*/
+	gof_p=0;
+	for (auto& i:data_XY)
+	{
+		double Y = fitted_y_data({i.first})[0];
+		gof_p = gof_p + pow(i.second-Y,2)/abs(Y);
+	}
+	gof_p = 1-sqrt(gof_p)/N;
 
 	gsl_multifit_nlinear_free (w);
 	gsl_matrix_free (covar);
@@ -207,6 +221,16 @@ bool fit_functions::asym2sig_t::fitted()
 {
 	return fitted_p;
 }
+
+std::__cxx11::string fit_functions::asym2sig_t::to_str(std::__cxx11::string prefix)
+{
+	if (!fitted()) return "";
+	stringstream ss;
+	ss << prefix;
+	ss <<"gof = " << gof() << "; chisq = " << chisq() << "; y0 = " << y0 << "; m = " << m << "; A = " << A << "; xc = " << xc << "; w1 = " << w1 << "; w2 = " << w2 << "; w3 = " << w3;
+	return ss.str();
+}
+
 
 /************
  **POLYNOM***

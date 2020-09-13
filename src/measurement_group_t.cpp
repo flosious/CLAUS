@@ -23,6 +23,19 @@ bool measurement_group_t::defined_olcdbid=true;
 bool measurement_group_t::defined_groupid=true;
 bool measurement_group_t::defined_settings=true;
 bool measurement_group_t::defined_tool=true;
+bool measurement_group_t::defined_directory=false;
+
+std::__cxx11::string measurement_group_t::directory()
+{
+	if (measurements.size()==0) return "";
+	string directory_p=measurements.front()->filename_p->directory();
+	for (auto& M:measurements)
+	{
+		if (directory_p!=M->filename_p->directory()) return "";
+	}
+	return directory_p;
+}
+
 
 measurement_group_t::measurement_group_t()
 {
@@ -514,6 +527,7 @@ bool measurement_group_t::operator==(measurement_group_t& measurement_group)
 	if (defined_groupid && group_p != measurement_group.group_p) return false;
 	if (defined_olcdbid && olcdb_p != measurement_group.olcdb_p) return false;
 	if (defined_settings && settings_p != measurement_group.settings_p) return false;
+	if (defined_directory && directory() != measurement_group.directory() && directory().length()>0 && measurement_group.directory().length()>0) return false;
 	return true;
 }
 

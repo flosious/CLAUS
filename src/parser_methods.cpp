@@ -71,9 +71,11 @@ bool parser_methods::add_secondary_to_primary(measurement_t* primary, measuremen
 
 	if (!secondary->is_secondary()) return false;
 	if (primary->is_secondary()) return false;
-	if (primary->filename_p->filename_with_path()==secondary->filename_p->filename_with_path()) return false;
+	if (primary->filename_p->filename_without_crater_depths()!=secondary->filename_p->filename_without_crater_depths()) return false;
+	if (primary->filename_p->directory()!=secondary->filename_p->directory()) return false;
 
-	if (*primary != *secondary) return false;
+// 	if (*primary != *secondary) return false;
+	
 	/*COPY important values*/
 	
 	for (auto cluster:secondary->clusters)

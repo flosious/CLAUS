@@ -81,6 +81,7 @@ public:
 // 	quantity_t unequilibrium_sputter_time();
 	
 	void to_screen(string prefix="");
+	string to_str(string prefix="");
 };
 
 class linescan_t
@@ -101,6 +102,8 @@ public:
 	quantity_t roughness();
 	/// origin -> peak-functions -> Asym2Sig
 	quantity_t fit();
+	
+	string to_str(string prefix="");
 };
 
 #endif // #define CRATER_T_HPP

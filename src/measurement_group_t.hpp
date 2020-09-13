@@ -46,10 +46,11 @@ private:
 	static bool defined_groupid;
 	static bool defined_settings;
 	static bool defined_tool;
+	static bool defined_directory;
 
 	/// advanced calculation models
 // 	calc_models_t calc_models(&(measurements.front()->measurement_group));
-
+	string directory();
 	measurement_settings_t settings_p;
 	string tool_name_p="NULL";
 	int group_p=-1;

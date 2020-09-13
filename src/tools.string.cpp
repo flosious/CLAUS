@@ -373,3 +373,71 @@ vector<string> tools::str::find_all_substrings(vector<string>* vec, string find_
     }
     return results;
 }
+
+
+vector<string> tools::str::find_all_substrings(set<string>& search_these, string find_this) 
+{
+	set<string> result_set;
+    for (auto& search_this:search_these)
+	{
+        if (search_this.find(find_this)!=string::npos)
+            result_set.insert(search_this);
+    }
+    return vector<string>(result_set.begin(),result_set.end());
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

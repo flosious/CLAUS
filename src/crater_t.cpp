@@ -34,6 +34,31 @@ void crater_t::to_screen(string prefix)
 	return;
 }
 
+string crater_t::to_str(string prefix)
+{
+	stringstream ss;
+	ss << prefix << "crater" << endl;
+	ss << prefix << "{" << endl;
+	if(sputter_time().is_set()) 
+		ss << prefix << "\t" << sputter_time().to_str() << endl;
+	if(sputter_depth().is_set()) 
+		ss << prefix << "\t"<< sputter_depth().to_str() << endl;
+	if(sputter_rate().is_set()) 
+		ss << prefix << "\t"<< sputter_rate().to_str() << endl;
+	if(global_sputter_time().is_set()) 
+		ss << prefix << "\t"<< global_sputter_time().to_str() << endl;
+	if(total_sputter_time().is_set()) 
+		ss << prefix << "\t"<< total_sputter_time().to_str() << endl;
+	if(total_sputter_depths_from_filename().is_set()) 
+		ss << prefix << "\tfilename: "<< total_sputter_depths_from_filename().to_str() << endl;
+	if(total_sputter_depths_from_linescans().is_set()) 
+		ss << prefix << "\tlinescans: "<< total_sputter_depths_from_linescans().to_str() << endl;
+	for (auto& ls:linescans)
+		ss << prefix << "\t\t" << ls.to_str() << endl;
+	ss << prefix << "}";
+	return ss.str();
+}
+
 quantity_t crater_t::total_sputter_depths()
 {
 	if (total_sputter_depths_p.is_set()) return total_sputter_depths_p;
@@ -304,4 +329,11 @@ quantity_t linescan_t::depth()
 	return linescan_depth;
 }
 
+std::__cxx11::string linescan_t::to_str(std::__cxx11::string prefix)
+{
+	stringstream ss;
+	ss << prefix;
+	ss << std::scientific << depth().to_str() <<"; " << fit_params().to_str();
+	return ss.str();
+}
 

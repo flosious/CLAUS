@@ -89,7 +89,8 @@ int config_t::parse(vector<string> config_lines) {
 		else if (key=="force_RSF_to_foreign_matrix" || key=="force_RSF") { if (value.find("1")!=string::npos) 				processor::force_RSF_to_foreign_matrix=true;}
 		
 		else if (key=="use_directory_files_list") { if (value.find("1")!=string::npos) 				files_t::use_directory_files_list=true;}
-        else if (key=="use_wildcards_in_filenames") { if (value.find("1")!=string::npos) 				files_t::use_wildcards_in_filenames=true; }
+        else if (key=="use_wildcards_in_filenames") { if (value.find("1")!=string::npos) 			files_t::use_wildcards_in_filenames=true; }
+        else if (key=="search_sub_directories") { if (value.find("1")!=string::npos) 				files_t::search_sub_directories=true; }
         else if (key=="ignore_filename_substrings" || key=="ignore_filename") 						files_t::ignore_filename_substrings.push_back(value);
         else if (key=="plots_location") 															plot_t::plots_location=value;
 		
@@ -142,6 +143,7 @@ void config_t::save_measurement_group_definition(std::__cxx11::string value)
 	vector<string> definitions = tools::str::get_strings_between_delimiter(value,"+");
 	tools::str::remove_spaces(&definitions);
 	
+	measurement_group_t::defined_directory=false;
 	measurement_group_t::defined_olcdbid=false;
 	measurement_group_t::defined_groupid=false;
 	measurement_group_t::defined_settings=false;
@@ -150,6 +152,7 @@ void config_t::save_measurement_group_definition(std::__cxx11::string value)
 	for (auto& definition:definitions)
 	{
 		if (definition=="olcdbid"  || definition=="olcdb" ) measurement_group_t::defined_olcdbid=true;
+		if (definition=="folder"  || definition=="directory" ) measurement_group_t::defined_directory=true;
 		else if (definition=="groupid" || definition=="group") measurement_group_t::defined_groupid=true;
 		else if (definition=="settings") measurement_group_t::defined_settings=true;
 		else if (definition=="tool") measurement_group_t::defined_tool=true;

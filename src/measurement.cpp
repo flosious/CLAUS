@@ -122,10 +122,16 @@ std::__cxx11::string measurement_t::to_str(std::__cxx11::string prefix)
 	ss << endl;
 	ss << prefix << filename_p->filename() << endl;
 	ss << prefix << "{" << endl;
-	if (crater.total_sputter_depths().is_set())
-		ss <<std::scientific <<   prefix << "\ttotal_sputter_depths(): " << crater.total_sputter_depths().to_str() << endl;
-	if (crater.total_sputter_time().is_set())
-		ss <<std::scientific  << prefix << "\ttotal_sputter_time(): " << crater.total_sputter_time().to_str() << endl;
+// 	if (crater.linescans.size()>0)
+// 	{
+// 		for (int ls=0;ls<crater.linescans.size();ls++)
+// 			ss <<std::scientific <<   prefix << "\t" << crater.linescans[ls].to_str() << endl;
+// 	}
+// 	if (crater.total_sputter_depths().is_set())
+// 		ss <<std::scientific <<   prefix << "\ttotal_sputter_depths(): " << crater.total_sputter_depths().to_str() << endl;
+// 	if (crater.total_sputter_time().is_set())
+// 		ss <<std::scientific  << prefix << "\ttotal_sputter_time(): " << crater.total_sputter_time().to_str() << endl;
+	ss << crater.to_str(prefix + "\t") << endl;
 	if (clusters.size()==0)
 	{
 		ss << prefix<<"\tno clusters" << endl;
@@ -304,8 +310,9 @@ set<isotope_t> measurement_t::isotopes()
 
 bool measurement_t::operator==(const measurement_t& measurement)
 {
-	/*return id.is_same_measurement(measurement->id)*/;
-	
+// 	filename_p->to_screen("1\t");
+// 	measurement.filename_p->to_screen("2\t");
+
 	if (defined_lot && filename_p->lot!=measurement.filename_p->lot) return false;
 	if (defined_olcdbid && filename_p->olcdb!=measurement.filename_p->olcdb) return false;
 	if (defined_lot_split && filename_p->lot_split!=measurement.filename_p->lot_split) return false;

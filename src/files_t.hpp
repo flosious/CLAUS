@@ -39,29 +39,30 @@ private:
 	static vector<string> ignore_filename_substrings;
 	static bool use_directory_files_list;
 	static bool use_wildcards_in_filenames;
-	
+	static bool search_sub_directories;
+
 	/// from the input args
-    vector<string> files_list;
+    set<string> files_list;
 	/// files that are ignored, defined in config_t
 	vector<string> ignored_files;
-	/// filter similiar entries from files_list
-//     vector<string> files_list_wo_types;
+
 	/// all the directories where the files from files_list are located in
-    vector<string> directory_list;
+    set<string> directory_list();
+// 	bool get_directory_list();
 	/// a list of all files located in all directories from directory_list
     vector<string> all_files_in_directories;
 
 	/// removes files that are ignored, defined in config_t
 	void filter_ignored_files(vector<string>* files);
-    bool get_directory_list();
+
 	bool get_all_files_in_directories();
 	/// scans the input for wildcards (e.g. "*") and applies them
-	bool wildcards();
+	bool add_filenames_from_wildcards();
 	/// returns all files, asuming filename_regex is regulare expression
-	vector<string> wildcards_regex_match(string filename_w_wildcard);
-	vector<string> wildcards_substring_match(string filename_w_wildcard);
+	set<string> wildcards_regex_match(string filename_w_wildcard);
+	set<string> wildcards_substring_match(string filename_w_wildcard);
 	/// returns all filenames, which contain a wildcard and removes them from the files_list
-	vector<string> split_filenames_with_wildcard();
+	set<string> filenames_with_wildcard();
 public:
 	
     /// returns a list of locations (dir+filename), given a filename (or just a part of a name)
@@ -73,7 +74,7 @@ public:
     /// populates private parameters
     bool get(vector<string> files_list_p);
 	
-// 	vector<identifier_t> get_identifiers();
+	// all filenames with path as vector
 	vector<string> vec();
 };
 

@@ -338,15 +338,36 @@ int tools::file::mkpath(string path, int delme) {
 }
 #endif
 
+bool tools::file::directory_exists(string directory)
+{
+	struct stat info;
+
+	if( stat( directory.c_str(), &info ) != 0 )
+		// 		printf( "cannot access %s\n", pathname );
+		return false;
+	else if( info.st_mode & S_IFDIR )  // S_ISDIR() doesn't exist on my windows 
+// 		printf( "%s is a directory\n", pathname );
+		return true;
+	else
+// 		printf( "%s is no directory\n", pathname );
+		return false;
+
+	return true;
+}
+
 bool tools::file::file_exists(string filename) {
 	ifstream f(filename.c_str());
-	if (f.good()) {
+	if (f.good()) 
+	{
 		f.close();
 		return true;
-	} else {
+	} 
+	else 
+	{
 		f.close();
-		return false;
+// 		return false;
 	}
+	return false;
 }
 
 vector<string> tools::file::get_file_list_from_dir_name(string dir_name, bool prepend_directory) {

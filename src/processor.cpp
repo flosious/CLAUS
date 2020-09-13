@@ -45,8 +45,8 @@ processor::processor(vector<string> arg_list)
 	#endif
 	cout << intro << endl;
 	cout << "Version 2020-08-02_9	BETA" << endl;
-	cout << "see https://github.com/flosious" << endl;
-	cout << "use the same clusters in each measurement in one common measurement group" << endl;
+	cout << "see https://github.com/flosious" << endl << endl;
+	cout << "use the same clusters in each measurement within one common measurement group" << endl;
 	cout << "cluster names must be unique for each isotope ((e.g. just \"11B 28Si\") for \"11B\") (bijective transformation)" << endl;
 	
     // save args
@@ -60,6 +60,7 @@ processor::processor(vector<string> arg_list)
 	if (!db.open()) cout << "processor::processor !db.open()" << endl;
     // filter files 
     if (!files.get(args)) cout << "processor::processor !files.get(args)" << endl;
+	cout << "input files: " << files.vec().size() << endl;
 	/// parse the filenames
 	filenames = filename_t::parse(files.vec(),"_");
 	/// parse the measurements and samples
@@ -101,9 +102,9 @@ processor::processor(vector<string> arg_list)
 		if (force_RSF_to_foreign_matrix)
 		{
 			cout << endl;
-			cout << "!!!\t*************!ATTENTION!**************" << endl;
-			cout << "!!!\t**enforcing RSFs to foreign matrices**" << endl;
-			cout << "!!!\t**************************************" << endl;
+			cout << "!!!\t***************!ATTENTION!****************" << endl;
+			cout << "!!!\t**  enforcing RSFs to foreign matrices  **" << endl;
+			cout << "!!!\t******************************************" << endl;
 			cout << endl;
 			for (auto& M:MG.measurements)
 			{
@@ -156,8 +157,6 @@ processor::processor(vector<string> arg_list)
 		if (measurement_tools.get_error_messages().size()!=0) print(measurement_tools.get_error_messages());
 		else print("\tno errors");
 	}
-
-// 	measurements.begin()->to_screen();
 	
 	#ifdef __unix__
     #else

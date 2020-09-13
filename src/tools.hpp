@@ -106,6 +106,7 @@ public:
         /// extract all number chars into one integer ("A2B342c34" = "234234")
         static int extract_int_from_str(string str);
         static vector<string> find_all_substrings(vector<string>* vec, string find_this);
+		static vector<string> find_all_substrings(set<string>& search_these, string find_this);
 		static void remove_substring_from_mainstring(string* mainstring, string substring);
     };
     class time {
@@ -142,6 +143,7 @@ public:
         static int mkpath(string pfad, int delme);  
         #endif
         static bool file_exists(string filename);
+		static bool directory_exists(string directory);
         static vector<string> get_file_list_from_dir_name(string dir_name, bool prepend_directory);
 		/// returns the creation date of the file (filename with path) in a timeinfo (tm) structure
 		static time_t creation_date(string filename);

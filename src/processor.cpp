@@ -157,6 +157,10 @@ processor::processor(vector<string> arg_list)
 		if (measurement_tools.get_error_messages().size()!=0) print(measurement_tools.get_error_messages());
 		else print("\tno errors");
 	}
+	// TESTS
+	for (auto& MG:measurement_groups)
+		for (auto& M:MG.measurements)
+			M->crater.global_sputter_time().to_screen();
 	
 	#ifdef __unix__
     #else

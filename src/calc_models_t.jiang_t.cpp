@@ -81,16 +81,18 @@ bool calc_models_t::jiang_t::calc()
 	{
 		error_messages_p.push_back("calc_models_t::jiang_t::calc( measurement_group_t& measurement_group_p ) : !SR_to_Crel_polyfit.fitted()");
 		calc_history.push_back("jiang_t\t" + measurement_group_priv->name() +"\tstop SR vs CRel - failed");
-		return false;
+// 		return false;
 	}
-	
-	/*make a save copy*/
 	
 	/*apply fit parameters to all measurements*/
 	for (auto& measurement:measurement_group_priv->measurements)
 	{
 		string counter_cluster_name = measurement_group_priv->cluster_name_from_isotope(counter_matrix_isotope());
 		string denominator_cluster_name = measurement_group_priv->cluster_name_from_isotope(denominator_matrix_isotope());
+		
+		if (measurement->clusters.find(counter_cluster_name)==measurement->clusters.end()) continue;
+		if (measurement->clusters.find(denominator_cluster_name)==measurement->clusters.end()) continue;
+		
 		
 		/*matrix concentrationS*/
 		quantity_t Crel_p = Crel_to_Irel().first;
@@ -109,10 +111,6 @@ bool calc_models_t::jiang_t::calc()
 			}
 			else continue;
 		}
-// 		measurement_group_priv->cluster_name_from_isotope(counter_matrix_isotope());
-		
-
-		
 		measurement->clusters[counter_cluster_name].concentration_p = Crel_p * 100/(Crel_p+1);
 		measurement->clusters[counter_cluster_name].concentration_p.unit = "at%";
 		measurement->clusters[counter_cluster_name].concentration_p.dimension = "relative";
@@ -122,12 +120,7 @@ bool calc_models_t::jiang_t::calc()
 		measurement->clusters[counter_cluster_name].already_checked_RSF=true;
 		measurement->clusters[counter_cluster_name].already_checked_SF=true;
 		measurement->clusters[counter_cluster_name].already_checked_dose=false;
-		/*this is a fast hack to solve the export issue for relative elemental (no isotope) matrix concentration*/
-// 		measurement->clusters[counter_cluster_name].isotopes.resize(1);
-// 		measurement->clusters[counter_cluster_name].isotopes[0] = counter_matrix_isotope();
-// 		measurement->clusters[counter_cluster_name].isotopes[0].atoms = 1;
-		
-		
+	
 		measurement->clusters[denominator_cluster_name].concentration_p = measurement->clusters[counter_cluster_name].concentration_p*-1+100;
 		measurement->clusters[denominator_cluster_name].concentration_p.unit = "at%";
 		measurement->clusters[denominator_cluster_name].concentration_p.dimension = "relative";
@@ -137,11 +130,8 @@ bool calc_models_t::jiang_t::calc()
 		measurement->clusters[denominator_cluster_name].already_checked_RSF=true;
 		measurement->clusters[denominator_cluster_name].already_checked_SF=true;
 		measurement->clusters[denominator_cluster_name].already_checked_dose=false;
-		/*this is a fast hack to solve the export issue for relative elemental (no isotope) matrix concentration*/
-// 		measurement->clusters[denominator_cluster_name].isotopes.resize(1);
-// 		measurement->clusters[denominator_cluster_name].isotopes[0] = denominator_matrix_isotope();
-// 		measurement->clusters[denominator_cluster_name].isotopes[0].atoms=1;
 		
+				
 		/*sputter_rate*/
 		if (SR_to_Crel_polyfit.fitted())
 		{
@@ -152,8 +142,6 @@ bool calc_models_t::jiang_t::calc()
 			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+"crater\t" + measurement->crater.sputter_rate_p.to_str());
 			measurement->crater.already_calculated_sputter_depth=false;
 			measurement->crater.already_calculated_sputter_rate=true;
-			/*delete old values*/
-// 			measurement->crater.sputter_depth_p.data.clear();
 		}
 		
 		/*RSFs*/
@@ -162,7 +150,10 @@ bool calc_models_t::jiang_t::calc()
 // 			cout << endl << "cluster_name_RSF:\t" << measurement->filename_p->filename_with_path() << "\t" << cluster_name_RSF.first << endl;
 			if (cluster_name_RSF.first==counter_cluster_name) continue;
 			if (cluster_name_RSF.first==denominator_cluster_name) continue;
+			// cluster was not fitted
 			if (!clustername_to_RSFs_to_Crel_polyfit[cluster_name_RSF.first].fitted()) continue;
+			// cluster is not in the measurement
+			if (measurement->clusters.find(cluster_name_RSF.first)==measurement->clusters.end()) continue;
 			quantity_t RSF = clustername_to_RSFs_to_Crel()[cluster_name_RSF.first].first;
 			RSF.data = clustername_to_RSFs_to_Crel_polyfit[cluster_name_RSF.first].fitted_y_data(Crel_p.data);
 			RSF.name = "RSF jiang";
@@ -191,6 +182,35 @@ bool calc_models_t::jiang_t::calc()
 	error_p = false;
 	return true;
 }
+
+bool calc_models_t::jiang_t::apply_Crel_to_measurement(measurement_t& M)
+{
+		string counter_cluster_name = measurement_group_priv->cluster_name_from_isotope(counter_matrix_isotope());
+		string denominator_cluster_name = measurement_group_priv->cluster_name_from_isotope(denominator_matrix_isotope());
+		
+		if (M.clusters.find(counter_cluster_name)==M.clusters.end()) return false;
+		if (M.clusters.find(denominator_cluster_name)==M.clusters.end()) return false;;
+		
+		/*matrix concentrationS*/
+		quantity_t Crel_p = Crel_to_Irel().first;
+		if (Irel(&M).is_set()) Crel_p.data=CRel_to_Irel_polyfit.fitted_y_data(Irel(&M).data);
+		else 
+		{
+			if (M.clusters[counter_cluster_name].concentration().is_set())
+			{
+				if (M.clusters[counter_cluster_name].concentration().unit=="at%") Crel_p = M.clusters[counter_cluster_name].concentration().median()/(M.clusters[counter_cluster_name].concentration().median()*(-1)+100);
+				else return false;
+			}
+			else if (M.clusters[denominator_cluster_name].concentration().is_set())
+			{
+				if (M.clusters[denominator_cluster_name].concentration().unit=="at%") Crel_p = (M.clusters[denominator_cluster_name].concentration().median()*(-1)+100)/M.clusters[denominator_cluster_name].concentration().median();
+				else return false;
+			}
+			else return false;
+		}
+		return true;
+}
+
 
 measurement_group_t calc_models_t::jiang_t::measurement_group()
 {

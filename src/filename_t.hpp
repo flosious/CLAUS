@@ -44,7 +44,7 @@ private:
 	bool parse_monitor(string filename_part);
 	bool parse_group(string filename_part);
 	bool parse_crater_depth(string filename_part);
-	
+	bool parse_all_parts_at_once();
 	bool error=false;
 	
 public:
@@ -76,7 +76,7 @@ public:
 	quantity_t sputter_energy;
 	quantity_t total_sputter_depths;
 	
-	void to_screen(string prefix);
+	void to_screen(string prefix="");
 	
 	static list<filename_t> parse(vector<string> filenames_with_path, string delimiter);
 };

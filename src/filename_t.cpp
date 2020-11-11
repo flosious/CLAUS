@@ -15,6 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
+
 #include "filename_t.hpp"
 
 filename_t::filename_t(string filename_p, string delimiter_p)
@@ -60,6 +61,30 @@ string filename_t::filename_without_crater_depths()
 	return filename_wo_crater_depths;
 }
 
+bool filename_t::parse_all_parts_at_once()
+{
+	smatch match;
+	regex reg ("^([0-9]{4,})_([A-Z]{1,4}[0-9]{1,5})([#[0-9A-Za-z]*?]*?)_[wW]?([0-9]{1,2})(_.*)_([0-9]+?)([a-z]*?)$"); 
+	string f = filename_without_crater_depths();
+	if (regex_search(f,match,reg)) 
+	{
+		olcdb = 	tools::str::str_to_int(match[1]);
+		lot = 		match[2];
+		lot_split=	match[3];
+		wafer = 	tools::str::str_to_int(match[4]);
+		group = 	tools::str::str_to_int(match[6]);
+		repetition=	match[7];
+#ifdef DEBUG
+		cout << "!!!parsed all parts!!!\n";
+		to_screen();
+#endif
+	}
+	else
+		return false;
+	
+	return true;
+}
+
 
 bool filename_t::parse_filename_parts()
 {
@@ -79,7 +104,7 @@ bool filename_t::parse_filename_parts()
 		// no parser worked
 		not_parseable_filename_parts.push_back(filename_part);
 	}
-// 	if (lot=="" && not_parseable_filename_parts.size()>0) lot=tools::vec::combine_vec_to_string(not_parseable_filename_parts,"_");
+	if (lot=="" || olcdb==-1 || wafer==-1 || group==-1) parse_all_parts_at_once();
 	if (lot=="" && not_parseable_filename_parts.size()>0) lot=not_parseable_filename_parts[0];
 	return true;
 }
@@ -103,7 +128,7 @@ bool filename_t::parse_chip(string filename_part)
 {
 // 	string x,y;
 	smatch match;
-	regex reg1 ("^x([0-9]{1,2})y([0-9]{1,2})$"); 
+	regex reg1 ("^x([0-9]{1,2})y([0-9]{1,2})$", std::regex_constants::icase); 
 	regex reg2 ("^chip-([0-9]{1,2})-([0-9]{1,2})$"); 
 	regex reg3 ("^c([0-9]{1,2})-([0-9]{1,2})$"); 
 	if (regex_search(filename_part,match,reg1) || regex_search(filename_part,match,reg2) || regex_search(filename_part,match,reg3)) 

@@ -32,7 +32,7 @@
 
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32__) || defined(__TOS_WIN__)
 #define path_del "\\"
-#define line_del "\r\n"
+#define line_del "\n"
 #elif defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
 #define path_del "/"
 #define line_del "\n"
@@ -53,7 +53,7 @@
     #include <windows.h> //for Sleep()
     //  static void sleep(int i) { Sleep(i*1000); }
     #define PATH_DELIMITER string("\\")
-    #define LINE_DELIMITER string("\r\n")
+    #define LINE_DELIMITER string("\n")
 #elif defined(unix) || defined(__unix) || defined(__unix__) || defined(__APPLE__)
     #define PATH_DELIMITER string("/")
     #define LINE_DELIMITER string("\n")

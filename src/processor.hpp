@@ -26,7 +26,7 @@
 #include <pthread.h>
 #else
 #define PATH_DELIMITER string("\\")
-#define LINE_DELIMITER string("\r\n")
+#define LINE_DELIMITER string("\n")
 #include "windows.h"
 #endif
 

@@ -37,6 +37,12 @@ private:
 	
 	bool error_p=true;
 	
+	///not in use yet
+	bool apply_Crel_to_measurement(measurement_t& M);
+	///not in use yet
+	bool apply_SR_to_measurement(measurement_t& M);
+	///not in use yet
+	bool apply_RSF_to_measurement(measurement_t& M);
 	
 	
 	vector<string> error_messages_p;

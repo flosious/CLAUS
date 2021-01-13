@@ -31,6 +31,7 @@
 #include "processor.hpp"
 #include "database_t.hpp"
 #include "files_t.hpp"
+#include "calc_models_t.hpp"
 
 using namespace std;
 

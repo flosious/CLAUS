@@ -18,6 +18,9 @@
 #include "calc_models_t.jiang_t.hpp"
 #include "globalvars.hpp"
 
+// int calc_models_t::jiang_t::SR_polynom_rank = 1;
+// int calc_models_t::jiang_t::Crel_polynom_rank = 1;
+// int calc_models_t::jiang_t::RSF_polynom_rank = 1;
 
 // vector<string> calc_history; // calc_history.push_back("crater"+"\t" + sputter_depth_p.to_str());
 
@@ -32,26 +35,74 @@ bool calc_models_t::jiang_t::is_error()
 	return error_p;
 }
 
+int calc_models_t::jiang_t::polynom_rank(pair<quantity_t, quantity_t> pairs)
+{
+	int rank=0;
+	set<int> X,Y;
+	for (auto& i:pairs.first.data)
+	{
+		X.insert(i*10);
+	}
+	for (auto& i:pairs.second.data)
+	{
+		Y.insert(i*10);
+	}
+	if (X.size()>Y.size()) return Y.size()-1;
+	return X.size()-1;
+}
+
+
 bool calc_models_t::jiang_t::calc()
 {
 	if (!error_p) return true;
 	// TODO: what if concentration or depth is already set for some clusters? --> Irel nicht immer berechenbar?
 	calc_history.push_back("jiang_t\t" + measurement_group_priv->name());
-
+	
+	
 	/*calc fit parameters*/
 	map<double,double> data_XY;
+
 	if (SRs_to_Crel().first.is_set() && SRs_to_Crel().second.is_set())
 	{
 		data_XY.clear();
+		
+// 		set<double> SRs_unique(SRs_to_Crel_p.first.data.begin(),SRs_to_Crel_p.first.data.end());
+// 		cout << "SRs_unique.size() = " << SRs_unique.size() << endl;
 		tools::vec::combine_vecs_to_map(SRs_to_Crel().second.data,SRs_to_Crel().first.data,&data_XY);
-		if (data_XY.size()>1) SR_to_Crel_polyfit.fit(data_XY,1);
+		if (data_XY.size()>1) 
+		{
+			/*maximum grade 2 (parabolic)*/
+			if (polynom_rank(SRs_to_Crel())>1)
+			{
+// 				cout << "parabolic" << endl;
+				SR_to_Crel_polyfit.fit(data_XY,2); //2
+			}
+			else 
+			{
+// 				cout << "linear" << endl;
+				SR_to_Crel_polyfit.fit(data_XY,1);
+			}
+// 			cout << "SR_to_Crel_polyfit.fit_parameters" <<endl;
+// 			for (int i=0;i<SR_to_Crel_polyfit.fit_parameters.size();i++)
+// 				cout << "param["<<i<<"]="<<SR_to_Crel_polyfit.fit_parameters[i] << endl;
+		}
 	}
 	
 	if (Crel_to_Irel().first.is_set() && Crel_to_Irel().second.is_set())
 	{	
 		data_XY.clear();
+// 		set<double> Irels_unique(Crel_to_Irel_p.second.data.begin(),Crel_to_Irel_p.second.data.end());
+// 		cout << "Irels_unique.size() = " << Irels_unique.size() << endl;
 		tools::vec::combine_vecs_to_map(Crel_to_Irel().second.data,Crel_to_Irel().first.data,&data_XY);
-		if (data_XY.size()>1) CRel_to_Irel_polyfit.fit(data_XY,1);
+		if (data_XY.size()>1) 
+		{
+			/*maximum grade 2 (parabolic)*/
+			if (polynom_rank(Crel_to_Irel())>2) CRel_to_Irel_polyfit.fit(data_XY,2); //2
+			else CRel_to_Irel_polyfit.fit(data_XY,1);
+// 			cout << "CRel_to_Irel_polyfit.fit_parameters" <<endl;
+// 			for (int i=0;i<CRel_to_Irel_polyfit.fit_parameters.size();i++)
+// 				cout << "param["<<i<<"]="<<CRel_to_Irel_polyfit.fit_parameters[i] << endl;
+		}
 	}
 	
 	for (auto& RSFs_to_Crel:clustername_to_RSFs_to_Crel())
@@ -60,13 +111,14 @@ bool calc_models_t::jiang_t::calc()
 		if (RSFs_to_Crel.second.first.is_set() && RSFs_to_Crel.second.second.is_set())
 		{
 			data_XY.clear();
-			set<double> Crels_unique(RSFs_to_Crel.second.second.data.begin(),RSFs_to_Crel.second.second.data.end());
+// 			set<double> Crels_unique(RSFs_to_Crel.second.second.data.begin(),RSFs_to_Crel.second.second.data.end());
+// 			cout << "Crels_unique.size() = " << Crels_unique.size() << endl;
 			tools::vec::combine_vecs_to_map(RSFs_to_Crel.second.second.data,RSFs_to_Crel.second.first.data,&data_XY);
 			if (data_XY.size()>1) 
 			{
 				/*maximum grade 2 (parabolic)*/
-				if (Crels_unique.size()>3) clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,2);
-				else clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,Crels_unique.size()-1);
+				if (polynom_rank(RSFs_to_Crel.second)>2) clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,2);
+				else clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,polynom_rank(RSFs_to_Crel.second));
 			}
 		}
 	}

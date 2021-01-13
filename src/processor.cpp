@@ -158,9 +158,9 @@ processor::processor(vector<string> arg_list)
 		else print("\tno errors");
 	}
 	// TESTS
-	for (auto& MG:measurement_groups)
-		for (auto& M:MG.measurements)
-			M->crater.global_sputter_time().to_screen();
+// 	for (auto& MG:measurement_groups)
+// 		for (auto& M:MG.measurements)
+// 			M->crater.global_sputter_time().to_screen();
 	
 	#ifdef __unix__
     #else

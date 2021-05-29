@@ -33,18 +33,18 @@ processor::processor(vector<string> arg_list)
 	config_t conf;
 	string intro;
 	#ifdef __unix__
-	intro = "\nCLAUS Copyright (C) 2020  Florian Bärwolf\n" \
+	intro = "\nCLAUS Copyright (C) 2020-2021  Florian Bärwolf\n" \
 			"This program comes with ABSOLUTELY NO WARRANTY;\n" \
 			"This is free software, and you are welcome to redistribute it\n" \
 			"under certain conditions; See GPLv3\n";
 	#else
-	intro = "\nCLAUS Copyright (C) 2020  Florian Baerwolf\n" \
+	intro = "\nCLAUS Copyright (C) 2020-2021  Florian Baerwolf\n" \
 			"This program comes with ABSOLUTELY NO WARRANTY;\n" \
 			"This is free software, and you are welcome to redistribute it\n" \
 			"under certain conditions; See GPLv3\n";
 	#endif
 	cout << intro << endl;
-	cout << "Version 2020-08-02_9	BETA" << endl;
+	cout << "Version 2021-05-29_10	Gold" << endl;
 	cout << "see https://github.com/flosious" << endl << endl;
 	cout << "use the same clusters in each measurement within one common measurement group" << endl;
 	cout << "cluster names must be unique for each isotope ((e.g. just \"11B 28Si\") for \"11B\") (bijective transformation)" << endl;

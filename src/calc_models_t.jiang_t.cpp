@@ -38,16 +38,16 @@ bool calc_models_t::jiang_t::is_error()
 int calc_models_t::jiang_t::polynom_rank(pair<quantity_t, quantity_t> pairs)
 {
 	int rank=0;
-	set<int> X,Y;
-	for (auto& i:pairs.first.data)
-	{
-		X.insert(i*10);
-	}
+	set<double> X,Y;
 	for (auto& i:pairs.second.data)
 	{
-		Y.insert(i*10);
+		X.insert(round(i*10));
 	}
-	if (X.size()>Y.size()) return Y.size()-1;
+	for (auto& i:pairs.first.data)
+	{
+		Y.insert(round(i*10));
+	}
+// 	if (X.size()>Y.size()) return Y.size()-1;
 	return X.size()-1;
 }
 
@@ -71,8 +71,13 @@ bool calc_models_t::jiang_t::calc()
 		tools::vec::combine_vecs_to_map(SRs_to_Crel().second.data,SRs_to_Crel().first.data,&data_XY);
 		if (data_XY.size()>1) 
 		{
+			const int rank = polynom_rank(SRs_to_Crel());
+			if (rank>2)
+			{
+				SR_to_Crel_exp_decay.fit(data_XY);
+			}
 			/*maximum grade 2 (parabolic)*/
-			if (polynom_rank(SRs_to_Crel())>1)
+			else if (rank>1)
 			{
 // 				cout << "parabolic" << endl;
 				SR_to_Crel_polyfit.fit(data_XY,2); //2
@@ -97,11 +102,10 @@ bool calc_models_t::jiang_t::calc()
 		if (data_XY.size()>1) 
 		{
 			/*maximum grade 2 (parabolic)*/
-			if (polynom_rank(Crel_to_Irel())>2) CRel_to_Irel_polyfit.fit(data_XY,2); //2
+// 			cout << "polynom_rank(Crel_to_Irel())=" << polynom_rank(Crel_to_Irel()) << endl;
+			if (polynom_rank(Crel_to_Irel())>1) CRel_to_Irel_polyfit.fit(data_XY,2); //2
 			else CRel_to_Irel_polyfit.fit(data_XY,1);
-// 			cout << "CRel_to_Irel_polyfit.fit_parameters" <<endl;
-// 			for (int i=0;i<CRel_to_Irel_polyfit.fit_parameters.size();i++)
-// 				cout << "param["<<i<<"]="<<CRel_to_Irel_polyfit.fit_parameters[i] << endl;
+// 			if (data_XY.size()>0) CRel_to_Irel_linfit.fit(data_XY);
 		}
 	}
 	
@@ -129,7 +133,7 @@ bool calc_models_t::jiang_t::calc()
 		calc_history.push_back("jiang_t\t" + measurement_group_priv->name() +"\tstop IRel vs CRel - failed");
 		return false;
 	}
-	if (!SR_to_Crel_polyfit.fitted()) 
+	if (!SR_to_Crel_polyfit.fitted() && !SR_to_Crel_exp_decay.fitted()) 
 	{
 		error_messages_p.push_back("calc_models_t::jiang_t::calc( measurement_group_t& measurement_group_p ) : !SR_to_Crel_polyfit.fitted()");
 		calc_history.push_back("jiang_t\t" + measurement_group_priv->name() +"\tstop SR vs CRel - failed");
@@ -185,11 +189,21 @@ bool calc_models_t::jiang_t::calc()
 		
 				
 		/*sputter_rate*/
-		if (SR_to_Crel_polyfit.fitted())
+		if (SR_to_Crel_exp_decay.fitted())
+		{
+			quantity_t SR = SRs_to_Crel().first;
+			SR.data = SR_to_Crel_exp_decay.fitted_y_data(Crel_p.data);
+			SR.name = "sputter_rate exp_decay";
+			measurement->crater.sputter_rate_p = SR;
+			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+"crater\t" + measurement->crater.sputter_rate_p.to_str());
+			measurement->crater.already_calculated_sputter_depth=false;
+			measurement->crater.already_calculated_sputter_rate=true;
+		}
+		else if (SR_to_Crel_polyfit.fitted())
 		{
 			quantity_t SR = SRs_to_Crel().first;
 			SR.data = SR_to_Crel_polyfit.fitted_y_data(Crel_p.data);
-			SR.name = "sputter_rate jiang";
+			SR.name = "sputter_rate polynom(" + to_string(SR_to_Crel_polyfit.degree()) + ")";
 			measurement->crater.sputter_rate_p = SR;
 			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+"crater\t" + measurement->crater.sputter_rate_p.to_str());
 			measurement->crater.already_calculated_sputter_depth=false;
@@ -220,7 +234,7 @@ bool calc_models_t::jiang_t::calc()
 			/*this will also clear DB loaded dose, which will not be loaded again (already loaded flag set)*/
 // 			measurement->clusters[cluster_name_RSF.first].dose_p.data.clear();
 			measurement->clusters[cluster_name_RSF.first].reference_intensity_p.data.clear();
-			measurement->clusters[cluster_name_RSF.first].equilibrium_starting_pos=0;
+// 			measurement->clusters[cluster_name_RSF.first].equilibrium_starting_pos=0;
 			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+measurement->clusters[cluster_name_RSF.first].name()+"\t" + measurement->clusters[cluster_name_RSF.first].RSF_p.to_str());
 		}
 
@@ -347,6 +361,9 @@ pair<quantity_t,quantity_t> calc_models_t::jiang_t::Crel_to_Irel()
 	if (!Crel_to_Irel_p.first.is_set()) return {};
 	if (!Crel_to_Irel_p.second.is_set()) return {};
 	
+	/*0 intensity and 0 concentration is always in there*/
+	Crel_to_Irel_p.first.data.push_back(0);
+	Crel_to_Irel_p.second.data.push_back(0);
 	
 	return Crel_to_Irel_p;
 }

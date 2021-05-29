@@ -42,72 +42,46 @@ string tools::time::seconds_to_human_readable(double secs)
     return output;
 }
 
+string tools::time::tm_struct_to_string_time(tm tm, string time_format)
+{
+// 	string ttime;
+// 	char buffer [80]="";
+// 	strftime (buffer,80,time_format.c_str(),&tm);
+// 	return buffer;
+	stringstream stream;
+	stream << std::put_time(&tm, time_format.c_str());
+	return stream.str();
+}
+
 tm tools::time::string_time_to_tm_structure(string time,string time_format)
 {
 	struct tm tm;
 	strptime(time.c_str(), time_format.c_str(), &tm);
+// 	time_t T = string_to_time_t(time,time_format);
+// 	struct tm * tm = std::localtime(&T);
+// 	strptime(time.c_str(), time_format.c_str(), &tm);
 	return tm;
-}
-
-string tools::time::tm_struct_to_string_time(tm tm, string time_format)
-{
-// 	string ttime;
-	char buffer [80]="";
-	strftime (buffer,80,time_format.c_str(),&tm);
-	return buffer;
 }
 
 /// http://www.cplusplus.com/reference/ctime/strftime/
 time_t tools::time::string_to_time_t(string time,string time_format) 
 {
-	struct tm tm = string_time_to_tm_structure(time, time_format);
-	std::time_t t = mktime(&tm);
-// 	tm = string_time_to_tm_structure(time, time_format); // without: will cause hours to jump
-	
+// 	struct tm tm = string_time_to_tm_structure(time, time_format);
+// 	std::time_t t = mktime(&tm);
+	struct tm tm;
+	strptime(time.c_str(), time_format.c_str(), &tm);
+	time_t t = mktime(&tm);
 
-// 	char buffer [80]="";
-//     std::istringstream ss(time);
-	// string time to tm structure
-// 	strptime(time.c_str(), time_format.c_str(), &tm);
-	
-//     ss >> std::get_time(&tm, time_format.c_str());
-// 	ss >> std::get_time(&tm, "%Y-%m-%d-%H-%M-%S");
-// 	cout << tm.tm_hour << endl;
-//     ss.str("");
-// 	ss.clear();
-// 	string ascti = asctime (&tm);
-// 	printf ( "The current date/time is: %s", ascti.c_str() );
-	// tm structure to string time
-// 	strftime (buffer,80,time_format.c_str(),&tm);
-// 	strftime (buffer,80,"%Y-%m-%d-%H-%M-%S",&tm);
-// 	cout << "ascti.c_str()=" << ascti;
-// 	cout << "strftime: " << tm_struct_to_string_time(tm,time_format) << endl;
-    
-// 	cout << tm.tm_hour << endl;
-	
-// 	struct tm tm;
-// 	strptime(time_details, "%Y-%m-%d-%H-%M-%S", &tm);
-// 	strptime(time.c_str(), time_format.c_str(), &tm);
-// 	cout << time << endl;
-	
-// 	std::cout << "local: " << std::put_time(std::gmtime(&t), "%Y-%m-%d %H-%M-%S") << '\n';
-	
-	// tm structure to time_t
-	
     return t;
 }
 
 string tools::time::get_time_now(string time_format) 
 {
-	std::time_t t = std::time(nullptr);
-// 	return time_t_to_string(t, time_format);
-
-    std::ostringstream stream;
-    stream << std::put_time(std::localtime(&t), time_format.c_str());
-    string thetime = stream.str();
-    stream.str("");
-    stream.clear();
-    return thetime;
+	stringstream stream;
+	auto t = std::time(nullptr);
+    auto tm = *std::localtime(&t);
+    stream << std::put_time(&tm, time_format.c_str());
+	return stream.str();
 }
 
 ///http://www.cplusplus.com/reference/ctime/strftime/

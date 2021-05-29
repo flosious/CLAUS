@@ -31,13 +31,48 @@
 #include <gsl/gsl_filter.h>
 #include <gsl/gsl_bspline.h>
 #include <gsl/gsl_minmax.h>
+#include <gsl/gsl_fit.h>
 
 
 using namespace std;
 
 class fit_functions
 {
+private:
+	class parent_t
+	{
+	protected:
+		double chisq_p=-1;
+		double chisq0_p=-1;
+		double gof_p=-1;
+		bool fitted_p=false;
+// 		parent_t() {};
+	public:
+		virtual vector<double> fitted_y_data(vector<double> x);
+		/// calculation of fit parameters
+		bool fit(map<double, double> data_XY);
+		bool fitted();
+		double chisq();
+		double chisq0();
+		double gof();
+	};
 public:
+	class exp_decay_t : public parent_t
+	{
+	private:
+// 		static void callback(const size_t iter, void *params, const gsl_multifit_nlinear_workspace *w);
+		static int function(const gsl_vector * x, void *data, gsl_vector * f);
+	public:
+// 		exp_decay_t() :  parent_t() {};
+		double y0;
+		double A1;
+		double t1;
+		vector<double> fitted_y_data(vector<double> x) override;
+		/// calculation of fit parameters
+		bool fit(map<double, double> data_XY, double y0_s=NAN, double A1_s=NAN, double t1_s=NAN);
+		void print_parameters();
+		string to_str(string prefix="");
+	};
 	/// like origin -> peak functions -> asym2sig
 	class asym2sig_t
 	{
@@ -47,7 +82,6 @@ public:
 		double gof_p=-1;
 		bool fitted_p=false;
 		static void callback(const size_t iter, void *params, const gsl_multifit_nlinear_workspace *w);
-// 		static int function_1st_derivative(const gsl_vector * x, void *data, gsl_matrix * J);
 		static int function(const gsl_vector * x, void *data, gsl_vector * f);
 	public:
 		//fitparameters
@@ -80,18 +114,31 @@ public:
 		double chisq_p=-1;
 		/// parameters
 		bool fitted_p=false;
-// 		static void callback(const size_t iter, void *params, const gsl_multifit_nlinear_workspace *w);
-// 		static int function_1st_derivative(const gsl_vector * x, void *data, gsl_matrix * J);
-// 		static int function(const gsl_vector * x, void *data, gsl_vector * f);
+		int degree_p = 0;
 	public:
+		int degree();
 		double chisq();
 		vector<double> fit_parameters;
-		bool fit(map<double,double> data_XY, int degree);
+		bool fit(map<double,double> data_XY, int degree_s);
 		bool fitted();
 		string to_str(string prefix="");
 		vector<double> fitted_y_data(vector<double> x={});
 	};
-
+	
+	///y=m*x
+	class linear_t
+	{
+	private:
+		double chisq_p=-1;
+		bool fitted_p=false;
+	public:
+		double cov;
+		double slope;
+		double chisq();
+		bool fit(map<double,double> data_XY);
+		bool fitted();
+		vector<double> fitted_y_data(vector<double> x={});
+	};
 };
 
 #endif // FIT_FUCTIONS

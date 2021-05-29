@@ -323,6 +323,7 @@ string origin_t::suffix()
 	else 
 	{
 		if (lot()!=LOT_DEFAULT) suffix += "_" + lot();
+		if (lot_split()!=LOT_SPLIT_DEFAULT) suffix += lot_split();
 		if (wafer()!=WAFER_DEFAULT) suffix += "_" + wafer();
 		if (chip()!=CHIP_DEFAULT) suffix += "_" + chip();
 		if (monitor()!=MONITOR_DEFAULT) suffix += "_" + monitor();
@@ -941,8 +942,16 @@ void origin_t::export_jiang_parameters_to_file(calc_models_t::jiang_t& jiang)
 		longname = "sputter_rate";
 		cols.push_back(column_t(jiang.SRs_to_Crel().first));
 		fit=jiang.SRs_to_Crel().first;
-		fit.name = "fitted " + fit.name;
-		fit.data = jiang.SR_to_Crel_polyfit.fitted_y_data(jiang.SRs_to_Crel().second.data);
+		if (jiang.SR_to_Crel_exp_decay.fitted())
+		{
+			fit.name = "exp_decay " + fit.name;
+			fit.data = jiang.SR_to_Crel_exp_decay.fitted_y_data(jiang.SRs_to_Crel().second.data);
+		}
+		else
+		{
+			fit.name = "polynom("+ to_string(jiang.SR_to_Crel_polyfit.degree())+") " + fit.name;
+			fit.data = jiang.SR_to_Crel_polyfit.fitted_y_data(jiang.SRs_to_Crel().second.data);
+		}
 		cols.push_back(column_t(fit));
 	
 	

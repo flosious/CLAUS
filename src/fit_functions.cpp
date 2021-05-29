@@ -17,6 +17,166 @@
 */
 #include "fit_functions.hpp"
 
+/*****************/
+/**   parent_t  **/
+/*****************/
+
+double fit_functions::parent_t::gof()
+{
+	return gof_p;
+}
+
+double fit_functions::parent_t::chisq()
+{
+	return chisq_p;
+}
+
+double fit_functions::parent_t::chisq0()
+{
+	return chisq0_p;
+}
+
+bool fit_functions::parent_t::fitted()
+{
+	return fitted_p;
+}
+
+vector<double> fit_functions::parent_t::fitted_y_data(vector<double> x)
+{
+	return {};
+}
+
+
+/*****************/
+/** exp_decay_t **/
+/*****************/
+
+int fit_functions::exp_decay_t::function(const gsl_vector* x, void* data, gsl_vector* f)
+{
+	map<double, double> *data_XY = ((map<double, double> *)data);
+	double y0 = gsl_vector_get (x, 0);
+	double A1 = gsl_vector_get (x, 1);
+	double t1 = gsl_vector_get (x, 2);
+	size_t i=0;
+	for (map<double,double>::iterator XY=data_XY->begin();XY!=data_XY->end();++XY)
+    {
+		double Yi = y0 + A1 * exp(-XY->first/t1);
+		gsl_vector_set (f, i, Yi - XY->second);
+		i++;
+    }
+	return GSL_SUCCESS;
+}
+
+bool fit_functions::exp_decay_t::fit(map<double, double> data_XY, double y0_s, double A1_s, double t1_s)
+{
+	// maximum time for calculation?
+
+	const gsl_multifit_nlinear_type *T = gsl_multifit_nlinear_trust;
+	gsl_multifit_nlinear_workspace *w;
+	gsl_multifit_nlinear_fdf fdf;
+	gsl_multifit_nlinear_parameters fdf_params = gsl_multifit_nlinear_default_parameters();
+	// number of data points to fit
+	int N = data_XY.size();
+	const size_t n = N;
+	// number of fit parameters
+	const size_t p = 3;
+
+	gsl_vector *f;
+	gsl_matrix *J;
+	gsl_matrix *covar = gsl_matrix_alloc (p, p);
+	double /* t[N], y[N],*/ weights[N];
+// 	struct data d = { n, t, y };
+	
+	vector<double> x_,y_;
+	tools::vec::split_map_to_vecs(&data_XY,&x_,&y_);
+	
+	/* starting values */
+	if (y0_s!=y0_s) y0_s = y_[0]/2;
+	if (A1_s!=A1_s) A1_s = y_[0]/2;
+	if (t1_s!=t1_s) t1_s = y_[0]/x_.back()*2;
+			
+	double x_init[p] = { y0_s, A1_s, t1_s}; 
+	/******************/
+	gsl_vector_view x = gsl_vector_view_array (x_init, p);
+	gsl_vector_view wts = gsl_vector_view_array(weights, n);
+	gsl_rng * r;
+	int status, info;
+	size_t i;
+	const double xtol = 1e-8;
+	const double gtol = 1e-8;
+	const double ftol = 0.0;
+	gsl_rng_env_setup();
+	r = gsl_rng_alloc(gsl_rng_default);
+
+	/* define the function to be minimized */
+	fdf.f = function;
+	fdf.df = NULL;   /* set to NULL for finite-difference Jacobian */
+	fdf.fvv = NULL;     /* not using geodesic acceleration */
+	fdf.n = n;
+	fdf.p = p;
+// 	fdf.params = &d;
+	fdf.params = &data_XY;
+	
+	/* this is the data to be fitted */
+	for (i = 0; i < n; i++)
+		weights[i] = 1.0;
+
+
+	/* allocate workspace with default parameters */
+	w = gsl_multifit_nlinear_alloc (T, &fdf_params, n, p);
+	/* initialize solver with starting point and weights */
+	gsl_multifit_nlinear_winit (&x.vector, &wts.vector, &fdf, w);
+
+	/* compute initial cost function */
+	f = gsl_multifit_nlinear_residual(w);
+	gsl_blas_ddot(f, f, &chisq0_p);
+
+	/* solve the system with a maximum of 100 iterations */
+	status = gsl_multifit_nlinear_driver(200, xtol, gtol, ftol, NULL, NULL, &info, w);
+
+	/* compute covariance of best fit parameters */
+	J = gsl_multifit_nlinear_jac(w);
+	gsl_multifit_nlinear_covar (J, 0.0, covar);
+
+	/* compute final cost */
+	gsl_blas_ddot(f, f, &chisq_p);
+
+	#define FIT(i) gsl_vector_get(w->x, i)
+	#define ERR(i) sqrt(gsl_matrix_get(covar,i,i))
+	
+	/* save fit parameters*/
+	y0 = FIT(0);
+	A1 = FIT(1);
+	t1 = FIT(2);
+	
+	fitted_p = true;
+	
+	/*calc gof_p*/
+	gof_p=0;
+	for (auto& i:data_XY)
+	{
+		double Y = fitted_y_data({i.first})[0];
+		gof_p = gof_p + pow(i.second-Y,2)/abs(Y);
+	}
+	gof_p = 1-sqrt(gof_p)/N;
+
+	gsl_multifit_nlinear_free (w);
+	gsl_matrix_free (covar);
+	gsl_rng_free (r);
+
+	return true;
+}
+
+vector<double> fit_functions::exp_decay_t::fitted_y_data(vector<double> x)
+{
+	if (!fitted_p) return {};
+	vector<double> y_data(x.size());
+	for (int i=0;i<x.size();i++)
+		y_data.at(i) = y0 + A1 * exp(-x.at(i)/t1);
+	return y_data;
+}
+
+
 /*************
  * asym2sig_t*
  *************/
@@ -40,7 +200,7 @@ double fit_functions::asym2sig_t::chisq0()
 
 int fit_functions::asym2sig_t::function(const gsl_vector * x, void *data, gsl_vector * f)
 {
-  map<double, double> *data_XY = ((map<double, double> *)data);
+	map<double, double> *data_XY = ((map<double, double> *)data);
 	
 //   size_t n = ((struct data *)data)->n;
 //   double *t = ((struct data *)data)->t;
@@ -259,16 +419,21 @@ bool fit_functions::polynom_t::fitted()
 	return fitted_p;
 }
 
-
-bool fit_functions::polynom_t::fit(map<double,double> data_XY, int degree)
+int fit_functions::polynom_t::degree()
 {
-	if (degree<0) return false;
-	if (degree>=data_XY.size()) return false;
+	return degree_p;
+}
+
+bool fit_functions::polynom_t::fit(map<double,double> data_XY, int degree_s)
+{
+	degree_p = degree_s;
+	if (degree()<0) return false;
+	if (degree()>=data_XY.size()) return false;
 	fitted_p = false;
 	int i, n;
 	gsl_matrix *X, *cov;
 	gsl_vector *y, *w, *c;
-	const int p = degree+1;
+	const int p = degree()+1;
 	fit_parameters.resize(p);
     
 	n = data_XY.size();
@@ -313,6 +478,45 @@ bool fit_functions::polynom_t::fit(map<double,double> data_XY, int degree)
 }
 
 
+/**********************/
+/****  linear_t  ******/
+/**********************/
 
+double fit_functions::linear_t::chisq()
+{
+	return chisq_p;
+}
 
+bool fit_functions::linear_t::fitted()
+{
+	return fitted_p;
+}
+
+vector<double> fit_functions::linear_t::fitted_y_data(vector<double> x)
+{
+	if (!fitted_p) return {};
+	vector<double> Y(x.size());
+	for (int i=0;i<x.size();i++)
+	{
+		Y[i] = x[i] * slope;
+	}
+	return Y;
+}
+
+bool fit_functions::linear_t::fit(map<double, double> data_XY)
+{
+// 	double cov01, cov11;
+	size_t n = data_XY.size();
+	double x[n], y[n];
+	int i=0;
+	for (auto& xy : data_XY)
+    {
+		x[i] = xy.first;
+		y[i] = xy.second;
+		i++;
+	}
+	gsl_fit_mul(x,1,y,1,n,&slope,&cov,&chisq_p);
+	fitted_p = true;
+	return true;
+}
 

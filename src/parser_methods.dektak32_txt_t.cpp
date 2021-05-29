@@ -22,7 +22,7 @@ dektak32_txt_t::dektak32_txt_t()
 	/// overwrites parser_methods::tool_name
 	tool_name = "dektak32";
 	/// overwrites parser_methods::file_type_endings
-	file_type_endings = {"txt"};
+	file_type_endings = {"txt","profile"};
 	/// this is not a primary measurement
 	set_secondary_measurement();
 }

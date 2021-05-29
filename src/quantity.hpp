@@ -99,10 +99,6 @@ public:
 	quantity_t fit_polynom_by_x_data(quantity_t x_data, quantity_t new_x_data, int polynom_grade=-1 );
 	quantity_t polyfit(int polynom_grade=-1);
 	
-
-	
-	
-	
 	
 	quantity_t filter_recursive_median(int window_size=0);
 	quantity_t filter_impulse(int window_size=0, float factor=4);

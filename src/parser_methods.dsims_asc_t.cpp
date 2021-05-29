@@ -137,26 +137,11 @@ bool dsims_asc_t::parse_cluster()
 // 	print(common_X_dimension);
 	vector<column_t> cols = columns();
 	if (!check_cols_size(cols)) return false;
-	/* sputter_depth // sputter_time */
-	if (cols[0].dimension=="Depth")
-	{
-		measurement_p.crater.sputter_depth_p.unit = cols[0].unit;
-		measurement_p.crater.sputter_depth_p.dimension = "length";
-		measurement_p.crater.sputter_depth_p.name = "sputter_depth";
-		measurement_p.crater.sputter_depth_p.data = common_X_dimension;
-		total_sputter_depth_p = total_sputter_X;
-	}
-	else
-	{
-		measurement_p.crater.sputter_time_p.unit = cols[0].unit;
-		measurement_p.crater.sputter_time_p.dimension = "time";
-		measurement_p.crater.sputter_time_p.name = "sputter_time";
-		measurement_p.crater.sputter_time_p.data = common_X_dimension;
-		total_sputter_time_p = total_sputter_X;
-	}
+	vector<double> total_sputter_Xs;
 	/* cluster */
 	for (int c=1;c<cols.size();c=c+2)
 	{
+		total_sputter_Xs.push_back(cols[c-1].data[statistics::get_max_index_from_Y(cols[c-1].data)]);
 		map<double,double> data_XY;
 		tools::vec::combine_vecs_to_map(&cols[c-1].data,&cols[c].data,&data_XY);
 		if (data_XY.size()==0) return false;
@@ -205,6 +190,25 @@ bool dsims_asc_t::parse_cluster()
 		}
 
 	}
+	total_sputter_X = (total_sputter_Xs[statistics::get_max_index_from_Y(total_sputter_Xs)]);
+	/* sputter_depth // sputter_time */
+	if (cols[0].dimension=="Depth")
+	{
+		measurement_p.crater.sputter_depth_p.unit = cols[0].unit;
+		measurement_p.crater.sputter_depth_p.dimension = "length";
+		measurement_p.crater.sputter_depth_p.name = "sputter_depth";
+		measurement_p.crater.sputter_depth_p.data = common_X_dimension;
+		total_sputter_depth_p = total_sputter_X;
+	}
+	else
+	{
+		measurement_p.crater.sputter_time_p.unit = cols[0].unit;
+		measurement_p.crater.sputter_time_p.dimension = "time";
+		measurement_p.crater.sputter_time_p.name = "sputter_time";
+		measurement_p.crater.sputter_time_p.data = common_X_dimension;
+		total_sputter_time_p = total_sputter_X;
+	}
+	
 // 	for (auto& cluster:measurement_p.clusters)
 // 		cluster.second.to_screen();
 	return true;
@@ -231,9 +235,10 @@ bool dsims_asc_t::add_crater_total_sputter_time()
 	measurement_p.crater.total_sputter_time_p.unit="s";
 	measurement_p.crater.total_sputter_time_p.dimension="time";
 	measurement_p.crater.total_sputter_time_p.name="total_sputter_time";
-	if (settings.find("Total acquisition time (s)")!=settings.end())
-		measurement_p.crater.total_sputter_time_p.data.push_back(tools::str::str_to_double(settings["Total acquisition time (s)"]));
-	else if (total_sputter_time_p>0)
+	/*if (settings.find("Total acquisition time (s)")!=settings.end())
+		measurement_p.crater.total_sputter_time_p.data.push_back(tools::str::str_to_double(settings[" (s)"]));
+	else */
+	if (total_sputter_time_p>0)
 		measurement_p.crater.total_sputter_time_p.data.push_back(total_sputter_time_p);
 	else return false;
 	return true;
@@ -380,9 +385,7 @@ set<int> dsims_asc_t::corrupted_lines()
 
 void dsims_asc_t::remove_corrupted_lines()
 {
-	
 	set<int> corrupted_lines_p=corrupted_lines();
-// 	cout << "corrupted_lines.size()="  << corrupted_lines_p.size() <<  endl;
 	for (set<int>::reverse_iterator it=corrupted_lines_p.rbegin();it!=corrupted_lines_p.rend();++it)
 	{
 		

@@ -18,7 +18,7 @@
 #include "cluster_t.hpp"
 #include "measurement.hpp"
 #include "measurement_group_t.hpp"
-// #include "export.hpp"
+#include "export.hpp"
 
 // vector<string> calc_history;
 
@@ -62,7 +62,14 @@ quantity_t cluster_t::sputter_rate()
 	else if (depth_at_maximum_concentration().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_time().is_set())
 	{
 		measurement->crater.sputter_rate_p=depth_at_maximum_concentration() / (equilibrium().intensity().polyfit().max_at_x(equilibrium().sputter_time() ));
-		if (measurement->crater.sputter_rate_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tsputter_rate from depth_at_maximum_concentration+intensity_max" + measurement->crater.sputter_rate_p.to_str());
+		if (measurement->crater.sputter_rate_p.is_set()) 
+		{
+			/**/
+// 			string file = "/tmp/"+to_string(measurement->olcdb())+"_"+measurement->lot()+"_"+to_string(measurement->wafer())+".txt";
+// 			string file ="/tmp/"+measurement->filename_p->filename()+".txt";
+// 			plot_t::fast_plot({sputter_time(),sputter_time()},{intensity(),equilibrium().intensity().polyfit()},file,true );
+			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tsputter_rate from depth_at_maximum_concentration+intensity_max" + measurement->crater.sputter_rate_p.to_str());
+		}
 	}
 	else if (depth_at_maximum_concentration().is_set() && equilibrium().concentration().is_set() && equilibrium().sputter_time().is_set())
 	{
@@ -258,7 +265,8 @@ quantity_t cluster_t::SF()
 	// will be iterated multiple times because of RSF calculation for measurement_group
 // 	if (SF_p.is_set()) return SF_p;
 	if (already_checked_SF || SF_p.is_set()) return SF_p;
-	
+
+// 	Florian 29.05.21	
 	/*low intensity back ground*/
 	if (dose().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_depth().is_set() && equilibrium().intensity().max().is_set() && equilibrium().intensity().max().data[0]*0.05>intensity().data.back())
 	{
@@ -292,7 +300,7 @@ quantity_t cluster_t::SF()
 		if (SF_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tSF from concentration_max+intensity_max\t" + SF_p.to_str());
 	}
 	
-	
+// 	Florian 29.05.21
 	/*high intensity back ground*/
 	else if (dose().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_depth().is_set())
 	{
@@ -599,17 +607,29 @@ cluster_t cluster_t::equilibrium()
 	/*already in equilibrium*/
 	if (quantities_reduced_by_equilibrium_starting_pos) return *this;
 	cluster_t result=*this;
-	
+	int start = 0;
 	if (equilibrium_starting_pos==-1)
 	{
-		equilibrium_starting_pos=0;
+// 		equilibrium_starting_pos=0;
 		vector<double> Y;
 		
 		if (intensity().is_set())
 			Y = intensity().filter_gaussian(5,4).data; 
-		else if (concentration().is_set())
-			Y = concentration().filter_gaussian(5,4).data; 
-		else return result;
+// 		else if (concentration().is_set())
+// 			Y = concentration().filter_gaussian(5,4).data; 
+		else 
+			return result;
+		
+		/*remove first 5% of all data; this is dangerous and should be solved better*/
+		if (measurement->settings.sputter_element() == "Cs" && Y.size()>20) 
+			start = 20;
+		else
+			start = 1;
+		equilibrium_starting_pos = start;
+// 		cout << "Y.size(b4)=" << Y.size() << endl;
+// 		Y.erase(Y.begin(),Y.begin()+start);
+// 		cout << "Y.size(after)=" << Y.size() << endl;
+		/*****************************/
 				
 		double treshold = statistics::get_mad_from_Y(Y)/2;
 		double median = statistics::get_median_from_Y(Y);
@@ -684,10 +704,10 @@ cluster_t cluster_t::equilibrium()
 // 				cout << name() << " type A or B or F" << endl;
 			}
 		}
-// 		cout << name() <<" equilibrium_starting_pos = " << equilibrium_starting_pos << endl;
+		
 	}
-	
-	result.equilibrium_starting_pos=equilibrium_starting_pos;
+// 	cout << measurement->lot() << "_" << measurement->wafer()  << "_" << name() <<" equilibrium_starting_pos = " << equilibrium_starting_pos << endl;
+	result.equilibrium_starting_pos=equilibrium_starting_pos+start;
 	reduce_quantities_by_equlibrium_starting_pos(result);
 	return result;
 }

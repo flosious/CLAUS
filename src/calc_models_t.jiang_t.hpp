@@ -21,11 +21,11 @@
 #include "calc_models_t.hpp"
 #include "globalvars.hpp"
 #include <math.h>
-/*
- *	jiangs protocol for 2 element/isotope matrices/substrates
- * 	Jiang Z X et al 2006 Appl. Surf. Sci. 252 7262 
- * 	Bärwolf et al Semicond. Sci. Technol. 34 (2019) 014005 (6pp)
- * 	This class extends the original protocol by hihger polynomial grades
+/*!
+    jiangs protocol for 2 element/isotope matrices/substrates
+   	Jiang Z X et al 2006 Appl. Surf. Sci. 252 7262 
+  	Bärwolf et al Semicond. Sci. Technol. 34 (2019) 014005 (6pp)
+  	This class extends the original protocol by hihger polynomial grades
  */
 class calc_models_t::jiang_t
 {
@@ -72,8 +72,10 @@ private:
 	pair<quantity_t,quantity_t> Crel_to_Irel_p;
 	map<string,pair<quantity_t,quantity_t>> clustername_to_RSFs_to_Crel_p;
 public:
+	fit_functions::exp_decay_t SR_to_Crel_exp_decay;
 	fit_functions::polynom_t SR_to_Crel_polyfit;
 	fit_functions::polynom_t CRel_to_Irel_polyfit;
+// 	fit_functions::linear_t CRel_to_Irel_linfit;
 	map<string, fit_functions::polynom_t> clustername_to_RSFs_to_Crel_polyfit;
 	
 	/// zähler

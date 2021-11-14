@@ -23,7 +23,7 @@ tofsims_txt_t::tofsims_txt_t() : parser_methods()
 	/// overwrites parser_methods::tool_name
 	tool_name = "tofsims";
 	/// overwrites parser_methods::file_type_endings
-	file_type_endings = {"TXT"};
+	file_type_endings = {"TXT","txt"};
 }
 
 /// Order is important
@@ -37,13 +37,16 @@ bool tofsims_txt_t::parse(filename_t* filename_p, string* contents)
 		error_messages.push_back("tofsims_txt_t::parse:check(): "+ filename->filename()); // Warnings?
 		return false;
 	}
-// 	if (!parse_filename()) 
-// 	{
-// 		error=true;
-// 		error_messages.push_back("tofsims_txt_t::parse:parse_filename(): "+ *filename);
-// 		return false;
-// 	}
+
 	tools::str::remove_substring_from_mainstring(contents,"#");
+	
+	
+	///sometimes "Constant Reference Normalization(Background Corrected)" is also exported, but empty values, simply delete and ignore it
+	if (contents->find("\t\t")!= string::npos)
+	{
+		tools::str::replace_chars(contents,"Constant Reference Normalization(Background Corrected)","");
+		tools::str::replace_chars(contents,"\t\t","\t");
+	}
 	
 	if (!parse_cluster())
 	{
@@ -92,22 +95,56 @@ vector<isotope_t> tofsims_txt_t::parse_isotopes(string isotopes)
 
 bool tofsims_txt_t::parse_cluster()
 {
-	if (!parse_data_and_header_tensors(/*&raw_data_tensor,&raw_header_tensor*/)) return false;
-
-	if (raw_header_tensor.size()<2) return false;
-	if (raw_header_tensor[0].size()<2) return false;
 	
-
-	vector<string> cluster_names=raw_header_tensor[0][2]; // [0] should be empty (sputter_time or depth)
-	vector<string> dimension_names = raw_header_tensor[1][0];
-	tools::str::replace_chars(&raw_data_tensor[1],",",".");
-	vector<vector<double>> data_mat = tools::mat::str_matrix_to_double_matrix(raw_data_tensor[1]);
+	if (!parse_data_and_header_tensors(/*&raw_data_tensor,&raw_header_tensor*/)) 
+	{
+		error_messages.push_back("tofsims_txt_t::parse_cluster() parse_data_and_header_tensors returned false\t" + filename->filename());
+		return false;
+	}
+	if (raw_header_tensor.size()<1) 
+	{
+		error_messages.push_back("tofsims_txt_t::parse_cluster() raw_header_tensor.size()<1 "+to_string(raw_header_tensor.size())+"\t" + filename->filename());
+		return false;
+	}
+	if (raw_header_tensor[0].size()<2) 
+	{
+		error_messages.push_back("tofsims_txt_t::parse_cluster() raw_header_tensor[0].size()<2 "+to_string(raw_header_tensor[0].size())+"\t" + filename->filename());
+		return false;
+	}
+	int rht_pos = raw_header_tensor.size()-1;
+// 	vector<int> empty_cols;
+// 	for (int i=0;i<raw_header_tensor.at(0).at(2).size();i++)
+// 	{
+// 		if (raw_data_tensor.at(0).at(2).at(i)=="")
+// 			empty_cols.push_back(i);
+// 		else 
+// 			cout << "raw_data_tensor.at(0).at(2).at(i)=" << raw_data_tensor.at(0).at(2).at(i) << endl;
+// 	}
+// 	print (empty_cols);
+// 	tools::mat::remove_lines_or_columns_from_matrix();
+	vector<string> cluster_names;
+	vector<string> dimension_names;
+	//fast fix because of tof-sims software version 7
+	if (rht_pos==0)
+	{
+		print(raw_header_tensor);
+		cluster_names=raw_header_tensor[0].at(1);
+		dimension_names = raw_header_tensor[0].at(3);
+	}
+	else
+	{
+		cluster_names=raw_header_tensor[0].back(); // [0] should be empty (sputter_time or depth)
+		dimension_names = raw_header_tensor[1][0];
+	}
+	
+	tools::str::replace_chars(&raw_data_tensor[rht_pos],",",".");
+	vector<vector<double>> data_mat = tools::mat::str_matrix_to_double_matrix(raw_data_tensor[rht_pos]);
 // 	cout << "\ndata_mat.size()="<<data_mat.size()<<endl;
 	data_mat = tools::mat::transpose_matrix(data_mat);
-	
+
 	if (cluster_names.size()!=dimension_names.size())
 	{
-		error_messages.push_back("tofsims_txt_t::parse_cluster() - cluster_names.size()!=dimension_names.size() - " + filename->filename());
+		error_messages.push_back("tofsims_txt_t::parse_cluster() - cluster_names.size()=" + to_string(cluster_names.size()) +"!=dimension_names.size()=" + to_string(dimension_names.size())+" - " + filename->filename());
 		return false;
 	}
 	if (data_mat.size()!=dimension_names.size()-1)
@@ -116,7 +153,7 @@ bool tofsims_txt_t::parse_cluster()
 // 		print(data_mat);
 // 		cout << "data_mat.size()="<<data_mat.size()<<endl;
 // 		cout << "dimension_names.size()="<<dimension_names.size()<<endl;
-		error_messages.push_back("tofsims_txt_t::parse_cluster() - data_mat.size()!=dimension_names.size()-1 - " + filename->filename());
+		error_messages.push_back("tofsims_txt_t::parse_cluster() - data_mat.size()="+to_string(data_mat.size())+"!=dimension_names.size()-1="+to_string(dimension_names.size()-1)+" - " + filename->filename());
 		return false;
 	}
 	
@@ -169,7 +206,7 @@ bool tofsims_txt_t::parse_cluster()
 			cluster.intensity_p.unit="cnt/s";
 			cluster.intensity_p.dimension="amount/time";
 		}
-		else
+		else if (dimension_names[i].find("Concentration")!=string::npos)
 		{
 			cluster.concentration_p.data=data_mat[i];
 			if (use_impulse_filter_on_data)
@@ -177,6 +214,11 @@ bool tofsims_txt_t::parse_cluster()
 			cluster.concentration_p.name="concentration";
 			cluster.concentration_p.unit="at/cm^3";
 			cluster.concentration_p.dimension="amount*(length)^(-3)";
+		}
+		else
+		{
+			error_messages.push_back("tofsims_txt_t::parse_cluster()\tunknown name: "+dimension_names[i] +"\tskipping...\t"+ filename->filename());
+			continue;
 		}
 		measurement_p.clusters[cluster.name()]=cluster;
 	}

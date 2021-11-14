@@ -44,7 +44,7 @@ bool isotope_t::sort_lower_mass(isotope_t i, isotope_t j)
 	return i.mass().data[0]<j.mass().data[0];
 }
 
-std::__cxx11::string isotope_t::name()
+string isotope_t::name()
 {
 	if (atoms==1 && nucleons==-1) return symbol;
 	if (atoms==1) return to_string(nucleons) + symbol;
@@ -57,7 +57,7 @@ isotope_t::isotope_t()
 	return;
 }
 
-isotope_t::isotope_t ( std::__cxx11::string name_to_parse )
+isotope_t::isotope_t ( string name_to_parse )
 {
 // 	cout << "name_to_parse=" << name_to_parse << endl;
 	smatch match;

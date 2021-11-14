@@ -33,7 +33,7 @@ bool reference_t::check() {
 	return true;
 }
 
-vector<isotope_t> reference_t::parse_isotopes(std::__cxx11::string cluster_name)
+vector<isotope_t> reference_t::parse_isotopes(string cluster_name)
 {
 	cluster_name = tools::str::remove_chars_from_string(cluster_name,"\\+()");
 	vector<isotope_t> isotopes;
@@ -45,7 +45,7 @@ vector<isotope_t> reference_t::parse_isotopes(std::__cxx11::string cluster_name)
 	return isotopes;
 }
 
-bool reference_t::parse(filename_t* filename_p, std::__cxx11::string* contents)
+bool reference_t::parse(filename_t* filename_p, string* contents)
 {
 	filename = filename_p;
 	file_contents = contents;
@@ -85,7 +85,7 @@ vector<reference_t::column_t> reference_t::columns()
  *	crater_sample_name --> can be ignored
  *	data[]
  */
-reference_t::column_t::column_t(vector<std::__cxx11::string>& header_lines, vector<std::__cxx11::string>& data_lines)
+reference_t::column_t::column_t(vector<string>& header_lines, vector<string>& data_lines)
 {
 	for (auto& possible_dimension:possible_dimensions)
 	{

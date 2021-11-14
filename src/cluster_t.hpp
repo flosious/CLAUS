@@ -54,6 +54,7 @@ class cluster_t
 	/*just testing*/
 	friend class origin_t;
 private:
+	static double dose_or_Max__treshold;
 	static string standard_reference_intensity_calculation_method;
 	bool quantities_reduced_by_equilibrium_starting_pos=false;
 	void reduce_quantities_by_equlibrium_starting_pos(cluster_t& reduces_this);

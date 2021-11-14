@@ -25,7 +25,7 @@ bool measurement_group_t::defined_settings=true;
 bool measurement_group_t::defined_tool=true;
 bool measurement_group_t::defined_directory=false;
 
-std::__cxx11::string measurement_group_t::directory()
+string measurement_group_t::directory()
 {
 	if (measurements.size()==0) return "";
 	string directory_p=measurements.front()->filename_p->directory();
@@ -119,7 +119,7 @@ map<quantity_t, sample_t::matrix_t> measurement_group_t::SR_vs_matrix()
 	return SR_vs_matrix_p;
 }
 
-map<quantity_t, sample_t::matrix_t> measurement_group_t::RSF_vs_matrix(std::__cxx11::string cluster_name)
+map<quantity_t, sample_t::matrix_t> measurement_group_t::RSF_vs_matrix(string cluster_name)
 {
 	map<quantity_t, sample_t::matrix_t> RSF_vs_matrix_p;
 	
@@ -190,7 +190,7 @@ list<measurement_group_t> measurement_group_t::measurement_groups(list<measureme
 	return measurement_groups;
 }
 
-void measurement_group_t::to_screen(std::__cxx11::string prefix)
+void measurement_group_t::to_screen(string prefix)
 {
 	cout << prefix << "tool_name = " << tool_name_p << endl;
 	cout << prefix << "group = " << group_p << endl;
@@ -240,7 +240,7 @@ set<string> measurement_group_t::reference_matrix_cluster_names()
 }
 
 
-vector<std::__cxx11::string> measurement_group_t::error_messages()
+vector<string> measurement_group_t::error_messages()
 {
 	return error_messages_p;
 }
@@ -314,7 +314,7 @@ set<isotope_t> measurement_group_t::isotopes()
 	return isotopes_p;
 }
 
-set<std::__cxx11::string> measurement_group_t::cluster_names()
+set<string> measurement_group_t::cluster_names()
 {
 	if (cluster_names_p.size()>0) return cluster_names_p;
 	for (auto& measurement:measurements)
@@ -326,7 +326,7 @@ set<std::__cxx11::string> measurement_group_t::cluster_names()
 }
 
 /*ATTENTION! "28Si 11B" and "30Si 11B" can not be distinguished! this function is bijective: isotope <=> cluster*/
-std::__cxx11::string measurement_group_t::cluster_name_from_isotope(isotope_t isotope)
+string measurement_group_t::cluster_name_from_isotope(isotope_t isotope)
 {	
 // 	vector<string> isotope_names_in_cluster = tools::str::get_strings_between_delimiter();
 	// matrix isotope?	
@@ -353,7 +353,7 @@ std::__cxx11::string measurement_group_t::cluster_name_from_isotope(isotope_t is
 	return "";
 }
 
-std::__cxx11::string measurement_group_t::name()
+string measurement_group_t::name()
 {
 	stringstream name_p;
 	if (defined_olcdbid) name_p << olcdb_p << "_";
@@ -371,7 +371,7 @@ std::__cxx11::string measurement_group_t::name()
 	return result;
 }
 
-std::__cxx11::string measurement_group_t::to_str(std::__cxx11::string prefix)
+string measurement_group_t::to_str(string prefix)
 {
 	stringstream ss;
 	int i=0;
@@ -386,7 +386,7 @@ std::__cxx11::string measurement_group_t::to_str(std::__cxx11::string prefix)
 	return ss.str();
 }
 
-map<std::__cxx11::string, quantity_t> measurement_group_t::clustername_to_concentrations_from_all_measurements()
+map<string, quantity_t> measurement_group_t::clustername_to_concentrations_from_all_measurements()
 {
 	map<string,quantity_t> clustername_to_concentrations_from_all_measurements;
 	for (auto& cluster_name:cluster_names())
@@ -420,7 +420,7 @@ map<std::__cxx11::string, quantity_t> measurement_group_t::clustername_to_concen
 	return clustername_to_concentrations_from_all_measurements;
 }
 
-map<std::__cxx11::string, quantity_t> measurement_group_t::clustername_to_intensities_from_all_measurements()
+map<string, quantity_t> measurement_group_t::clustername_to_intensities_from_all_measurements()
 {
 	map<string,quantity_t> clustername_to_intensities_from_all_measurements;
 	for (auto& cluster_name:cluster_names())
@@ -451,7 +451,7 @@ map<std::__cxx11::string, quantity_t> measurement_group_t::clustername_to_intens
 	return clustername_to_intensities_from_all_measurements;
 }
 
-map<std::__cxx11::string, quantity_t> measurement_group_t::clustername_to_RSFs_from_all_measurements()
+map<string, quantity_t> measurement_group_t::clustername_to_RSFs_from_all_measurements()
 {
 	map<string,quantity_t> clustername_to_RSFs_from_all_measurements;
 	for (auto& cluster_name:cluster_names())
@@ -485,7 +485,7 @@ map<std::__cxx11::string, quantity_t> measurement_group_t::clustername_to_RSFs_f
 	return clustername_to_RSFs_from_all_measurements;
 }
 
-vector<std::__cxx11::string> measurement_group_t::filenames_with_path()
+vector<string> measurement_group_t::filenames_with_path()
 {
 	vector<string> filenames;
 	for (auto& M:measurements)

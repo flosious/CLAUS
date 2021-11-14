@@ -24,6 +24,7 @@
 
 /************** cluster_t ********************/
 
+double cluster_t::dose_or_Max__treshold=0.01;
 string cluster_t::standard_reference_intensity_calculation_method="pbp";
 
 quantity_t cluster_t::total_sputter_depth()
@@ -57,7 +58,7 @@ quantity_t cluster_t::sputter_rate()
 	if (total_sputter_time().is_set() && total_sputter_depth().is_set())
 	{
 		measurement->crater.sputter_rate_p = total_sputter_depth() / (total_sputter_time());
-		if (measurement->crater.sputter_rate_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tsputter_rate from total_sputter_depth+total_sputter_time" + measurement->crater.sputter_rate_p.to_str());
+		if (measurement->crater.sputter_rate_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tsputter_rate from total_sputter_depth+total_sputter_time " + measurement->crater.sputter_rate_p.to_str());
 	}
 	else if (depth_at_maximum_concentration().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_time().is_set())
 	{
@@ -68,13 +69,15 @@ quantity_t cluster_t::sputter_rate()
 // 			string file = "/tmp/"+to_string(measurement->olcdb())+"_"+measurement->lot()+"_"+to_string(measurement->wafer())+".txt";
 // 			string file ="/tmp/"+measurement->filename_p->filename()+".txt";
 // 			plot_t::fast_plot({sputter_time(),sputter_time()},{intensity(),equilibrium().intensity().polyfit()},file,true );
-			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tsputter_rate from depth_at_maximum_concentration+intensity_max" + measurement->crater.sputter_rate_p.to_str());
+			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tployfit intensity_max\t" + equilibrium().intensity().polyfit().max().to_str());
+			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tsputter_time at polyfit intensity_max\t" + equilibrium().intensity().polyfit().max_at_x(equilibrium().sputter_time()).to_str());
+			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tsputter_rate from depth_at_maximum_concentration+intensity_max\t" + measurement->crater.sputter_rate_p.to_str());
 		}
 	}
 	else if (depth_at_maximum_concentration().is_set() && equilibrium().concentration().is_set() && equilibrium().sputter_time().is_set())
 	{
 		measurement->crater.sputter_rate_p=depth_at_maximum_concentration() / (equilibrium().concentration().polyfit().max_at_x(equilibrium().sputter_time() ));
-		if (measurement->crater.sputter_rate_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tsputter_rate from depth_at_maximum_concentration+concentration_max" + measurement->crater.sputter_rate_p.to_str());
+		if (measurement->crater.sputter_rate_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tsputter_rate from depth_at_maximum_concentration+concentration_max " + measurement->crater.sputter_rate_p.to_str());
 	}
 	if (measurement->crater.sputter_rate_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + measurement->crater.sputter_rate_p.to_str());
 	measurement->crater.sputter_rate_p.unit="nm/s";
@@ -200,6 +203,8 @@ quantity_t cluster_t::dose()
 		if (dose_p.is_set()) 
 			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tdose from concentration+sputter_depth\t" + dose_p.to_str());
 	}
+	else
+		error_messages_p.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tdose unknown");
 	return dose_p;
 }
 
@@ -230,7 +235,7 @@ quantity_t cluster_t::concentration()
 	else if (measurement->load_from_database() && is_reference() && intensity().is_set())
 	{
 		if (reference_matrix_isotope().is_set())
-			concentration_p = measurement->sample_p->matrix.relative_concentration(reference_matrix_isotope())*intensity()/(intensity().trimmed_mean());
+			concentration_p = measurement->sample_p->matrix.relative_concentration(reference_matrix_isotope())*intensity()/(intensity().trimmed_mean_reduced());
 		else 
 			concentration_p.data.assign(intensity().data.size(),0);
 		concentration_p.unit="at%";
@@ -238,6 +243,8 @@ quantity_t cluster_t::concentration()
 		concentration_p.dimension="relative";
 		if (concentration_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tconcentration() from DB\t" + concentration_p.to_str());
 	}
+	else
+		calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tconcentration() unknown");
 
 	/*other values maybe calculateable now*/
 	if (concentration_p.is_set()) 
@@ -268,9 +275,9 @@ quantity_t cluster_t::SF()
 
 // 	Florian 29.05.21	
 	/*low intensity back ground*/
-	if (dose().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_depth().is_set() && equilibrium().intensity().max().is_set() && equilibrium().intensity().max().data[0]*0.05>intensity().data.back())
+	if (dose().is_set() && equilibrium().intensity().is_set() && equilibrium().sputter_depth().is_set() && equilibrium().intensity().max().is_set() && equilibrium().intensity().max().data[0]*dose_or_Max__treshold>intensity().data.back())
 	{
-		// nur wenn die intensität am ende des profils auf unter 5% des maximums fällt
+		// nur wenn die intensität am ende des profils auf unter 1% des maximums fällt
 		SF_p = dose() / (equilibrium().intensity().integrate(equilibrium().sputter_depth()));
 		SF_p = SF_p * 1E7; // nm -> cm
 		SF_p.unit = "at/cm^3 / (cnt/s)";
@@ -284,11 +291,11 @@ quantity_t cluster_t::SF()
 		if(standard_reference_intensity_calculation_method=="pbp") SF_p = RSF() / reference_intensity();
 		else if(standard_reference_intensity_calculation_method=="median") SF_p = RSF() / reference_intensity().median();
 		else if(standard_reference_intensity_calculation_method=="mean") SF_p = RSF() / reference_intensity().mean();
-		else if(standard_reference_intensity_calculation_method=="trimmed_mean") SF_p = RSF() / reference_intensity().trimmed_mean();
+		else if(standard_reference_intensity_calculation_method=="trimmed_mean") SF_p = RSF() / reference_intensity().trimmed_mean_reduced();
 		else if(standard_reference_intensity_calculation_method=="gastwirth") SF_p = RSF() / reference_intensity().gastwirth();
 		else if(standard_reference_intensity_calculation_method=="quantile50") SF_p = RSF() / reference_intensity().quantile(0.5);
 		else if(standard_reference_intensity_calculation_method=="quantile75") SF_p = RSF() / reference_intensity().quantile(0.75);
-		else SF_p = RSF() / reference_intensity().trimmed_mean();
+		else SF_p = RSF() / reference_intensity().trimmed_mean_reduced();
 		if (SF_p.is_set()) 
 			calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\tSF from RSF+reference_intensity\t" + SF_p.to_str());
 	}
@@ -337,7 +344,7 @@ quantity_t cluster_t::RSF()
 	if (reference_intensity().is_set() && SF().is_set())
 	{
 // 		cout << "SF\n";
-		RSF_p = SF() * reference_intensity().trimmed_mean();
+		RSF_p = SF() * reference_intensity().trimmed_mean_reduced();
 		RSF_p.dimension = "amount*(length)^(-3)";
 		RSF_p.unit = "at/cm^3";
 // 		if (RSF_p.is_set()) calc_history.push_back(measurement->filename_p->filename_with_path()+"\t"+name()+"\t" + RSF_p.to_str());
@@ -614,24 +621,26 @@ cluster_t cluster_t::equilibrium()
 		vector<double> Y;
 		
 		if (intensity().is_set())
-			Y = intensity().filter_gaussian(5,4).data; 
+			Y = intensity().filter_gaussian(5,4).log10().data; 
 // 		else if (concentration().is_set())
 // 			Y = concentration().filter_gaussian(5,4).data; 
 		else 
 			return result;
 		
+		
 		/*remove first 5% of all data; this is dangerous and should be solved better*/
-		if (measurement->settings.sputter_element() == "Cs" && Y.size()>20) 
-			start = 20;
-		else
-			start = 1;
+// 		if (measurement->settings.sputter_element() == "Cs" && Y.size()>20) 
+// 			start = 1;
+// 		else
+// 			start = 1;
 		equilibrium_starting_pos = start;
 // 		cout << "Y.size(b4)=" << Y.size() << endl;
 // 		Y.erase(Y.begin(),Y.begin()+start);
 // 		cout << "Y.size(after)=" << Y.size() << endl;
 		/*****************************/
 				
-		double treshold = statistics::get_mad_from_Y(Y)/2;
+// 		double treshold = statistics::get_mad_from_Y(Y)/2;
+		double treshold = abs(Y.at(Y.size()/2)-Y.at(Y.size()/2+1))*2;
 		double median = statistics::get_median_from_Y(Y);
 		set<int> extrema_idx;
 		vector<int> maxIdx, minIdx;
@@ -714,7 +723,7 @@ cluster_t cluster_t::equilibrium()
 
 
 
-std::__cxx11::string cluster_t::to_str(std::__cxx11::string prefix)
+string cluster_t::to_str(string prefix)
 {
 	stringstream ss;
 	ss << prefix << name() << endl;

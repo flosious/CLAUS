@@ -89,7 +89,7 @@ void export2_t::export_contents_to_file(string contents, string filename_p, meas
 	return;
 }
 
-void export2_t::export_contents_to_file(vector<std::__cxx11::string> contents, string filename_p, measurement_group_t MG, string sub_directory)
+void export2_t::export_contents_to_file(vector<string> contents, string filename_p, measurement_group_t MG, string sub_directory)
 {
 	export_contents_to_file(tools::vec::combine_vec_to_string(contents,"\n"),filename_p,MG,sub_directory);
 	return;
@@ -101,13 +101,13 @@ export2_t::export2_t(measurement_t* measurement_p)
 	measurement = measurement_p;
 }
 
-std::__cxx11::string export2_t::tool_name()
+string export2_t::tool_name()
 {
 	if (measurement->tool_name()!="") return measurement->tool_name();
 	return TOOL_NAME_DEFAULT;
 }
 
-std::__cxx11::string export2_t::chip()
+string export2_t::chip()
 {
 	string chip_p;
 	if (measurement->filename_p->chip_x>-1) 
@@ -121,58 +121,58 @@ std::__cxx11::string export2_t::chip()
 	return CHIP_DEFAULT;
 }
 
-std::__cxx11::string export2_t::group()
+string export2_t::group()
 {
 // 	if (measurement->filename_p->group>-1) return "g"+to_string(measurement->filename_p->group)+measurement->filename_p->repetition;
 	if (measurement->filename_p->group>-1) return "g"+to_string(measurement->filename_p->group);
 	return GROUP_DEFAULT;
 }
 
-std::__cxx11::string export2_t::repetition()
+string export2_t::repetition()
 {
 	if (measurement->filename_p->repetition!="") return measurement->filename_p->repetition;
 	return repetition_DEFAULT;
 }
 
-std::__cxx11::string export2_t::lot()
+string export2_t::lot()
 {
 	if (measurement->filename_p->lot!="") return measurement->filename_p->lot;
 	return LOT_DEFAULT;
 }
 
-std::__cxx11::string export2_t::olcdb()
+string export2_t::olcdb()
 {
 	if (measurement->filename_p->olcdb>-1) return to_string(measurement->filename_p->olcdb);
 	return OLCDB_DEFAULT;
 }
 
-std::__cxx11::string export2_t::monitor()
+string export2_t::monitor()
 {
 	if (measurement->filename_p->monitor!="") return "m"+measurement->filename_p->monitor;
 	return MONITOR_DEFAULT;
 }
 
-std::__cxx11::string export2_t::lot_split()
+string export2_t::lot_split()
 {
 	if (measurement->filename_p->lot_split!="") return measurement->filename_p->lot_split;
 	return LOT_SPLIT_DEFAULT;
 }
 
-std::__cxx11::string export2_t::wafer()
+string export2_t::wafer()
 {
 	if (measurement->filename_p->wafer>9) return "w"+to_string(measurement->filename_p->wafer);
 	if (measurement->filename_p->wafer>0) return "w0"+to_string(measurement->filename_p->wafer);
 	return WAFER_DEFAULT;
 }
 
-std::__cxx11::string export2_t::energy()
+string export2_t::energy()
 {
 	if (measurement->settings.sputter_energy().is_set()) 
 		return to_string((int)(measurement->settings.sputter_energy().data[0]))+measurement->settings.sputter_energy().unit+measurement->settings.sputter_element()+measurement->settings.polarity();
 	return ENERGY_DEFAULT;
 }
 
-std::__cxx11::string export2_t::others()
+string export2_t::others()
 {
 	if (measurement->filename_p->not_parseable_filename_parts.size()==0) return "";
 	string others_str = tools::vec::combine_vec_to_string(measurement->filename_p->not_parseable_filename_parts,"_");
@@ -180,7 +180,7 @@ std::__cxx11::string export2_t::others()
 }
 
 
-void export2_t::check_replacements(std::__cxx11::string& check_this)
+void export2_t::check_replacements(string& check_this)
 {
 	for (auto& replacement:replacements)
 	{
@@ -189,7 +189,7 @@ void export2_t::check_replacements(std::__cxx11::string& check_this)
 }
 
 
-void export2_t::check_placeholders(std::__cxx11::string& check_this)
+void export2_t::check_placeholders(string& check_this)
 {
 	vector <string> placeholders = tools::str::get_all_string_between_string_A_and_next_B(&check_this,"{","}");
 	for (string placeholder:placeholders)
@@ -214,7 +214,7 @@ void export2_t::check_placeholders(std::__cxx11::string& check_this)
 		check_this.erase(check_this.end()-1);
 }
 
-std::__cxx11::string export2_t::root_directory()
+string export2_t::root_directory()
 {
 	string directory_p = directory_config;
 	if (directory_p!="") 
@@ -233,7 +233,7 @@ std::__cxx11::string export2_t::root_directory()
 	return directory_p;
 }
 
-std::__cxx11::string export2_t::filename(string file_ending)
+string export2_t::filename(string file_ending)
 {
 	string filename_p = filename_config;
 	if (filename_p != "") check_placeholders(filename_p);
@@ -281,7 +281,7 @@ std::__cxx11::string export2_t::filename(string file_ending)
 ////////////// ORIGIN ///////////////////
 /////////////////////////////////////////
 
-set<std::__cxx11::string> origin_t::root_directories(measurement_group_t& MG)
+set<string> origin_t::root_directories(measurement_group_t& MG)
 {
 	set<string> root_directories;
 	for (auto& measurement: MG.measurements)
@@ -292,7 +292,7 @@ set<std::__cxx11::string> origin_t::root_directories(measurement_group_t& MG)
 	return root_directories;
 }
 
-void origin_t::apply_origin_replacements_on_string(std::__cxx11::string& replace_this)
+void origin_t::apply_origin_replacements_on_string(string& replace_this)
 {
 	smatch match;
 	string placeholder;
@@ -342,7 +342,7 @@ string origin_t::suffix()
 	return suffix;
 }
 
-origin_t::column_t::column_t(vector<std::__cxx11::string> data_p, std::__cxx11::string longname_p, std::__cxx11::string unit_p, std::__cxx11::string comment_p)
+origin_t::column_t::column_t(vector<string> data_p, string longname_p, string unit_p, string comment_p)
 {
 	if (data_p.size()==0) return;
 	longname=longname_p;
@@ -365,7 +365,7 @@ origin_t::column_t::column_t(quantity_t quantity, string suffix, string prefix)
 	return;
 }
 
-origin_t::column_t::column_t(std::__cxx11::string longname, quantity_t quantity, std::__cxx11::string suffix, string prefix)
+origin_t::column_t::column_t(string longname, quantity_t quantity, string suffix, string prefix)
 {
 	column_t col(quantity,suffix,prefix);
 	col.longname = longname;
@@ -403,17 +403,15 @@ origin_t::column_t::column_t(cluster_t* cluster, quantity_t* quantity, string su
 	
 	vector<isotope_t> isotopes;
 	isotopes = cluster->isotopes;
-	if (quantity->name.find("concentration")!=string::npos && isotopes.size()>1)
-	{
-		// remove any matrix isotopes from the list of isotopes in this cluster
-		set<isotope_t> s = cluster->measurement->measurement_group->reference_matrix_isotopes();
-		vector<isotope_t> v(s.begin(),s.end());
-		isotopes = cluster->leftover_elements(v);
-	}
 	
-// 	cout << "isotopes.size()\t" << isotopes.size()  << endl;
-// 	for (auto& isotope:isotopes)
-// 		isotope.to_screen();
+	// remove any matrix isotopes from the list of isotopes in this cluster: "74Ge 31P" --> "31P"
+// 	if (quantity->name.find("concentration")!=string::npos && isotopes.size()>1)
+// 	{
+// 		// remove any matrix isotopes from the list of isotopes in this cluster
+// 		set<isotope_t> s = cluster->measurement->measurement_group->reference_matrix_isotopes();
+// 		vector<isotope_t> v(s.begin(),s.end());
+// 		isotopes = cluster->leftover_elements(v);
+// 	}
 	
 	if (isotopes.size()>0)
 	{
@@ -692,6 +690,7 @@ void origin_t::export_to_files(measurement_group_t& MG_p)
 			cout << "SUCCESS!\t" << origin.root_directory() << origin.filename() << endl;
 		else
 			cout << "failed" << endl;
+// 		cout << measurement->crater.sputter_rate().to_str() << endl;
 	}
 	
 	if (export_MG_parameters)
@@ -716,7 +715,7 @@ void origin_t::export_to_files(measurement_group_t& MG_p)
 	}
 }
 
-vector<std::__cxx11::string> origin_t::quantity_data_to_string(quantity_t& q)
+vector<string> origin_t::quantity_data_to_string(quantity_t& q)
 {
 	if (q.data.size()==0) return {};
 	

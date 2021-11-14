@@ -105,10 +105,10 @@ int config_t::parse(vector<string> config_lines) {
         else if (key=="replace" || key=="replacements") 											export2_t::replacements [ string_parts[1] ] = string_parts[2];
 		else if (key=="data_column_delimiter") 														export2_t::data_column_delimiter=value;
 		
-// 		else if (key=="SR_polynom_rank") 														calc_models_t::jiang_t::SR_polynom_rank=tools::str::str_to_double(value);
-// 		else if (key=="Crel_polynom_rank") 														calc_models_t::jiang_t::Crel_polynom_rank=tools::str::str_to_double(value);
-// 		else if (key=="RSF_polynom_rank") 														calc_models_t::jiang_t::RSF_polynom_rank=tools::str::str_to_double(value);
-		
+		else if (key == "dose_or_max_treshold")														 cluster_t::dose_or_Max__treshold = tools::str::str_to_int(value);
+		else if (key == "sr_polynom_rank")														calc_models_t::jiang_t::SR_polynom_rank = tools::str::str_to_int(value);
+		else if (key == "crel_polynom_rank")													calc_models_t::jiang_t::Crel_polynom_rank = tools::str::str_to_int(value);
+		else if (key == "rsf_polynom_rank")														calc_models_t::jiang_t::RSF_polynom_rank = tools::str::str_to_int(value);
 		else if (key=="measurement_group_definition") 												save_measurement_group_definition(value);
 		else if (key=="measurement_definition") 													save_measurement_definition(value);
 		else if (key=="export_columns" || key=="export_column_names")								save_export_column_names(value);
@@ -134,14 +134,14 @@ void config_t::save_test(string value)
 }
 
 
-void config_t::save_export_column_names(std::__cxx11::string value)
+void config_t::save_export_column_names(string value)
 {
 	tools::str::remove_spaces(&value);
 	export2_t::export_column_names = tools::str::get_strings_between_delimiter(value,"+");
 	tools::str::remove_spaces(&export2_t::export_column_names);
 }
 
-void config_t::save_measurement_group_definition(std::__cxx11::string value)
+void config_t::save_measurement_group_definition(string value)
 {
 	tools::str::remove_spaces(&value);
 	vector<string> definitions = tools::str::get_strings_between_delimiter(value,"+");

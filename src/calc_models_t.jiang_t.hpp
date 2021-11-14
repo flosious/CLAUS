@@ -32,9 +32,9 @@ class calc_models_t::jiang_t
 	/// just for debugging, please remove !!
 		friend class config_t;
 private:
-// 	static int SR_polynom_rank;
-// 	static int Crel_polynom_rank ;
-// 	static int RSF_polynom_rank ;
+	static int SR_polynom_rank;
+	static int Crel_polynom_rank;
+	static int RSF_polynom_rank;
 	
 	int polynom_rank(pair<quantity_t,quantity_t> pairs);
 	

@@ -86,6 +86,7 @@ processor::processor(vector<string> arg_list)
 	/* shake it baby! */
 	for (auto& MG:measurement_groups)
 	{
+// 		measurement_group_t MG_copy = MG;
 		calc_models_t::jiang_t jiang(MG);
 		cout <<  "measurement_group: " << MG.name() << endl;
 		cout << "{" << endl;
@@ -94,7 +95,9 @@ processor::processor(vector<string> arg_list)
 		{
 			cout << "\ttrying to apply Jiangs protocol ...";
 			if (jiang.calc())
+			{
 				cout << "SUCCESS!" <<endl;
+			}
 			else
 				cout << "failed" << endl;
 		}

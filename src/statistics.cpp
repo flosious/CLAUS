@@ -17,6 +17,60 @@
 */
 #include "statistics.hpp"
 
+vector<int> statistics::chunk_data_into_equal_bins_relative(const vector<double>& data1, const vector<double>& data2, const int bins_count)
+{
+	if (bins_count==0 || data1.size() == 0 || data2.size()==0 || data1.size()!=data2.size())
+		return {};
+	
+	vector<double> distances(data1.size());
+	
+	for (int i=0;i<data1.size();i++)
+		distances.at(i)=sqrt(pow(data1.at(i),2)+pow(data2.at(i),2));
+	
+	return chunk_data_into_equal_bins_relative(distances,bins_count);
+}
+
+vector<int> statistics::chunk_data_into_equal_bins_relative(const vector<double>& data, const int bins_count)
+{
+	if (data.size()==0 || bins_count == 0 || bins_count > data.size())
+		return {};
+	auto MIN = data.at(get_min_index_from_Y(data));
+	auto MAX = data.at(get_max_index_from_Y(data))*1.01; // make it a little bit bigger, so every data fits in
+	vector<double> bins(bins_count);
+	double bins_size = (MAX-MIN)/bins_count;
+	for (int i=0;i<bins_count;i++)
+	{
+		bins.at(i*bins_size+MIN);
+	}
+	return chunk_data_into_bins(data,bins);
+}
+
+vector<int> statistics::chunk_data_into_bins(const vector<double>& data1, const vector<double>& data2, vector<double> bins)
+{
+	if (bins.size() == 0 || data1.size() == 0 || data2.size()==0 || data1.size()!=data2.size())
+		return {};
+	
+	vector<double> distances(data1.size());
+	
+	for (int i=0;i<data1.size();i++)
+		distances.at(i)=sqrt(pow(data1.at(i),2)+pow(data2.at(i),2));
+	
+	return chunk_data_into_bins(distances,bins);
+}
+
+vector<int> statistics::chunk_data_into_bins(const vector<double>& data, vector<double> bins)
+{
+	vector<int> count_number_in_bins(0,bins.size()-1);
+	for (auto d:data)
+	{
+		for (int i=0;i<bins.size()-1;i++)
+		{
+			if (bins[i] <= d && d < bins[i+1])
+				count_number_in_bins.at(i)++;
+		}
+	}
+	return count_number_in_bins;
+}
 
 bool statistics::get_extrema_indices(vector<int>& maxIdx, vector<int>& minIdx, vector<double> Y, double treshold)
 {

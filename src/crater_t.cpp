@@ -329,7 +329,7 @@ quantity_t linescan_t::depth()
 	return linescan_depth;
 }
 
-std::__cxx11::string linescan_t::to_str(std::__cxx11::string prefix)
+string linescan_t::to_str(string prefix)
 {
 	stringstream ss;
 	ss << prefix;

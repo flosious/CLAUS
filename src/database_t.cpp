@@ -235,7 +235,7 @@ bool database_t::close() {
     return true; 
 }
 
-bool database_t::execute_sql(std::__cxx11::string sql, int (*func_ptr)(void*,int,char**,char**), void* func_arg)
+bool database_t::execute_sql(string sql, int (*func_ptr)(void*,int,char**,char**), void* func_arg)
 {
     char *zErrMsg = 0;
 	int rc = sqlite3_exec(this->DB, sql.c_str(), func_ptr, func_arg, &zErrMsg);

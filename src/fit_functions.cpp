@@ -382,7 +382,7 @@ bool fit_functions::asym2sig_t::fitted()
 	return fitted_p;
 }
 
-std::__cxx11::string fit_functions::asym2sig_t::to_str(std::__cxx11::string prefix)
+string fit_functions::asym2sig_t::to_str(string prefix)
 {
 	if (!fitted()) return "";
 	stringstream ss;

@@ -18,9 +18,9 @@
 #include "calc_models_t.jiang_t.hpp"
 #include "globalvars.hpp"
 
-// int calc_models_t::jiang_t::SR_polynom_rank = 1;
-// int calc_models_t::jiang_t::Crel_polynom_rank = 1;
-// int calc_models_t::jiang_t::RSF_polynom_rank = 1;
+int calc_models_t::jiang_t::SR_polynom_rank = 1;
+int calc_models_t::jiang_t::Crel_polynom_rank = 1;
+int calc_models_t::jiang_t::RSF_polynom_rank = 1;
 
 // vector<string> calc_history; // calc_history.push_back("crater"+"\t" + sputter_depth_p.to_str());
 
@@ -37,18 +37,27 @@ bool calc_models_t::jiang_t::is_error()
 
 int calc_models_t::jiang_t::polynom_rank(pair<quantity_t, quantity_t> pairs)
 {
+	const auto equally_filled_bins = statistics::chunk_data_into_equal_bins_relative(pairs.first.data,pairs.second.data,pairs.first.data.size());
 	int rank=0;
-	set<double> X,Y;
-	for (auto& i:pairs.second.data)
+	for (auto& bin : equally_filled_bins)
 	{
-		X.insert(round(i*10));
+		if (bin>0)
+			rank++;
 	}
-	for (auto& i:pairs.first.data)
-	{
-		Y.insert(round(i*10));
-	}
+	
+	return rank;
+// 	int rank=0;
+// 	set<double> X,Y;
+// 	for (auto& i:pairs.second.data)
+// 	{
+// 		X.insert(round(i*10));
+// 	}
+// 	for (auto& i:pairs.first.data)
+// 	{
+// 		Y.insert(round(i*10));
+// 	}
 // 	if (X.size()>Y.size()) return Y.size()-1;
-	return X.size()-1;
+// 	return X.size()-1;
 }
 
 
@@ -66,30 +75,20 @@ bool calc_models_t::jiang_t::calc()
 	{
 		data_XY.clear();
 		
-// 		set<double> SRs_unique(SRs_to_Crel_p.first.data.begin(),SRs_to_Crel_p.first.data.end());
-// 		cout << "SRs_unique.size() = " << SRs_unique.size() << endl;
 		tools::vec::combine_vecs_to_map(SRs_to_Crel().second.data,SRs_to_Crel().first.data,&data_XY);
 		if (data_XY.size()>1) 
 		{
-			const int rank = polynom_rank(SRs_to_Crel());
-			if (rank>2)
+// 			const int rank = polynom_rank(SRs_to_Crel());
+			const int rank = SR_polynom_rank;
+			calc_history.push_back("SR_polynom_rank=" + to_string(SR_polynom_rank));
+			if (rank==-1)
 			{
 				SR_to_Crel_exp_decay.fit(data_XY);
 			}
-			/*maximum grade 2 (parabolic)*/
-			else if (rank>1)
+			else
 			{
-// 				cout << "parabolic" << endl;
-				SR_to_Crel_polyfit.fit(data_XY,2); //2
+				SR_to_Crel_polyfit.fit(data_XY,rank); //2
 			}
-			else 
-			{
-// 				cout << "linear" << endl;
-				SR_to_Crel_polyfit.fit(data_XY,1);
-			}
-// 			cout << "SR_to_Crel_polyfit.fit_parameters" <<endl;
-// 			for (int i=0;i<SR_to_Crel_polyfit.fit_parameters.size();i++)
-// 				cout << "param["<<i<<"]="<<SR_to_Crel_polyfit.fit_parameters[i] << endl;
 		}
 	}
 	
@@ -103,9 +102,10 @@ bool calc_models_t::jiang_t::calc()
 		{
 			/*maximum grade 2 (parabolic)*/
 // 			cout << "polynom_rank(Crel_to_Irel())=" << polynom_rank(Crel_to_Irel()) << endl;
-			if (polynom_rank(Crel_to_Irel())>1) CRel_to_Irel_polyfit.fit(data_XY,2); //2
-			else CRel_to_Irel_polyfit.fit(data_XY,1);
-// 			if (data_XY.size()>0) CRel_to_Irel_linfit.fit(data_XY);
+// 			if (polynom_rank(Crel_to_Irel())>1) CRel_to_Irel_polyfit.fit(data_XY,2); //2
+// 			else CRel_to_Irel_polyfit.fit(data_XY,1);
+			calc_history.push_back("Crel_polynom_rank=" + to_string(Crel_polynom_rank));
+			CRel_to_Irel_polyfit.fit(data_XY,Crel_polynom_rank);
 		}
 	}
 	
@@ -121,8 +121,10 @@ bool calc_models_t::jiang_t::calc()
 			if (data_XY.size()>1) 
 			{
 				/*maximum grade 2 (parabolic)*/
-				if (polynom_rank(RSFs_to_Crel.second)>2) clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,2);
-				else clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,polynom_rank(RSFs_to_Crel.second));
+// 				if (polynom_rank(RSFs_to_Crel.second)>2) clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,2);
+// 				else clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,polynom_rank(RSFs_to_Crel.second));
+				calc_history.push_back("RSF_polynom_rank=" + to_string(RSF_polynom_rank));
+				clustername_to_RSFs_to_Crel_polyfit[RSFs_to_Crel.first].fit(data_XY,RSF_polynom_rank);
 			}
 		}
 	}
@@ -312,7 +314,7 @@ map<string,pair<quantity_t,quantity_t>> calc_models_t::jiang_t::clustername_to_R
 	return clustername_to_RSFs_to_Crel_p;
 }
 
-pair<quantity_t, quantity_t> calc_models_t::jiang_t::RSFs_to_Crel ( std::__cxx11::string cluster_name )
+pair<quantity_t, quantity_t> calc_models_t::jiang_t::RSFs_to_Crel ( string cluster_name )
 {
 	if (clustername_to_RSFs_to_Crel().find(cluster_name)!=clustername_to_RSFs_to_Crel().end()) return clustername_to_RSFs_to_Crel()[cluster_name];
 	return {quantity_t(),quantity_t()};

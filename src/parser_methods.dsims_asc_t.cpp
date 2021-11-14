@@ -26,7 +26,7 @@ dsims_asc_t::dsims_asc_t() : parser_methods()
 }
 
 /// Order is important
-bool dsims_asc_t::parse(filename_t* filename_p, std::__cxx11::string* contents)
+bool dsims_asc_t::parse(filename_t* filename_p, string* contents)
 {
 	filename = filename_p;
 	file_contents = contents;

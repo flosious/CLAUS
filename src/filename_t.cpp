@@ -25,7 +25,7 @@ filename_t::filename_t(string filename_p, string delimiter_p)
 	parse_filename_parts();
 }
 
-std::__cxx11::string filename_t::type_ending(std::__cxx11::string delimiter)
+string filename_t::type_ending(string delimiter)
 {
 	return tools::file::extract_filetype_ending(filename_with_path_p,delimiter);
 }
@@ -186,7 +186,7 @@ bool filename_t::parse_sputter_energy(string filename_part)
 bool filename_t::parse_lot(string filename_part)
 {
 	smatch match;
-	regex reg ("^([A-Z]{1,4}[0-9]{1,5})([#[0-9A-Za-z]*?]*?)$"); 
+	regex reg ("^([A-Z]{1,4}[0-9]{1,5})(#[[0-9A-Za-z]*?]*?)$"); 
 	if (regex_search(filename_part,match,reg)) 
 	{
 		lot = match[1];
@@ -280,7 +280,7 @@ void filename_t::to_screen(string prefix)
 	print(not_parseable_filename_parts);
 }
 
-std::__cxx11::list< filename_t > filename_t::parse(std::vector< std::__cxx11::string > filenames_with_path, std::__cxx11::string delimiter)
+std::__cxx11::list< filename_t > filename_t::parse(std::vector< string > filenames_with_path, string delimiter)
 {
 	list<filename_t> filenames;
 	for (auto& fname:filenames_with_path)

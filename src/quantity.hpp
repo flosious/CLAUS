@@ -78,6 +78,8 @@ public:
 	quantity_t median();
 	quantity_t mean();
 	quantity_t trimmed_mean(float alpha=0.25);
+	///trimmed_mean of last 50% of data (unsorted)
+	quantity_t trimmed_mean_reduced();
 	quantity_t gastwirth();
 	quantity_t sd();
 	quantity_t mad();
@@ -94,7 +96,7 @@ public:
 	/// point by point integration
 	quantity_t integrate_pbp(quantity_t x_data);
 	
-	
+	quantity_t log10();
 	
 	quantity_t fit_polynom_by_x_data(quantity_t x_data, quantity_t new_x_data, int polynom_grade=-1 );
 	quantity_t polyfit(int polynom_grade=-1);
@@ -104,6 +106,8 @@ public:
 	quantity_t filter_impulse(int window_size=0, float factor=4);
 	quantity_t filter_gaussian(int window_size=0, double alpha=1);
 	
+	
+	quantity_t remove_data_by_index(unsigned int start, unsigned int stop);
 	
 	
 	/// check whether resignation dim1 and dim2 belong to the same dimension

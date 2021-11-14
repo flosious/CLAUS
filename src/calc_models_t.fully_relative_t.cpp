@@ -18,7 +18,7 @@
 #include "calc_models_t.fully_relative_t.hpp"
 // #include "globalvars.hpp"
 // 
-// vector<std::__cxx11::string> calc_models_t::fully_relative_t::error_messages()
+// vector<string> calc_models_t::fully_relative_t::error_messages()
 // {
 // 	return error_messages_p;
 // }

@@ -74,11 +74,11 @@ int measurement_t::chip_y()
 {
 	return filename_p->chip_y;
 }
-std::__cxx11::string measurement_t::lot()
+string measurement_t::lot()
 {
 	return filename_p->lot;
 }
-std::__cxx11::string measurement_t::monitor()
+string measurement_t::monitor()
 {
 	return filename_p->monitor;
 }
@@ -107,16 +107,16 @@ int measurement_t::olcdb()
 {
 	return filename_p->olcdb;
 }
-std::__cxx11::string measurement_t::tool_name()
+string measurement_t::tool_name()
 {
 	return tool_name_p;
 }
-std::__cxx11::string measurement_t::repetition()
+string measurement_t::repetition()
 {
 	return filename_p->repetition;
 }
 
-std::__cxx11::string measurement_t::to_str(std::__cxx11::string prefix)
+string measurement_t::to_str(string prefix)
 {
 	stringstream ss;
 	ss << endl;
@@ -179,6 +179,7 @@ void measurement_t::to_screen(vector<measurement_t>* measurements)
 bool measurement_t::load_from_database()
 {
 	if (loaded_from_database) return true;
+// 	cout << "measurement_t::load_from_database: " << lot() << " " << wafer() << " " << settings.sputter_element() << endl;
 	std::string sql1, sql2;
 	sql1 = "SELECT * FROM " \
 			TABLENAME_everything \
@@ -291,7 +292,7 @@ vector<cluster_t*> measurement_t::reference_clusters()
 	return reference_clusters_p;
 }
 
-vector<std::__cxx11::string> measurement_t::error_messages()
+vector<string> measurement_t::error_messages()
 {
 	return error_messages_p;
 }

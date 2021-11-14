@@ -18,7 +18,7 @@
 #include "quantity.hpp"
 
 
-void quantity_t::reduce_string(std::__cxx11::string reduce_this)
+void quantity_t::reduce_string(string reduce_this)
 {
 	// (length)^(-3)/time*amount/(current/intensity)
 // 	set<string> operators={"*","/"};
@@ -59,7 +59,7 @@ void quantity_t::to_screen(string prefix)
 
 string quantity_t::to_str(string prefix)
 {
-	if (name=="") return "";
+// 	if (name=="") return "";
 	stringstream ss;
 	ss << prefix;
 	ss << name;
@@ -100,7 +100,7 @@ bool quantity_t::is_same_dimension(quantity_t* quantity_p)
 	return are_same_dimensions(dimension,quantity_p->dimension);
 }
 
-bool quantity_t::is_same_dimension(std::__cxx11::string dimension_p)
+bool quantity_t::is_same_dimension(string dimension_p)
 {
 	return are_same_dimensions(dimension,dimension_p);
 }
@@ -165,6 +165,21 @@ quantity_t quantity_t::integrate_pbp(quantity_t x_data)
         area.data[i] = sum; 
     }
 	return area;
+}
+
+quantity_t quantity_t::log10()
+{
+	if (data.size()==0)
+		return {};
+	quantity_t out = *this;
+	for (auto& o : out.data)
+	{
+		if (o>0)
+			o = std::log10(o);
+		else
+			o = 0;
+	}
+	return out;
 }
 
 quantity_t quantity_t::integrate(quantity_t x_data, double lower_X_limit, double upper_X_limit)
@@ -282,6 +297,11 @@ quantity_t quantity_t::trimmed_mean(float alpha)
 	return tr_mean;
 }
 
+quantity_t quantity_t::trimmed_mean_reduced()
+{
+	return remove_data_by_index(0,data.size()/2).trimmed_mean();
+}
+
 quantity_t quantity_t::gastwirth()
 {
 	quantity_t gastw;
@@ -369,16 +389,25 @@ quantity_t quantity_t::max()
 	max.unit=unit;
 	max.dimension=dimension;
 	max.name="max("+name+")";
-	if (max_s>-1)
-	{
-		max.data.push_back(max_s);
-		return max;
-	}
+// 	if (max_s>-1)
+// 	{
+// 		max.data.push_back(max_s);
+// 		return max;
+// 	}
 	int max_index = statistics::get_max_index_from_Y(data);
+// 	cout << endl << "max_index=" << max_index << endl;
 	if (max_index>=0) max.data={data[max_index]};
 	else max.data={};
-	if (max_index>data.size()-2) return {}; 
-	if (max_index<2) return {}; 
+// 	if (max_index>data.size()-2) 
+// 	{
+// 		cout << endl <<  "quantity_t::max()\tindex>data.size()-2" << endl;
+// 		return {}; 
+// 	}
+// 	if (max_index<2) 
+// 	{
+// 		cout << endl << "quantity_t::max()\tmax_index<2" << endl;
+// 		return {}; 
+// 	}
 	return max;
 }
 
@@ -399,7 +428,7 @@ quantity_t quantity_t::min()
 bool quantity_t::is_set()
 {
 	if (data.size()==0) return false;
-	if (dimension.length()==0) return false;
+// 	if (dimension.length()==0) return false;
 	if (unit.length()==0) return false;
 	return true;
 }
@@ -451,6 +480,27 @@ quantity_t quantity_t::add_to_data(quantity_t quantity_p)
 	quantity_t result = *this;
 	tools::vec::add(&result.data,quantity_p.data);
 	return result;
+}
+
+quantity_t quantity_t::remove_data_by_index(unsigned int start, unsigned int stop)
+{
+	if (!is_set())
+		return {};
+	if (start<0)
+		start=0;
+	if (start>=data.size())
+	{
+// 		logger::error("quantity_t::remove_data_by_index()","start>=data.size()","","return empty");
+		return {};
+	}
+	if (stop>data.size())
+	{
+		stop=data.size();
+	}
+	quantity_t copy = *this;
+
+	copy.data.erase(copy.data.begin()+start,copy.data.begin()+stop);
+	return copy;
 }
 
 quantity_t quantity_t::remove_from_data(quantity_t& quantity)

@@ -17,14 +17,14 @@
 */
 #include "measurement_settings_t.hpp"
 
-std::__cxx11::string measurement_settings_t::polarity()
+string measurement_settings_t::polarity()
 {
 	if (polarity_p!="") return polarity_p;
 	if (filename!=nullptr && filename->polarity!="") return filename->polarity;
 	return "";
 }
 
-std::__cxx11::string measurement_settings_t::sputter_element()
+string measurement_settings_t::sputter_element()
 {
 	if (sputter_element_p!="") return sputter_element_p;
 	if (filename!=nullptr && filename->sputter_element!="") return filename->sputter_element;
@@ -38,7 +38,7 @@ quantity_t measurement_settings_t::sputter_energy()
 	return quantity_t();
 }
 
-void measurement_settings_t::to_screen(std::__cxx11::string prefix)
+void measurement_settings_t::to_screen(string prefix)
 {
 	cout << prefix << "polarity = " << polarity() << endl;
 	cout << prefix << "sputter_element = " << sputter_element() << endl;

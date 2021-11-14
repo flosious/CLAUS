@@ -112,6 +112,14 @@ public:
     static vector<double> interpolate_dataXY_to_X(vector<vector<double>> data_XY, vector<double> X);
     static vector<vector<double>> truncate_mat_by_limit_in_col(vector<vector<double>> *data_XY, double limit, int col);
     
+	///putting data1 and data2 into their belonging bins; bins={0,1,10,50,100} -> [0,1],[1,10],[10,50],[50,100] ;2 dimensional using radius; chunk_data_into_bins.size() = bins.size()-1
+	static vector<int> chunk_data_into_bins(const vector<double>& data1, const vector<double>& data2, vector<double> bins);
+	///putting data1 and data2 into their belonging bins; bins={0,1,10,50,100} -> [0,1],[1,10],[10,50],[50,100]; chunk_data_into_bins.size() = bins.size()-1
+	static vector<int> chunk_data_into_bins(const vector<double>& data, vector<double> bins);
+	///like chunk_data_into_bins, but bins are relative to data and equal in size: bins=4 --> [MIN,0.25*(MAX-MIN)],[0.25,0.5]*(MAX-MIN),[0.5,0.75]*(MAX-MIN),[0.75(MAX-MIN),MAX]
+	static vector<int> chunk_data_into_equal_bins_relative(const vector<double>& data1, const vector<double>& data2, const int bins_count);
+	static vector<int> chunk_data_into_equal_bins_relative(const vector<double>& data, const int bins_count);
+	
     static int get_index_for_next_value_lower_than_treshold(vector<double> Y,double treshold, int start=0, int ende=0);
 	static int get_index_for_next_value_higher_than_treshold(vector<double> Y,double treshold, int start=0, int ende=0);
     static int get_index_for_next_value_within_treshold(vector<double> Y,double treshold_bottom, double treshold_top, int start=0, int ende=0);

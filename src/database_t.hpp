@@ -85,7 +85,7 @@ private:
 public:
 	bool open();
     
-	bool execute_sql(std::__cxx11::string sql, int (*func_ptr)(void*,int,char**,char**)=NULL, void* func_arg=nullptr);
+	bool execute_sql(string sql, int (*func_ptr)(void*,int,char**,char**)=NULL, void* func_arg=nullptr);
 	database_t();
 	~database_t();
 	vector<string> get_error_messages();

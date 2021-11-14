@@ -85,7 +85,7 @@ bool sample_t::matrix_t::set_isotopes_from_name(string name)
 }
 
 
-// vector<std::__cxx11::string> sample_t::matrix_t::element_symbols()
+// vector<string> sample_t::matrix_t::element_symbols()
 // {
 // 	if (element_symbols_p.size()>0) return element_symbols_p;
 // 	string rest = name_p;
@@ -106,7 +106,7 @@ bool sample_t::matrix_t::set_isotopes_from_name(string name)
 // }
 
 
-std::__cxx11::string sample_t::matrix_t::name()
+string sample_t::matrix_t::name()
 {
 	if (isotopes().size()==0) return "";
 	string result;
@@ -172,7 +172,7 @@ bool sample_t::matrix_t::operator<(const matrix_t& matrix) const
 
 
 
-std::__cxx11::string sample_t::name()
+string sample_t::name()
 {
 	std::stringstream name;
 	name << lot() << lot_split() << "_w" << wafer() << "_c" << chip_x() <<"-"<< chip_y() << "_" <<  monitor();
@@ -211,7 +211,7 @@ list<sample_t> sample_t::samples(list<filename_t> *filenames)
 	return samples;
 }
 
-void sample_t::to_screen(std::__cxx11::string prefix)
+void sample_t::to_screen(string prefix)
 {
 	cout << prefix << "lot = " << lot() << endl;
 	cout << prefix << "lot_split = " << lot_split() << endl;
@@ -227,12 +227,12 @@ void sample_t::to_screen(std::__cxx11::string prefix)
 	}
 }
 
-std::__cxx11::string sample_t::lot()
+string sample_t::lot()
 {
 	return lot_p;
 }
 
-std::__cxx11::string sample_t::lot_split()
+string sample_t::lot_split()
 {
 	return lot_split_p;
 }
@@ -247,7 +247,7 @@ int sample_t::chip_y()
 	return chip_y_p;
 }
 
-std::__cxx11::string sample_t::monitor()
+string sample_t::monitor()
 {
 	return monitor_p;
 }

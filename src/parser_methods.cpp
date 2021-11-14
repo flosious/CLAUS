@@ -120,7 +120,7 @@ vector<string> parser_methods::get_error_messages()
 	return error_messages;
 }
 
-std::__cxx11::string parser_methods::get_tool_name()
+string parser_methods::get_tool_name()
 {
 	return tool_name;
 }

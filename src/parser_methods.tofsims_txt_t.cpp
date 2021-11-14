@@ -127,7 +127,6 @@ bool tofsims_txt_t::parse_cluster()
 	//fast fix because of tof-sims software version 7
 	if (rht_pos==0)
 	{
-		print(raw_header_tensor);
 		cluster_names=raw_header_tensor[0].at(1);
 		dimension_names = raw_header_tensor[0].at(3);
 	}

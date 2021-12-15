@@ -44,7 +44,7 @@ processor::processor(vector<string> arg_list)
 			"under certain conditions; See GPLv3\n";
 	#endif
 	cout << intro << endl;
-	cout << "Version 2021-05-29_10	Gold" << endl;
+	cout << "Version 2021-12-15_11	Gold" << endl;
 	cout << "see https://github.com/flosious" << endl << endl;
 	cout << "use the same clusters in each measurement within one common measurement group" << endl;
 	cout << "cluster names must be unique for each isotope ((e.g. just \"11B 28Si\") for \"11B\") (bijective transformation)" << endl;

@@ -151,10 +151,21 @@ bool calc_models_t::jiang_t::calc()
 		if (measurement->clusters.find(counter_cluster_name)==measurement->clusters.end()) continue;
 		if (measurement->clusters.find(denominator_cluster_name)==measurement->clusters.end()) continue;
 		
-		
 		/*matrix concentrationS*/
 		quantity_t Crel_p = Crel_to_Irel().first;
-		if (Irel(measurement).is_set()) Crel_p.data=CRel_to_Irel_polyfit.fitted_y_data(Irel(measurement).data);
+		if (Irel(measurement).is_set()) 
+		{
+			Crel_p.data=CRel_to_Irel_polyfit.fitted_y_data(Irel(measurement).data);
+			//check Crel_p for NaN values and set them to 0, effectivly making it identical to its counter matrix elemental concentration; quick fix 2021-11-16
+			for (int i=0; i<Crel_p.data.size();i++)
+			{
+				if (isnan(Crel_p.data.at(i)) || Crel_p.data.at(i) < 0 || isinf(Crel_p.data.at(i))) 
+				{
+					Crel_p.data.at(i) = 0;
+				}
+			}
+			/*********************************************/
+		}
 		else 
 		{
 			if (measurement->clusters[counter_cluster_name].concentration().is_set())

@@ -127,8 +127,14 @@ bool tofsims_txt_t::parse_cluster()
 	//fast fix because of tof-sims software version 7
 	if (rht_pos==0)
 	{
-		cluster_names=raw_header_tensor[0].at(1);
-		dimension_names = raw_header_tensor[0].at(3);
+		int lines_ = raw_header_tensor[0].size();
+		if (lines_<3)
+		{
+			error_messages.push_back("tofsims_txt_t::parse_cluster() - lines_ < 3"  + filename->filename());
+			return false;
+		}
+		cluster_names=raw_header_tensor[0].at(lines_-3);
+		dimension_names = raw_header_tensor[0].at(lines_-1);
 	}
 	else
 	{

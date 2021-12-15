@@ -1,7 +1,7 @@
 /* 
  * 	CLever AUtomated Scientist
- * 	Version 2020-08-02_9	BETA
- * 	Florian Bärwolf 2017,2018,2019,2020
+ * 	Version 2021-12-15_11	Gold
+ * 	Florian Bärwolf 2017,2018,2019,2020,2021
  *	
  * 
  *  Copyright (C) 2020 Florian Bärwolf
